@@ -1,0 +1,105 @@
+:host {
+    display: block;
+    height: 100%;
+    background: radial-gradient(ellipse at center, #0056b9, #13243c 70%);
+    color: #fff;
+    font-family: 'Titillium_Web-Regular', sans-serif;
+    overflow: hidden;
+}
+
+.login-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+    height: 100%;
+}
+
+.login-container .login-message {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    .logo {
+        width: 300px;
+        height: 200px;
+    }
+
+    label {
+        font-size: 64px;
+    }
+}
+
+.login-container .login-box {
+    background-color: rgba(0, 25, 53, 0.63);
+    border-radius: 2px;
+    width: 400px;
+    padding: 5px 15px 10px 15px;
+
+    form {
+        display: flex;
+        flex-direction: column;
+
+        .login-lbl {
+            font-size: 32px;
+        }
+
+        label {
+            font-size: 16px;
+            margin: 5px 0 5px 0;
+        }
+
+        input {
+            padding: 10px;
+            background-color: rgba(0, 17, 36, 0.81);
+            border: 1px solid transparent;
+            color: white;
+            font-size: 16px;
+            border-radius: 2px;
+            margin-bottom: 5px;
+        }
+
+        input:focus {
+            outline: none;
+            border: 1px solid #3892d4;
+        }
+
+        .password-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+
+            .forgot-link {
+                font-size: 12px;
+                color: #b3d1ff;
+            }
+        }
+
+        button {
+            margin-top: 10px;
+            padding: 10px;
+            background-color: white;
+            color: #004697;
+            font-weight: bold;
+            font-size: 16px;
+            border: none;
+            border-radius: 2px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #d0dfff;
+        }
+    }
+
+    .register-link {
+        margin-top: 10px;
+        font-size: 16px;
+        text-align: center;
+
+        a {
+            margin-left: 4px;
+            color: #b3d1ff;
+        }
+    }
+}

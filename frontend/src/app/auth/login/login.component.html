@@ -1,0 +1,28 @@
+<div class="login-container">
+    <div class="login-message">
+        <app-icon class="logo" src="assets/svg/quiz_logo_icon.svg"
+            color="#3892d4"></app-icon>
+        <label>Welcome to Quiz App</label>
+    </div>
+    <div class="login-box">
+        <form (ngSubmit)="onSubmit()" #loginForm="ngForm">
+            <label class="login-lbl">Log in</label>
+
+            <label for="usernameOrEmail">Username or email address</label>
+            <input id="usernameOrEmail" name="usernameOrEmail" type="text" [(ngModel)]="usernameOrEmail" required />
+
+            <div class="password-row">
+                <label for="password">Password</label>
+                <a class="forgot-link" href="#">Forgot password?</a>
+            </div>
+            <input id="password" name="password" type="password" [(ngModel)]="password" required />
+
+            <button type="submit" [disabled]="!loginForm.form.valid">Log in</button>
+        </form>
+
+        <div class="register-link">
+            <span>New to Quiz App?</span>
+            <a href="#">Create an account</a>
+        </div>
+    </div>
+</div>

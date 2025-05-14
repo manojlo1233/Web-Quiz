@@ -1,0 +1,164 @@
+-- --------------------------------------------------------
+-- Host:                         127.0.0.1
+-- Server version:               8.2.0 - MySQL Community Server - GPL
+-- Server OS:                    Win64
+-- HeidiSQL Version:             12.6.0.6765
+-- --------------------------------------------------------
+
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET NAMES utf8 */;
+/*!50503 SET NAMES utf8mb4 */;
+/*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
+/*!40103 SET TIME_ZONE='+00:00' */;
+/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
+/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
+/*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
+
+
+-- Dumping database structure for webquiz
+CREATE DATABASE IF NOT EXISTS `webquiz` /*!40100 DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci */ /*!80016 DEFAULT ENCRYPTION='N' */;
+USE `webquiz`;
+
+-- Dumping structure for table webquiz.answers
+CREATE TABLE IF NOT EXISTS `answers` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `question_id` int NOT NULL,
+  `content` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '0',
+  `index` tinyint NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `question_id` (`question_id`),
+  CONSTRAINT `answers_ibfk_1` FOREIGN KEY (`question_id`) REFERENCES `questions` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- Dumping data for table webquiz.answers: ~0 rows (approximately)
+
+-- Dumping structure for table webquiz.battles
+CREATE TABLE IF NOT EXISTS `battles` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `quiz_id` int NOT NULL,
+  `player1_id` int NOT NULL,
+  `player2_id` int NOT NULL,
+  `winner_id` int DEFAULT NULL,
+  `started_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  `ended_at` datetime DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `quiz_id` (`quiz_id`),
+  KEY `player1_id` (`player1_id`),
+  KEY `player2_id` (`player2_id`),
+  KEY `winner_id` (`winner_id`),
+  CONSTRAINT `battles_ibfk_1` FOREIGN KEY (`quiz_id`) REFERENCES `quizzes` (`id`),
+  CONSTRAINT `battles_ibfk_2` FOREIGN KEY (`player1_id`) REFERENCES `users` (`id`),
+  CONSTRAINT `battles_ibfk_3` FOREIGN KEY (`player2_id`) REFERENCES `users` (`id`),
+  CONSTRAINT `battles_ibfk_4` FOREIGN KEY (`winner_id`) REFERENCES `users` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- Dumping data for table webquiz.battles: ~0 rows (approximately)
+
+-- Dumping structure for table webquiz.categories
+CREATE TABLE IF NOT EXISTS `categories` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `name` varchar(100) COLLATE utf8mb4_general_ci NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `name` (`name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- Dumping data for table webquiz.categories: ~0 rows (approximately)
+
+-- Dumping structure for table webquiz.questions
+CREATE TABLE IF NOT EXISTS `questions` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `quiz_id` int NOT NULL,
+  `content` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '0',
+  `correct_index` tinyint NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `quiz_id` (`quiz_id`),
+  CONSTRAINT `questions_ibfk_1` FOREIGN KEY (`quiz_id`) REFERENCES `quizzes` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- Dumping data for table webquiz.questions: ~0 rows (approximately)
+
+-- Dumping structure for table webquiz.quizzes
+CREATE TABLE IF NOT EXISTS `quizzes` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `title` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
+  `category_id` int NOT NULL,
+  `difficulty` int NOT NULL DEFAULT (0),
+  `time_per_q` int NOT NULL DEFAULT (10),
+  `created_by` int NOT NULL,
+  `is_active` tinyint(1) NOT NULL DEFAULT '1',
+  PRIMARY KEY (`id`),
+  KEY `category_id` (`category_id`),
+  KEY `created_by` (`created_by`),
+  CONSTRAINT `quizzes_ibfk_1` FOREIGN KEY (`category_id`) REFERENCES `categories` (`id`),
+  CONSTRAINT `quizzes_ibfk_2` FOREIGN KEY (`created_by`) REFERENCES `users` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- Dumping data for table webquiz.quizzes: ~0 rows (approximately)
+
+-- Dumping structure for table webquiz.quiz_attempts
+CREATE TABLE IF NOT EXISTS `quiz_attempts` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `user_id` int NOT NULL,
+  `quiz_id` int NOT NULL,
+  `score` int DEFAULT '0',
+  `time_taken` int DEFAULT '0',
+  `started_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  `completed_at` datetime DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `user_id` (`user_id`),
+  KEY `quiz_id` (`quiz_id`),
+  CONSTRAINT `quiz_attempts_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`),
+  CONSTRAINT `quiz_attempts_ibfk_2` FOREIGN KEY (`quiz_id`) REFERENCES `quizzes` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- Dumping data for table webquiz.quiz_attempts: ~0 rows (approximately)
+
+-- Dumping structure for table webquiz.quiz_responses
+CREATE TABLE IF NOT EXISTS `quiz_responses` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `attempt_id` int NOT NULL,
+  `question_id` int NOT NULL,
+  `selected_index` int NOT NULL DEFAULT (0),
+  `is_correct` tinyint(1) NOT NULL,
+  `time_taken` int NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `attempt_id` (`attempt_id`),
+  KEY `question_id` (`question_id`),
+  CONSTRAINT `quiz_responses_ibfk_1` FOREIGN KEY (`attempt_id`) REFERENCES `quiz_attempts` (`id`),
+  CONSTRAINT `quiz_responses_ibfk_2` FOREIGN KEY (`question_id`) REFERENCES `questions` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- Dumping data for table webquiz.quiz_responses: ~0 rows (approximately)
+
+-- Dumping structure for table webquiz.statistics
+CREATE TABLE IF NOT EXISTS `statistics` (
+  `user_id` int NOT NULL,
+  `total_quizzes` int DEFAULT '0',
+  `avg_score` float DEFAULT '0',
+  `avg_time` float DEFAULT '0',
+  PRIMARY KEY (`user_id`),
+  CONSTRAINT `statistics_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- Dumping data for table webquiz.statistics: ~0 rows (approximately)
+
+-- Dumping structure for table webquiz.users
+CREATE TABLE IF NOT EXISTS `users` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `username` varchar(50) COLLATE utf8mb4_general_ci NOT NULL,
+  `email` varchar(100) COLLATE utf8mb4_general_ci NOT NULL,
+  `password_hash` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
+  `role` int NOT NULL DEFAULT (0),
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `username` (`username`),
+  UNIQUE KEY `email` (`email`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- Dumping data for table webquiz.users: ~0 rows (approximately)
+
+/*!40103 SET TIME_ZONE=IFNULL(@OLD_TIME_ZONE, 'system') */;
+/*!40101 SET SQL_MODE=IFNULL(@OLD_SQL_MODE, '') */;
+/*!40014 SET FOREIGN_KEY_CHECKS=IFNULL(@OLD_FOREIGN_KEY_CHECKS, 1) */;
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40111 SET SQL_NOTES=IFNULL(@OLD_SQL_NOTES, 1) */;

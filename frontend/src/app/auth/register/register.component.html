@@ -1,1 +1,55 @@
-<p>register works!</p>
+<div class="message-container">
+    <div class="message">
+        <label style="font-size: 42px;">Create your free account</label>
+        <label>Explore the world of knowlege and fun with Quiz App!</label>
+        <label>Get access to the folowing benefits:</label>
+        <div>
+            <ul>
+                <li *ngFor="let ben of benefits">
+                    {{ben}}
+                </li>
+            </ul>
+        </div>
+
+    </div>
+    <app-icon class="logo" src="assets/svg/quiz_logo_icon.svg" color="#3892d4"></app-icon>
+</div>
+<div class="register-container">
+    <label class="have-acc">Already have an account?<span>Log in →</span></label>
+    <div class="register-box">
+        <form (ngSubmit)="onSubmit()" #registerForm="ngForm">
+            <label style="font-size: 32px;">Quiz App Registration</label>
+            <div style="display: flex; flex-direction: row; justify-content: space-between;">
+                <div class="form-input">
+                    <label for="firstName">First Name</label>
+                    <input id="firstName" name="firstName" type="text" [(ngModel)]="firstName" required placeholder="First Name"/>
+                </div>
+                <div class="form-input">
+                    <label for="secondName">SecondName</label>
+                    <input id="secondName" name="secondName" type="text" [(ngModel)]="secondName" required placeholder="Second Name"/>
+                </div>
+            </div>
+            <div class="form-input">
+                <label for="email">Email</label>
+                <input id="email" name="email" type="text" [(ngModel)]="email" required placeholder="Email"/>
+            </div>
+            <div class="form-input">
+                <label for="username">Username</label>
+                <input id="username" name="username" type="text" [(ngModel)]="username" required placeholder="Username"/>
+            </div>
+            <div class="form-input">
+                <label for="password">Password</label>
+                <input id="password" name="password" type="text" [(ngModel)]="password" required placeholder="Password"/>
+            </div>
+            <div class="form-input">
+                <label for="country">Your Country/Region</label>
+                <input id="country" name="country" type="text" [(ngModel)]="country" required />
+            </div>
+            <div class="form-input">
+                <label for="birth">Date of Birth</label>
+                <input id="birth" name="birth" type="text" [(ngModel)]="birth" required />
+            </div>
+            <button type="submit" [disabled]="!registerForm.form.valid">Register</button>
+        </form>
+    </div>
+</div>

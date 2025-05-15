@@ -15,41 +15,83 @@
     <app-icon class="logo" src="assets/svg/quiz_logo_icon.svg" color="#3892d4"></app-icon>
 </div>
 <div class="register-container">
-    <label class="have-acc">Already have an account?<span>Log in →</span></label>
+    <label class="have-acc">Already have an account?<span class="login" (click)="onLogin()">Log in →</span></label>
     <div class="register-box">
         <form (ngSubmit)="onSubmit()" #registerForm="ngForm">
             <label style="font-size: 32px;">Quiz App Registration</label>
-            <div style="display: flex; flex-direction: row; justify-content: space-between;">
+            <div style="display: flex; flex-direction: row; gap: 30px; justify-content: space-between;">
                 <div class="form-input">
-                    <label for="firstName">First Name</label>
-                    <input id="firstName" name="firstName" type="text" [(ngModel)]="firstName" required placeholder="First Name"/>
+                    <label for="firstName">First Name*</label>
+                    <input id="firstName" name="firstName" #firstNameRef="ngModel" type="text"
+                    [ngClass]="{'invalid': firstNameRef.invalid && firstNameRef.touched}"
+                     size="20" [(ngModel)]="firstName" required
+                        placeholder="First Name" />
+                        <label *ngIf="firstNameRef.invalid && firstNameRef.touched" class="error">
+                            Username cannot be blank
+                        </label>
                 </div>
                 <div class="form-input">
-                    <label for="secondName">SecondName</label>
-                    <input id="secondName" name="secondName" type="text" [(ngModel)]="secondName" required placeholder="Second Name"/>
+                    <label for="secondName">Second Name</label>
+                    <input id="secondName" name="secondName" type="text" size="20" [(ngModel)]="secondName"
+                        placeholder="Second Name" />
                 </div>
             </div>
             <div class="form-input">
-                <label for="email">Email</label>
-                <input id="email" name="email" type="text" [(ngModel)]="email" required placeholder="Email"/>
+                <label for="email">Email*</label>
+                <input id="email" name="email" #emailRef="ngModel" type="text"
+                    [ngClass]="{'invalid': emailRef.invalid && emailRef.touched}" [(ngModel)]="email" size="20" required
+                    email placeholder="Email" />
+                <label *ngIf="emailRef.invalid && emailRef.touched" class="error">
+                    Please enter a valid email.
+                </label>
             </div>
             <div class="form-input">
-                <label for="username">Username</label>
-                <input id="username" name="username" type="text" [(ngModel)]="username" required placeholder="Username"/>
+                <label for="username">Username*</label>
+                <input id="username" name="username" #usernameRef="ngModel" type="text" [(ngModel)]="username" size="20"
+                    pattern="^[a-zA-Z0-9]*$" [ngClass]="{'invalid': usernameRef.invalid && usernameRef.touched}"
+                    required placeholder="Username" />
+                <label *ngIf="usernameRef.invalid && usernameRef.touched" class="error">
+                    Username is required and must be alphanumeric.
+                </label>
+                <label class="note">Username may only contain alphanumeric characters. </label>
             </div>
             <div class="form-input">
-                <label for="password">Password</label>
-                <input id="password" name="password" type="text" [(ngModel)]="password" required placeholder="Password"/>
+                <label for="password">Password*</label>
+                <input id="password" name="password" #passwordRef="ngModel" type="password"
+                    [ngClass]="{'invalid': passwordRef.invalid && passwordRef.touched}" [(ngModel)]="password" size="20"
+                    required minlength="8" placeholder="Password" />
+                <label *ngIf="passwordRef.invalid && passwordRef.touched" class="error">
+                    Please enter a valid password
+                </label>
+                <label class="note">Password should be at least 8 characters long.</label>
+            </div>
+            <div class="form-input">
+                <label for="conf-password">Confirm Password*</label>
+                <input id="conf-password" name="confPassword" #confPasswordRef="ngModel" type="password"
+                    [ngClass]="{'invalid': confPasswordRef.invalid && confPasswordRef.touched}"
+                    [(ngModel)]="confPassword" size="20" required placeholder="Confirm password" />
+                <label *ngIf="confPasswordRef.touched && (confPasswordRef.invalid || password !== confPassword)" class="error">Passwords do not match.</label>
             </div>
             <div class="form-input">
                 <label for="country">Your Country/Region</label>
-                <input id="country" name="country" type="text" [(ngModel)]="country" required />
+                <select [(ngModel)]="country" id="country" name="country" required="">
+                    <option *ngFor="let cntr of countries" [value]="cntr">{{cntr}}</option>
+                </select>
+                <label class="note">For compliance reasons, we're required to collect country information to send you
+                    occasional updates and announcements. </label>
             </div>
-            <div class="form-input">
-                <label for="birth">Date of Birth</label>
-                <input id="birth" name="birth" type="text" [(ngModel)]="birth" required />
+            <div style="font-size: 14px;">
+                <div>
+                    <input id="notification" name="notification" type="checkbox" [(ngModel)]="notification" />
+                    <label for="notification">Receive occasional product updates and announcements</label>
+                </div>
+                <div>
+                    <input id="terms" name="terms" type="checkbox" [(ngModel)]="terms" required />
+                    <label for="terms">By creating an account, you agree to the <a routerLink="/auth/terms"
+                            target="_blank" rel="noopener noreferrer">Terms of Service.</a></label>
+                </div>
             </div>
-            <button type="submit" [disabled]="!registerForm.form.valid">Register</button>
+            <button class="btn-dark" type="submit" [disabled]="!registerForm.form.valid || password !== confPassword">Register</button>
         </form>
     </div>
 </div>

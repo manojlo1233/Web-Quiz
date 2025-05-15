@@ -19,3 +19,69 @@ html {
     font-family: "Titillium_Web-Bold";
     src: url("/assets/fonts/TitilliumWeb-Bold.ttf") format('truetype');
 }
+
+:root {
+    --theme-darkblue-button-light-hover: #dfe9ff;
+    --theme-darkblue-button-light-active: #bfd3ff;
+    --theme-darkblue-button-dark-hover: #002550;
+    --theme-darkblue-button-dark-active: #00397a;
+    --theme-darkblue-link: #b3d1ff;
+    --theme-darkblue-color-5: #001124;
+    --theme-darkblue-color-4: #004697;
+    --theme-darkblue-color-3: #3892d4;
+    --theme-color-neutral-1: #aaaaaa;
+    --theme-color-neutral-2: #7c7c7c;
+}
+
+.btn-dark {
+    width: 100%;
+    height: fit-content;
+    padding: 10px 15px;
+    background-color: #001124;
+    color: white;
+    font-size: 20px;
+    border: none;
+    border-radius: 2px;
+    cursor: pointer;
+    transition: all 0.1s ease;
+}
+
+.btn-dark:hover {
+    background-color: var(--theme-darkblue-button-dark-hover);
+}
+
+.btn-dark:active {
+    background-color: var(--theme-darkblue-button-dark-active);
+}
+
+.btn-dark:disabled {
+    background-color: darkgray;
+    user-select: none;
+    cursor: default;
+}
+
+.btn-light {
+    margin-top: 10px;
+    padding: 10px;
+    background-color: white;
+    color: var(--theme-darkblue-color-4);
+    font-size: 20px;
+    border: none;
+    border-radius: 2px;
+    cursor: pointer;
+    transition: all 0.1s ease;
+}
+
+.btn-light:hover {
+    background-color: var(--theme-darkblue-button-light-hover);
+}
+
+.btn-light:active {
+    background-color: var(--theme-darkblue-button-light-active);
+}
+
+.btn-light:disabled {
+    background-color: darkgray;
+    user-select: none;
+    cursor: default;
+}

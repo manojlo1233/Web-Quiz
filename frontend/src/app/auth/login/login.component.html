@@ -16,12 +16,12 @@
             </div>
             <input id="password" name="password" type="password" [(ngModel)]="password" required />
 
-            <button type="submit" [disabled]="!loginForm.form.valid">Log in</button>
+            <button class="btn-light" type="submit" [disabled]="!loginForm.form.valid">Log in</button>
         </form>
 
         <div class="register-link">
             <span>New to Quiz App?</span>
-            <a href="register">Create an account</a>
+            <a href="auth/register">Create an account</a>
         </div>
     </div>
 </div>

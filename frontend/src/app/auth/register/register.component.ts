@@ -1,7 +1,8 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth/auth.service';
 import { SnackBarService } from '../../services/shared/snack-bar.service';
+import { NgForm } from '@angular/forms';
 
 @Component({
   selector: 'app-register',
@@ -9,6 +10,8 @@ import { SnackBarService } from '../../services/shared/snack-bar.service';
   styleUrl: './register.component.css'
 })
 export class RegisterComponent implements OnInit {
+
+  @ViewChild('registerForm') registerForm!: NgForm;
 
   constructor(
     private router: Router,
@@ -79,8 +82,16 @@ export class RegisterComponent implements OnInit {
     this.authService.registerUser(this.firstName, this.secondName, this.email, this.username, this.password, this.country).subscribe((resp: any) => {
       if (resp.message) {
         this.snackBarService.showSnackBar(resp.message);
+        this.reset();
       }
     })
+  }
+
+  reset() {
+    this.registerForm.reset();
+    this.terms = false;
+    this.notification = false;
+    this.country = '--None--'
   }
 
   onLogin() {

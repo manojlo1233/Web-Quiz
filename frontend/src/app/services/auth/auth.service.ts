@@ -34,4 +34,12 @@ export class AuthService {
     return this.http.post(`${this.url}/registerUser`, body);
   }
 
+  requestPasswordReset(email) {
+    return this.http.post(`${this.url}/requestPasswordReset`, { email })
+  }
+
+  resetPassword(token, password) {
+    return this.http.post(`${this.url}/resetPassword`, {token, password});
+  }
+
 }

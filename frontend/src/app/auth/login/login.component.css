@@ -32,6 +32,7 @@
 
 .login-container .login-box {
     background-color: rgba(0, 25, 53, 0.63);
+    border: 1px solid rgba(0, 17, 36);
     border-radius: 2px;
     width: 400px;
     padding: 5px 15px 10px 15px;

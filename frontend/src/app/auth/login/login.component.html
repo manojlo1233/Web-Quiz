@@ -12,7 +12,7 @@
 
             <div class="password-row">
                 <label for="password">Password</label>
-                <a class="forgot-link" href="#">Forgot password?</a>
+                <a class="forgot-link" routerLink="auth/forgot-password">Forgot password?</a>
             </div>
             <input id="password" name="password" type="password" [(ngModel)]="password" required />
 
@@ -21,7 +21,7 @@
 
         <div class="register-link">
             <span>New to Quiz App?</span>
-            <a href="auth/register">Create an account</a>
+            <a routerLink="auth/register">Create an account</a>
         </div>
     </div>
 </div>

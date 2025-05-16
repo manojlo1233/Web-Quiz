@@ -1,7 +1,11 @@
 import { Request, Response } from "express";
 import pool from "../config/db";
 import bcrypt from 'bcrypt'
+import crypto from 'crypto'
+import nodemailer from 'nodemailer'
+
 import { User } from "../models/User";
+
 
 export const loginUser = async (req: Request, res: Response) => {
     const { userNameOrEmail, password } = req.body;
@@ -66,4 +70,84 @@ export const registerUser = async (req: Request, res: Response) => {
         console.log('Registration error', error);
         res.status(500).json({ message: 'Registration failed', error: error.message })
     }
+}
+
+export const requestPasswordReset = async (req: Request, res: Response) => {
+    try {
+        const { email } = req.body;
+        if (!email) {
+            res.status(400).json({ message: 'Invalid data' });
+            return;
+        }
+
+        const [users] = await pool.execute('SELECT * FROM users WHERE email = ?', [email]);
+        if ((users as any[]).length === 0) {
+            res.status(400).json({ message: 'Email not found' });
+            return;
+        }
+
+        const token = crypto.randomBytes(32).toString('hex');
+        const expires = new Date(Date.now() + 1000 * 60 * 60) // 1h
+
+        await pool.execute(
+            'UPDATE users SET reset_token = ?, reset_token_expires = ? WHERE email = ?',
+            [token, expires, email]
+        )
+
+        const resetLink = `http://localhost:4402/auth/reset-password/${token}`
+
+        const transporter = nodemailer.createTransport({
+            service: 'gmail',
+            auth: {
+                user: process.env.MAIL_USER,
+                pass: process.env.MAIL_PASS
+            }
+        });
+
+        await transporter.sendMail({
+            to: email,
+            subject: 'Reset your password',
+            html: `<p>Click <a href="${resetLink}">here</a> to reset your password.</p>`
+        });
+
+        res.status(200).json({ message: 'Reset link sent.' })
+    } catch (error) {
+        console.log('Request password reset error', error);
+        res.status(500).json({ message: 'Request password reset failed', error: error.message })
+    }
+
+}
+
+export const resetPassword = async (req: Request, res: Response) => {
+    try {
+        const { token, password } = req.body;
+        if (!token || !password) {
+            res.status(400).json({ message: 'Invalid data' });
+            return;
+        }
+
+        const [users]: any = await pool.execute(
+            'SELECT * FROM users WHERE reset_token = ? AND reset_token_expires > NOW()',
+            [token]
+        )
+
+        if (users.length === 0) {
+            res.status(400).json({ message: 'Token invalid or expired' });
+            return;
+        }
+
+        const hashedPassword = await bcrypt.hash(password, 10);
+        console.log(users[0].id);
+        await pool.execute(
+            'UPDATE users SET password_hash = ?, reset_token = NULL, reset_token_expires = NULL WHERE id = ?',
+            [hashedPassword, users[0].id]
+        );
+
+        res.status(200).json({ message: 'Password updated' });
+    } catch (error: any) {
+        console.log('Reset password error', error);
+        res.status(500).json({ message: 'Reset password error failed', error: error.message })
+    }
+
+
 }

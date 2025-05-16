@@ -12,6 +12,7 @@ import { FooterComponent } from './shared/components/footer/footer.component';
 import { FormsModule } from '@angular/forms';
 import { IconComponent } from './shared/ui-indicators/icon/icon.component';
 import { TermsComponent } from './auth/terms/terms.component';
+import { ResetPasswordComponent } from './auth/reset-password/reset-password.component';
 
 
 @NgModule({
@@ -23,7 +24,8 @@ import { TermsComponent } from './auth/terms/terms.component';
     HeaderComponent,
     FooterComponent,
     IconComponent,
-    TermsComponent
+    TermsComponent,
+    ResetPasswordComponent
   ],
   imports: [
     BrowserModule,

@@ -13,6 +13,7 @@ import { FormsModule } from '@angular/forms';
 import { IconComponent } from './shared/ui-indicators/icon/icon.component';
 import { TermsComponent } from './auth/terms/terms.component';
 import { ResetPasswordComponent } from './auth/reset-password/reset-password.component';
+import { MainPageComponent } from './dashboard/main-page/main-page.component';
 
 
 @NgModule({
@@ -25,7 +26,8 @@ import { ResetPasswordComponent } from './auth/reset-password/reset-password.com
     FooterComponent,
     IconComponent,
     TermsComponent,
-    ResetPasswordComponent
+    ResetPasswordComponent,
+    MainPageComponent
   ],
   imports: [
     BrowserModule,

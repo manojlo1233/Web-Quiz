@@ -1,0 +1,27 @@
+:host {
+    box-sizing: border-box;
+    margin-top: auto;
+    display: flex;
+    flex-direction: row;
+    gap: 15px;
+    width: 100%;
+    align-items: center;
+    justify-content: center;
+    padding: 2px;
+    border-top: 1px solid var(--theme-darkblue-color-3);
+    background-color: var(--theme-darkblue-box-bg);
+}
+
+.logo {
+    width: 32px;
+    height: 32px;
+}
+
+label {
+    font-size: 12px;
+}
+
+.link:hover {
+    text-decoration: underline;
+    cursor: pointer;
+}

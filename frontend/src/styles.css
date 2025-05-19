@@ -26,6 +26,7 @@ html {
     --theme-darkblue-button-dark-hover: #002550;
     --theme-darkblue-button-dark-active: #00397a;
     --theme-darkblue-link: #b3d1ff;
+    --theme-darkblue-box-bg: rgba(0, 25, 53, 0.63);
     --theme-darkblue-color-5: #001124;
     --theme-darkblue-color-4: #004697;
     --theme-darkblue-color-3: #3892d4;
@@ -84,4 +85,14 @@ html {
     background-color: darkgray;
     user-select: none;
     cursor: default;
+}
+
+.v-divider{
+    height: 100%;
+    width: 1px;
+}
+
+.h-divider{
+    height: 1px;
+    width: 100%;   
 }

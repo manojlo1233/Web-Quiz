@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { AuthService } from '../../services/auth/auth.service';
 import { SnackBarService } from '../../services/shared/snack-bar.service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-login',
@@ -12,7 +13,8 @@ export class LoginComponent {
 
   constructor(
     private authService: AuthService,
-    private snackBarService: SnackBarService
+    private snackBarService: SnackBarService,
+    private router: Router
   )
   {}
 
@@ -21,10 +23,14 @@ export class LoginComponent {
 
   onSubmit() {
     this.authService.loginUser(this.usernameOrEmail, this.password).subscribe((resp: any) => {
-      if (resp.message) {
+      if (resp.message !== 'success') {
         this.snackBarService.showSnackBar(resp.message)
       }
-      console.log(resp.user)
+      else {
+        sessionStorage.setItem('userId', resp.user.id);
+        this.router.navigate(['dashboard/main-page'])
+      }
+      
     })
   }
 }

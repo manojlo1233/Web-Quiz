@@ -6,7 +6,6 @@ import nodemailer from 'nodemailer'
 
 import { User } from "../models/User";
 
-
 export const loginUser = async (req: Request, res: Response) => {
     const { userNameOrEmail, password } = req.body;
     try {
@@ -26,7 +25,7 @@ export const loginUser = async (req: Request, res: Response) => {
             return
         }
 
-        res.status(200).json({ message: 'Login successful', user: { id: user.id, username: user.username } });
+        res.status(200).json({ message: 'success', user: { id: user.id, username: user.username } });
     } catch (error: any) {
         console.log('Login error', error);
         res.status(500).json({ message: 'Login failed', error: error.message })
@@ -150,4 +149,53 @@ export const resetPassword = async (req: Request, res: Response) => {
     }
 
 
+}
+
+export const getUserById = async (req: Request, res: Response) => {
+    try {
+        const userId = parseInt(req.params.id, 10);
+        const [users] = await pool.execute(
+            `SELECT * from users WHERE id=?`,
+            [userId]
+        )
+        if ((users as any[]).length === 0) {
+            res.status(404).json({ message: 'User not found' })
+            return;
+        }
+        const user: User = (users as any[])[0]
+        console.log(user);
+        res.status(200).json({
+            id: user.id,
+            firstname: user.firstname,
+            lastname: user.lastname,
+            username: user.username,
+            email: user.email,
+            country: user.country,
+            role: user.role
+        });
+    } catch (error: any) {
+        console.log('Get user by id error', error);
+        res.status(500).json({ message: 'Get user by id failed', error: error.message })
+    }
+}
+
+export const getUserStatisticsById = async (req: Request, res: Response) => {
+    try {
+        const userId = parseInt(req.params.id, 10);
+        const [statistics] = await pool.execute(
+            `SELECT * from statistics WHERE user_id=?`,
+            [userId]
+        )
+        if ((statistics as any[]).length === 0) {
+            res.status(404).json({ message: 'User statistic not found' })
+            return;
+        }
+        const statistic: User = (statistics as any[])[0]
+        res.status(200).json({
+            ...statistic
+        });
+    } catch (error: any) {
+        console.log('Get user statistics by id error', error);
+        res.status(500).json({ message: 'Get user statistics by id failed', error: error.message })
+    }
 }

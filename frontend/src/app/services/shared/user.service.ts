@@ -19,4 +19,8 @@ export class UserService {
   getUserStatisticsById(id: number) {
     return this.http.get(`${this.url}/getUserStatisticsById/${id}`);
   }
+
+  getUserPlayHistoryById(id: number) {
+    return this.http.get(`${this.url}/getUserPlayHistoryById/${id}`);
+  }
 }

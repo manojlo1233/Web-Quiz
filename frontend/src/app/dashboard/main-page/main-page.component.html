@@ -29,7 +29,17 @@
             </div>
         </div>
         <div class="user-history">
-
+            <label>History</label>
+            <table>
+                <thead>
+                    <tr>
+                        <th *ngFor="let col of userPlayHistoryColumns">{{col}}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr></tr>
+                </tbody>
+            </table>
         </div>
     </div>
     <div class="col-cont">

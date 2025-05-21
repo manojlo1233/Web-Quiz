@@ -5,6 +5,7 @@ import crypto from 'crypto'
 import nodemailer from 'nodemailer'
 
 import { User } from "../models/User";
+import { UserPlayHistory } from "../models/UserPlayHistory";
 
 export const loginUser = async (req: Request, res: Response) => {
     const { userNameOrEmail, password } = req.body;
@@ -136,7 +137,6 @@ export const resetPassword = async (req: Request, res: Response) => {
         }
 
         const hashedPassword = await bcrypt.hash(password, 10);
-        console.log(users[0].id);
         await pool.execute(
             'UPDATE users SET password_hash = ?, reset_token = NULL, reset_token_expires = NULL WHERE id = ?',
             [hashedPassword, users[0].id]
@@ -163,7 +163,6 @@ export const getUserById = async (req: Request, res: Response) => {
             return;
         }
         const user: User = (users as any[])[0]
-        console.log(user);
         res.status(200).json({
             id: user.id,
             firstname: user.firstname,
@@ -197,5 +196,37 @@ export const getUserStatisticsById = async (req: Request, res: Response) => {
     } catch (error: any) {
         console.log('Get user statistics by id error', error);
         res.status(500).json({ message: 'Get user statistics by id failed', error: error.message })
+    }
+}
+
+export const getUserPlayHistoryById = async (req: Request, res: Response) => {
+    try {
+        const userId = parseInt(req.params.id, 10);
+        const [userHistory] = await pool.execute(
+            `SELECT qa.user_id,
+                q.id AS quiz_id,
+                c.name AS category,
+                q.difficulty,
+                qa.started_at AS start,
+                qa.completed_at AS end
+            FROM
+                quiz_attempts qa
+            JOIN
+                quizzes q ON qa.quiz_id = q.id
+            JOIN
+                categories c ON q.category_id = c.id
+            WHERE 
+                qa.user_id = ?`,
+            [userId]
+        )
+        if ((userHistory as any[]).length === 0) {
+            res.status(404).json({ message: 'User history not found' })
+            return;
+        }
+        const userPlayHistory: UserPlayHistory[] = (userHistory as any[]);
+        res.status(200).json(userPlayHistory);
+    } catch (error: any) {
+        console.log('Get user play history by id error', error);
+        res.status(500).json({ message: 'Get user play history by id failed', error: error.message })
     }
 }

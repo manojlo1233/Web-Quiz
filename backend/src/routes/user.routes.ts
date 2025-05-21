@@ -1,5 +1,5 @@
 import expess from 'express'
-import { getUserById, getUserStatisticsById, loginUser, registerUser, requestPasswordReset, resetPassword } from '../controllers/user.controller';
+import { getUserById, getUserPlayHistoryById, getUserStatisticsById, loginUser, registerUser, requestPasswordReset, resetPassword } from '../controllers/user.controller';
 const userRouter = expess.Router();
 
 userRouter.post('/loginUser', loginUser)
@@ -9,5 +9,6 @@ userRouter.post('/resetPassword', resetPassword);
 
 userRouter.get('/getUserById/:id', getUserById);
 userRouter.get('/getUserStatisticsById/:id', getUserStatisticsById);
+userRouter.get('/getUserPlayHistoryById/:id', getUserPlayHistoryById);
 
 export default userRouter;

@@ -21,7 +21,7 @@
                     <label>Average score</label>
                     <label>{{userStatistic.avg_score | number:'1.2-2'}}</label>
                 </div>
-                 <span class="v-divider" style="background-color: var(--theme-darkblue-color-3);"></span>
+                <span class="v-divider" style="background-color: var(--theme-darkblue-color-3);"></span>
                 <div class="col">
                     <label>Average time</label>
                     <label>{{userStatistic.avg_time | number:'1.2-2'}}</label>
@@ -30,16 +30,31 @@
         </div>
         <div class="user-history">
             <label>History</label>
-            <table>
-                <thead>
-                    <tr>
-                        <th *ngFor="let col of userPlayHistoryColumns">{{col}}</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr></tr>
-                </tbody>
-            </table>
+            <span class="h-divider" style="background-color: var(--theme-darkblue-color-3);"></span>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Category</th>
+                            <th>Difficulty</th>
+                            <th>Start</th>
+                            <th>Duration</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let item of userPlayHistory">
+                            <td>{{ item.category }}</td>
+                            <td [style.color]="getDifficultyColor(item.difficulty)">{{
+                                getDifficultyLabel(item.difficulty) }}</td>
+                            <td>{{ item.start | date: 'dd.MM.yy HH:mm:ss' }}</td>
+                            <td>{{ formatDuration(item.duration) }}</td>
+                            <td>
+                                <button class="btn-light-small" style="margin: 0;" (click)="showDetails(item)">Details</button>
+                            </td>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
     <div class="col-cont">
@@ -59,3 +74,6 @@
     </div>
 </div>
 <app-footer></app-footer>
+<ng-container #displayQuizQuestionsContainer>
+
+</ng-container>

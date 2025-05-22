@@ -6,6 +6,7 @@ import nodemailer from 'nodemailer'
 
 import { User } from "../models/User";
 import { UserPlayHistory } from "../models/UserPlayHistory";
+import { QuizDetailsQuestion } from "../models/QuizDetailsQuestion";
 
 export const loginUser = async (req: Request, res: Response) => {
     const { userNameOrEmail, password } = req.body;
@@ -228,5 +229,44 @@ export const getUserPlayHistoryById = async (req: Request, res: Response) => {
     } catch (error: any) {
         console.log('Get user play history by id error', error);
         res.status(500).json({ message: 'Get user play history by id failed', error: error.message })
+    }
+}
+
+export const getUserQuizQuestionsById = async (req: Request, res: Response) => {
+    try {
+        const userId = parseInt(req.params.userId, 10);
+        const quizId = parseInt(req.params.quizId, 10);
+        const [quizDetails] = await pool.execute(
+            `SELECT 
+                q.text AS question_text,
+                ua_ans.text AS user_answer_text,
+                ua_ans.is_correct AS is_correct,
+                ca.text AS correct_answer_text,
+                q.description AS question_description
+            FROM 
+                quiz_attempts a
+            JOIN 
+                quiz_attempt_questions ua ON a.id = ua.attempt_id
+            JOIN 
+                questions q ON ua.question_id = q.id
+            LEFT JOIN 
+                answers ua_ans ON ua.answer_id = ua_ans.id
+            LEFT JOIN 
+                answers ca ON ca.question_id = q.id AND ca.is_correct = true
+            WHERE 
+                a.quiz_id = ? AND a.user_id = ?
+            ORDER BY 
+                q.id;`,
+            [quizId, userId]
+        )
+        if ((quizDetails as any[]).length === 0) {
+            res.status(404).json({ message: 'Quiz questions not found' })
+            return;
+        }
+        const quizQuestions: QuizDetailsQuestion[] = (quizDetails as any[]);
+        res.status(200).json(quizQuestions);
+    } catch (error: any) {
+        console.log('Get quiz question by id error', error);
+        res.status(500).json({ message: 'Get quiz question by id failed', error: error.message })
     }
 }

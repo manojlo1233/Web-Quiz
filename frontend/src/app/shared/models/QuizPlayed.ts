@@ -1,4 +1,4 @@
-export class UserPlayHistory {
+export class QuizPlayed {
     user_id: number;
     quiz_id: number;
     category: string;

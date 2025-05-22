@@ -27,6 +27,7 @@ html {
     --theme-darkblue-button-dark-active: #00397a;
     --theme-darkblue-link: #b3d1ff;
     --theme-darkblue-box-bg: rgba(0, 25, 53, 0.63);
+    --theme-darkblue-color-6: #000913;
     --theme-darkblue-color-5: #001124;
     --theme-darkblue-color-4: #004697;
     --theme-darkblue-color-3: #3892d4;
@@ -34,7 +35,7 @@ html {
     --theme-color-neutral-2: #7c7c7c;
 }
 
-.btn-dark {
+.btn-dark-large {
     width: 100%;
     height: fit-content;
     padding: 10px 15px;
@@ -47,15 +48,42 @@ html {
     transition: all 0.1s ease;
 }
 
-.btn-dark:hover {
+.btn-dark-large:hover {
     background-color: var(--theme-darkblue-button-dark-hover);
 }
 
-.btn-dark:active {
+.btn-dark-large:active {
     background-color: var(--theme-darkblue-button-dark-active);
 }
 
-.btn-dark:disabled {
+.btn-dark-large:disabled {
+    background-color: darkgray;
+    user-select: none;
+    cursor: default;
+}
+
+.btn-dark-small {
+    width: fit-content;
+    height: fit-content;
+    padding: 5px 10px;
+    background-color: #001124;
+    color: white;
+    font-size: 14px;
+    border: none;
+    border-radius: 2px;
+    cursor: pointer;
+    transition: all 0.1s ease;
+}
+
+.btn-dark-small:hover {
+    background-color: var(--theme-darkblue-button-dark-hover);
+}
+
+.btn-dark-small:active {
+    background-color: var(--theme-darkblue-button-dark-active);
+}
+
+.btn-dark-small:disabled {
     background-color: darkgray;
     user-select: none;
     cursor: default;
@@ -82,6 +110,33 @@ html {
 }
 
 .btn-light:disabled {
+    background-color: darkgray;
+    user-select: none;
+    cursor: default;
+}
+
+.btn-light-small {
+    margin-top: 10px;
+    width: fit-content;
+    padding: 5px 10px;
+    background-color: white;
+    color: var(--theme-darkblue-color-4);
+    font-size: 14px;
+    border: none;
+    border-radius: 2px;
+    cursor: pointer;
+    transition: all 0.1s ease;
+}
+
+.btn-light-small:hover {
+    background-color: var(--theme-darkblue-button-light-hover);
+}
+
+.btn-light-small:active {
+    background-color: var(--theme-darkblue-button-light-active);
+}
+
+.btn-light-small:disabled {
     background-color: darkgray;
     user-select: none;
     cursor: default;

@@ -1,8 +1,11 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild, ViewContainerRef } from '@angular/core';
 import { User } from '../../shared/models/User';
 import { UserService } from '../../services/shared/user.service';
 import { Statistic } from '../../shared/models/Statistic';
-import { UserPlayHistory } from '../../shared/models/UserPlayHistory';
+import { QuizPlayed } from '../../shared/models/QuizPlayed';
+import { QuizService } from '../../services/shared/quiz.service';
+import { UtilService } from '../../services/shared/util.service';
+import { QuizDetailsComponent } from '../quiz-details/quiz-details.component';
 
 @Component({
   selector: 'app-main-page',
@@ -10,17 +13,17 @@ import { UserPlayHistory } from '../../shared/models/UserPlayHistory';
   styleUrl: './main-page.component.css'
 })
 export class MainPageComponent implements OnInit {
+  @ViewChild('displayQuizQuestionsContainer', { read: ViewContainerRef }) displayQuizQuestionsContainer!: ViewContainerRef;
 
   constructor(
-    private userService: UserService
+    private userService: UserService,
+    private quizService: QuizService,
+    private utilService: UtilService
   ) { }
 
   user: User = new User();
   userStatistic: Statistic = new Statistic();
-  userPlayHistory: UserPlayHistory = new UserPlayHistory();
-
-  // USER HISTORY TABLE
-  userPlayHistoryColumns: string[] = ['Category', 'Difficulty', 'Start', 'Duration']
+  userPlayHistory: QuizPlayed[] = [];
 
   ngOnInit(): void {
     const userId = parseInt(sessionStorage.getItem('userId'), 10);
@@ -30,7 +33,7 @@ export class MainPageComponent implements OnInit {
         this.user = resp;
       },
       error: (error: any) => {
-        console.log(error)
+        console.error(error)
       }
     })
     // --------- GET USER STATISTICS---------
@@ -39,7 +42,7 @@ export class MainPageComponent implements OnInit {
         this.userStatistic = resp;
       },
       error: (error: any) => {
-        console.log(error)
+        console.error(error)
       }
     })
     // --------- GET USER PLAY HISTORY ---------
@@ -57,11 +60,39 @@ export class MainPageComponent implements OnInit {
           }
         });
         this.userPlayHistory = ret;
-        console.log(this.userPlayHistory)
       },
       error: (error: any) => {
-        console.log(error);
+        console.error(error)
       }
     })
+  }
+
+  formatDuration(seconds: number): string {
+    return this.utilService.formatDurationToMinSecFromSec(seconds);
+  }
+
+  showDetails(item: QuizPlayed) {
+    this.userService.getUserQuizQuestionsById(item.user_id, item.quiz_id).subscribe({
+      next: (resp: any) => {
+        this.displayQuizQuestionsContainer.clear();
+        const componentRef = this.displayQuizQuestionsContainer.createComponent(QuizDetailsComponent);
+        componentRef.setInput('selectedQuizPlayed', item);
+        componentRef.setInput('selectedQuizQuestions', resp)
+        componentRef.instance.closed.subscribe(() => {
+          componentRef.destroy();
+        })
+      },
+      error: (error: any) => {
+        console.error(error)
+      }
+    })
+  }
+
+  getDifficultyLabel(level: number) {
+    return this.quizService.getDifficultyLabel(level);
+  }
+
+  getDifficultyColor(level: number) {
+    return this.quizService.getDifficultyColor(level);
   }
 }

@@ -23,4 +23,8 @@ export class UserService {
   getUserPlayHistoryById(id: number) {
     return this.http.get(`${this.url}/getUserPlayHistoryById/${id}`);
   }
+
+  getUserQuizQuestionsById(userId: number, quizId: number) {
+    return this.http.get(`${this.url}/getUserQuizQuestionsById/${userId}/${quizId}`)
+  }
 }

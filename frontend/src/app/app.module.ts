@@ -14,6 +14,8 @@ import { IconComponent } from './shared/ui-indicators/icon/icon.component';
 import { TermsComponent } from './auth/terms/terms.component';
 import { ResetPasswordComponent } from './auth/reset-password/reset-password.component';
 import { MainPageComponent } from './dashboard/main-page/main-page.component';
+import { QuizDetailsComponent } from './dashboard/quiz-details/quiz-details.component';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 
 
 @NgModule({
@@ -27,12 +29,14 @@ import { MainPageComponent } from './dashboard/main-page/main-page.component';
     IconComponent,
     TermsComponent,
     ResetPasswordComponent,
-    MainPageComponent
+    MainPageComponent,
+    QuizDetailsComponent
   ],
   imports: [
     BrowserModule,
     AppRoutingModule,
-    FormsModule
+    FormsModule,
+    BrowserAnimationsModule
   ],
   providers: [provideHttpClient()],
   bootstrap: [AppComponent]

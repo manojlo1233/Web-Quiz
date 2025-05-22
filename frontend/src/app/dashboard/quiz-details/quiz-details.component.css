@@ -1,0 +1,116 @@
+.modal-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-family: 'Titillium_Web-Regular', sans-serif;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1;
+}
+
+.modal-window {
+    background: linear-gradient(315deg, #0056b9, 40%, #13243c);
+    border: 1px solid var(--theme-darkblue-color-3);
+    border-radius: 2px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 10px 20px 20px 20px;
+    width: 70%;
+    min-width: 400px;
+    max-height: 80vh;
+    overflow-y: auto;
+
+    button {
+        margin-left: auto;
+    }
+}
+
+.quiz-details {
+    width: 100%;
+    height: fit-content;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+
+    .det {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 7px;
+    }
+
+    .icon {
+        padding: 1px;
+        width: 22px;
+        height: 22px;
+        background-color: white;
+        border-radius: 2px;
+    }
+}
+
+.question-container {
+    background-color: var(--theme-darkblue-color-6);
+    margin-top: 5px;
+    border-radius: 2px;
+    padding: 5px 10px;
+    display: flex;
+    flex-direction: column;
+}
+
+.question {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-evenly;
+    gap: 20px;
+
+    label {
+        width: 100%;
+    }
+
+    .description {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 2px;
+        width: fit-content;
+        color: var(--theme-color-neutral-1);
+        user-select: none;
+    }
+
+    .description:hover {
+        text-decoration: underline;
+        cursor: pointer;
+    }
+}
+
+.question-expanded {
+    box-sizing: border-box;
+    margin-top: 0;
+    padding: 0;
+    height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.qu-ex-cor {
+    border-top: 1px solid rgb(89, 241, 89);
+}
+
+.qu-ex-wr {
+    border-top: 1px solid rgb(255, 100, 100);
+}
+
+.correct {
+    border: 1px solid rgb(89, 241, 89);
+}
+
+.wrong {
+    border: 1px solid rgb(255, 100, 100);
+}

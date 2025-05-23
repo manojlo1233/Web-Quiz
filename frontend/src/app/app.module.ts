@@ -16,6 +16,7 @@ import { ResetPasswordComponent } from './auth/reset-password/reset-password.com
 import { MainPageComponent } from './dashboard/main-page/main-page.component';
 import { QuizDetailsComponent } from './dashboard/quiz-details/quiz-details.component';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { BattleComponent } from './quiz/battle/battle.component';
 
 
 @NgModule({
@@ -30,7 +31,8 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
     TermsComponent,
     ResetPasswordComponent,
     MainPageComponent,
-    QuizDetailsComponent
+    QuizDetailsComponent,
+    BattleComponent
   ],
   imports: [
     BrowserModule,

@@ -1,16 +1,19 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
+import { UrlService } from './url.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class UserService {
-
-  private url: string = 'http://localhost:3000/api/users'
+  private url: string;
 
   constructor(
-    private http: HttpClient
-  ) { }
+    private http: HttpClient,
+    private urlService: UrlService
+  ) {
+    this.url = `${urlService.url}/users`
+  }
 
   getUserById(id: number) {
     return this.http.get(`${this.url}/getUserById/${id}`);

@@ -1,17 +1,19 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
+import { UrlService } from '../shared/url.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
-
-  private url: string = 'http://localhost:3000/api/users'
-
+  private url: string;
   constructor(
-    private http: HttpClient
-  ) { }
+    private http: HttpClient,
+    private urlService: UrlService
+  ) { 
+    this.url = `${urlService.url}/users`;
+  }
 
   loginUser(userNameOrEmail: string, password: string): Observable<any> {
     const body = {

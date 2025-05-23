@@ -54,11 +54,18 @@ export class QuizDetailsComponent implements OnChanges {
 
   descArrowSrc = this.ARROW_DIRECTION.DOWN
 
+  correctAns: number = 0;
+  totalNumOfAns: number = 0;
+  ansPercent: string = '';
+
   ngOnChanges(changes: SimpleChanges): void {
     this.selectedQuizQuestions = this.selectedQuizQuestions.map(q => ({
       ...q,
       isExpanded: false
     }));
+    this.totalNumOfAns = this.selectedQuizQuestions.length;
+    this.correctAns = this.selectedQuizQuestions.filter(q => q.correct_answer_text === q.user_answer_text).length;
+    this.ansPercent = this.utilService.formatPercentTwoFixed(this.correctAns, this.totalNumOfAns);
   }
 
   getDifficultyLabel(level: number) {
@@ -86,7 +93,6 @@ export class QuizDetailsComponent implements OnChanges {
       this.descArrowSrc = this.ARROW_DIRECTION.DOWN;
       this.renderer.setStyle(this.questionExpand.nativeElement, 'height', '0');
     }
-
   }
 
 }

@@ -50,7 +50,8 @@
                             <td>{{ item.start | date: 'dd.MM.yy HH:mm:ss' }}</td>
                             <td>{{ formatDuration(item.duration) }}</td>
                             <td>
-                                <button class="btn-light-small" style="margin: 0;" (click)="showDetails(item)">Details</button>
+                                <button class="btn-light-small" style="margin: 0;"
+                                    (click)="showDetails(item)">Details</button>
                             </td>
                     </tbody>
                 </table>
@@ -61,14 +62,21 @@
         <label> B </label>
     </div>
     <div class="col-cont">
-        C
+
         <div class="lboard">
 
         </div>
         <div class="friends">
 
         </div>
-        <div class="btns">
+        <div class="play-btns">
+            <button class="btn-light" style="width: 150px; height: fit-content;" [disabled]="isSearching">Singleplayer</button>
+            <div class="search">
+                <label *ngIf="isSearching">Searching {{ formattedTime }}</label>
+                <button class="btn-light" style="width: 150px; height: fit-content;" [ngClass]="{
+                'btn-glow': isSearching
+            }" (click)="onBattleClick()">{{matchmakingLbl}}</button>
+            </div>
 
         </div>
     </div>

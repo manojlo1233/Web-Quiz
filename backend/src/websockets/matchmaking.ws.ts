@@ -24,52 +24,38 @@ export default function initWebSocketServer(server: Server) {
 
                     const matchId = Math.random().toString(36).substring(2, 10);
 
-                    let match: Match = new Match();
-                    match.matchId = matchId
-                    match.player1 = p1;
-                    match.player2 = p2;
-                    match.startTimestamp = Date.now() + 60000;
-                    match.status = 'ready'
+                    let match: Match = new Match(matchId, p1, p2, (p1 as any).username, (p2 as any).username);
+                    match.status = 'ready';
 
                     activeMatches.set(matchId, match);
 
-                    (match as any).timeoutHandle = setTimeout(() => {
-                        if (match.status !== 'started') {
-                            match.player1.send(JSON.stringify({ type: 'MATCH_START', matchId }));
-                            match.player2.send(JSON.stringify({ type: 'MATCH_START', matchId }));
-                            activeMatches.delete(matchId);
-                        }
-                    }, 60000)
-
-                    p1.send(JSON.stringify({ type: 'MATCH_FOUND', opponent: (p2 as any).username, matchId, role: 'player1', startTimestamp: Date.now() + 60000 }));
-                    p2.send(JSON.stringify({ type: 'MATCH_FOUND', opponent: (p1 as any).username, matchId, role: 'player2', startTimestamp: Date.now() + 60000 }));
+                    p1.send(JSON.stringify({ type: 'MATCH_FOUND', opponent: (p2 as any).username, matchId, role: 'player1', startTimestamp: match.startTimestamp }));
+                    p2.send(JSON.stringify({ type: 'MATCH_FOUND', opponent: (p1 as any).username, matchId, role: 'player2', startTimestamp: match.startTimestamp }));
                 }
             }
             else if (data.type === 'READY') {
                 const match = activeMatches.get(data.matchId);
                 if (!match) return;
-
-                const playerRole = (ws === match.player1) ? 'player1' : 'player2';
-                match.setReady(playerRole);
-
-                const opponent = match.getOpponentSocket(playerRole);
-                opponent.send(JSON.stringify({ type: 'OPPONENT_READY' }));
-
-                if (match.isBothReady()) {
-                    clearTimeout((match as any).timeoutHandle);
+                
+                if (data.username === match.username1) match.readyP1 = true;
+                if (data.username === match.username2) match.readyP2 = true;
+                if (match.readyP1 && match.readyP2 && match.status === 'ready') {
                     match.status = 'started';
-                    match.player1.send(JSON.stringify({ type: 'MATCH_START', matchId: match.matchId }));
-                    match.player2.send(JSON.stringify({ type: 'MATCH_START', matchId: match.matchId }));
-                    activeMatches.delete(match.matchId);
+                    activeMatches.delete(data.matchId);
+
+                    const payload = JSON.stringify({ type: 'MATCH_START', matchId: match.matchId })
+                    match.player1.send(payload);
+                    match.player2.send(payload);
                 }
             }
             else if (data.type === 'DECLINE') {
                 const match = activeMatches.get(data.matchId);
                 if (!match) return;
                 match.status = 'cancelled';
-                match.player1.send(JSON.stringify({ type: 'MATCH_START' }));
-                match.player2.send(JSON.stringify({ type: 'MATCH_START' }));
                 activeMatches.delete(match.matchId);
+                const payload = JSON.stringify({ type: 'MATCH_DECLINED' })
+                match.player1.send(payload);
+                match.player2.send(payload);
             }
         });
 

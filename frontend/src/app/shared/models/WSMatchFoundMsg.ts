@@ -3,5 +3,5 @@ export class WSMatchFoundMsg {
     opponent: string;
     matchId: number;
     role: string;
-    startTimeStamp: Date;
+    startTimestamp: number;
 }

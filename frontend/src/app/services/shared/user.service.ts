@@ -19,6 +19,10 @@ export class UserService {
     return this.http.get(`${this.url}/getUserById/${id}`);
   }
 
+  getUserByUsername(username: string) {
+    return this.http.get(`${this.url}/getUserByUsername/${username}`);
+  }
+
   getUserStatisticsById(id: number) {
     return this.http.get(`${this.url}/getUserStatisticsById/${id}`);
   }

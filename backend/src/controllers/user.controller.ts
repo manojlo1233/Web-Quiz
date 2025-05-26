@@ -179,6 +179,27 @@ export const getUserById = async (req: Request, res: Response) => {
     }
 }
 
+export const getUserByUsername = async (req: Request, res: Response) => {
+    try {
+        const username = req.params.username;
+        const [users] = await pool.execute(
+            `SELECT * from users WHERE username=?`,
+            [username]
+        )
+        if ((users as any[]).length === 0) {
+            res.status(404).json({ message: 'User not found' })
+            return;
+        }
+        const user: User = (users as any[])[0]
+        res.status(200).json({
+            ...user
+        });
+    } catch (error: any) {
+        console.log('Get user by id error', error);
+        res.status(500).json({ message: 'Get user by id failed', error: error.message })
+    }
+}
+
 export const getUserStatisticsById = async (req: Request, res: Response) => {
     try {
         const userId = parseInt(req.params.id, 10);

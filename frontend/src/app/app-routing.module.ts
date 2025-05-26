@@ -7,6 +7,7 @@ import { ForgotPasswordComponent } from './auth/forgot-password/forgot-password.
 import { ResetPasswordComponent } from './auth/reset-password/reset-password.component';
 import { MainPageComponent } from './dashboard/main-page/main-page.component';
 import { BattleComponent } from './quiz/battle/battle.component';
+import { ReadyScreenComponent } from './quiz/ready-screen/ready-screen.component';
 
 const routes: Routes = [
   { path: "", component: LoginComponent },
@@ -15,6 +16,7 @@ const routes: Routes = [
   { path: "auth/forgot-password", component: ForgotPasswordComponent},
   { path: "auth/reset-password/:token", component: ResetPasswordComponent},
   { path: "dashboard/main-page", component: MainPageComponent},
+  { path: "quiz/loading-screen", component: ReadyScreenComponent},
   { path: "quiz/battle", component: BattleComponent}
 ];
 

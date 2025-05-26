@@ -1,4 +1,7 @@
 import { Component, OnDestroy, OnInit, ViewChild, ViewContainerRef } from '@angular/core';
+import { Router } from '@angular/router';
+import { Subscription } from 'rxjs';
+
 import { User } from '../../shared/models/User';
 import { UserService } from '../../services/shared/user.service';
 import { Statistic } from '../../shared/models/Statistic';
@@ -7,10 +10,9 @@ import { QuizService } from '../../services/shared/quiz.service';
 import { UtilService } from '../../services/shared/util.service';
 import { QuizDetailsComponent } from '../quiz-details/quiz-details.component';
 import { WebsocketService } from '../../services/quiz/websocket.service';
-import { Subscription } from 'rxjs';
-import { WsMessage } from '../../shared/models/WsMessage';
-import { Router } from '@angular/router';
+import { WSMatchFoundMsg } from '../../shared/models/WSMatchFoundMsg';
 import { MatchStateService } from '../../services/quiz/match-state.service';
+
 
 @Component({
   selector: 'app-main-page',
@@ -34,7 +36,7 @@ export class MainPageComponent implements OnInit, OnDestroy {
       this.isSearching = false;
       console.error('Error: ', msg)
     })
-    this.startQuizSub = this.wsService.startQuiz$.subscribe((resp: WsMessage) => {
+    this.startQuizSub = this.wsService.startQuiz$.subscribe((resp: WSMatchFoundMsg) => {
       this.isSearching = false;
       this.matchmakingLbl = 'Battle'
       this.handleWsMessage(resp);
@@ -161,10 +163,10 @@ export class MainPageComponent implements OnInit, OnDestroy {
       `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
   }
 
-  handleWsMessage(msg: WsMessage) {
-    if (msg.type === 'start-quiz') {
+  handleWsMessage(msg: WSMatchFoundMsg) {
+    if (msg.type === 'MATCH_FOUND') {
       this.matchStateService.setCurrentMatch(msg);
-      this.router.navigate(['/quiz/battle'])
+      this.router.navigate(['/quiz/loading-screen'])
     }
   }
 

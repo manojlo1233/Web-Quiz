@@ -12,6 +12,9 @@ export class WebsocketService {
 
   public error$ = new Subject<string>();
   public startQuiz$ = new Subject<any>();
+  public readyStatus$ = new Subject<{ username: string, matchId: string }>();
+  public matchStart$ = new Subject<any>();
+  public matchDeclined$ = new Subject<string>();
 
   connect(): void {
     this.socket = new WebSocket('ws://192.168.19.62:3000');
@@ -22,10 +25,20 @@ export class WebsocketService {
 
     this.socket.onmessage = (event) => {
       const data = JSON.parse(event.data);
-      console.log('Received via ws: ', data);
 
-      if (data.type === 'start-quiz') {
-        this.startQuiz$.next(data);
+      switch (data.type) {
+        case 'MATCH_FOUND':
+          this.startQuiz$.next(data);
+          break;
+        case 'READY_STATUS':
+          this.readyStatus$.next({ username: data.username, matchId: data.matchid });
+          break;
+        case 'MATCH_START':
+          this.matchStart$.next(data);
+          break;
+        case 'MATCH_DECLINED':
+          this.matchDeclined$.next(data.matchId);
+          break;
       }
     };
 
@@ -51,10 +64,22 @@ export class WebsocketService {
     this.send({ type: 'join-queue', username })
   }
 
+  sendReady(matchId: string, username: string): void {
+    this.send({ type: 'READY', matchId, username });
+  }
+
+  sendDecline(matchId: string, username: string): void {
+    this.send({ type: 'DECLINE', matchId, username });
+  }
+
   close(): void {
     if (this.socket) {
       this.socket.close();
       this.socket = null;
     }
+  }
+
+  getWebSocket() {
+
   }
 }

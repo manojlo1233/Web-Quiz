@@ -17,6 +17,7 @@ import { MainPageComponent } from './dashboard/main-page/main-page.component';
 import { QuizDetailsComponent } from './dashboard/quiz-details/quiz-details.component';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { BattleComponent } from './quiz/battle/battle.component';
+import { ReadyScreenComponent } from './quiz/ready-screen/ready-screen.component';
 
 
 @NgModule({
@@ -32,7 +33,8 @@ import { BattleComponent } from './quiz/battle/battle.component';
     ResetPasswordComponent,
     MainPageComponent,
     QuizDetailsComponent,
-    BattleComponent
+    BattleComponent,
+    ReadyScreenComponent
   ],
   imports: [
     BrowserModule,

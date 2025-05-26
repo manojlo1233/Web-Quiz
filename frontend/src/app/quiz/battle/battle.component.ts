@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { MatchStateService } from '../../services/quiz/match-state.service';
-import { WsMessage } from '../../shared/models/WsMessage';
+import { WSMatchFoundMsg } from '../../shared/models/WSMatchFoundMsg';
+
 
 @Component({
   selector: 'app-battle',
@@ -9,7 +10,7 @@ import { WsMessage } from '../../shared/models/WsMessage';
 })
 export class BattleComponent implements OnInit {
 
-  match: WsMessage;
+  match: WSMatchFoundMsg;
 
   constructor(
     private matchStateService: MatchStateService

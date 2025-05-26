@@ -1,20 +1,20 @@
 import { Injectable } from '@angular/core';
-import { WsMessage } from '../../shared/models/WsMessage';
+import { WSMatchFoundMsg } from '../../shared/models/WSMatchFoundMsg';
 
 @Injectable({
   providedIn: 'root'
 })
 export class MatchStateService {
 
-  private currentMatch: WsMessage | null = null;
+  private currentMatch: WSMatchFoundMsg | null = null;
 
   constructor() { }
 
-  setCurrentMatch(match: WsMessage): void {
+  setCurrentMatch(match: WSMatchFoundMsg): void {
     this.currentMatch = match;
   }
 
-  getCurrentMatch(): WsMessage | null {
+  getCurrentMatch(): WSMatchFoundMsg | null {
     return this.currentMatch;
   }
 }

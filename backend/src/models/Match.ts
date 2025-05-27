@@ -9,7 +9,13 @@ export class Match {
     startTimestamp: number;
     readyP1: boolean = false;
     readyP2: boolean = false;
+    enterP1: boolean = false;
+    enterP2: boolean = false;
+    currentQuestionIndex: number;
+    answerP1: string;
+    answerP2: string;
     status: 'waiting' | 'ready' | 'started' | 'cancelled' = 'waiting';
+
 
     constructor(matchId: string, player1: WebSocket, player2: WebSocket,
         username1: string, username2: string) {
@@ -19,6 +25,7 @@ export class Match {
             this.username1 = username1;
             this.username2 = username2;
             this.startTimestamp = Date.now() + 60000;
+            this.currentQuestionIndex = -1;
         }
 
     setReady(playerRole: 'player1' | 'player2') {

@@ -15,6 +15,7 @@ export class WebsocketService {
   public readyStatus$ = new Subject<{ username: string, matchId: string }>();
   public matchStart$ = new Subject<any>();
   public matchDeclined$ = new Subject<string>();
+  public newQuestion$ = new Subject<any>();
 
   connect(): void {
     this.socket = new WebSocket('ws://192.168.19.62:3000');
@@ -39,6 +40,9 @@ export class WebsocketService {
         case 'MATCH_DECLINED':
           this.matchDeclined$.next(data.matchId);
           break;
+        case 'NEW_QUESTION':
+          this.newQuestion$.next(data);
+          break;
       }
     };
 
@@ -51,7 +55,7 @@ export class WebsocketService {
     }
   }
 
-  send(data: any): void {
+  private send(data: any): void {
     if (this.socket && this.socket.readyState === WebSocket.OPEN) {
       this.socket.send(JSON.stringify(data));
     }
@@ -70,6 +74,10 @@ export class WebsocketService {
 
   sendDecline(matchId: string, username: string): void {
     this.send({ type: 'DECLINE', matchId, username });
+  }
+
+  sendEnterBattle(matchId: string, username: string) {
+    this.send({type: 'PLAYER_ENTERED_BATTLE', matchId, username});
   }
 
   close(): void {

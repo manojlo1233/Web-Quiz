@@ -6,8 +6,8 @@
     </div>
     <div class="info">
         <app-icon class="btl" src="/assets/svg/icon_battle.svg" color="white" />
-        <label>{{remainingSeconds}}</label>
-        <button class="btn-dark-small">Cancel</button>
+        <label>{{remainingSeconds}}s</label>
+        <button class="btn-dark-small" (click)="onCancelClick()">Cancel</button>
     </div>
     <div class="user">
         <app-icon class="avatar" src="/assets/svg/icon_user.svg" color="white" />

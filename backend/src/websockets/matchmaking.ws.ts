@@ -29,6 +29,12 @@ export default function initWebSocketServer(server: Server) {
 
                     activeMatches.set(matchId, match);
 
+                    setTimeout(() => {
+                        if (match.status !== 'started') {
+                            startMatch(match);
+                        }
+                    }, 60000)
+
                     p1.send(JSON.stringify({ type: 'MATCH_FOUND', opponent: (p2 as any).username, matchId, role: 'player1', startTimestamp: match.startTimestamp }));
                     p2.send(JSON.stringify({ type: 'MATCH_FOUND', opponent: (p1 as any).username, matchId, role: 'player2', startTimestamp: match.startTimestamp }));
                 }
@@ -36,16 +42,11 @@ export default function initWebSocketServer(server: Server) {
             else if (data.type === 'READY') {
                 const match = activeMatches.get(data.matchId);
                 if (!match) return;
-                
+
                 if (data.username === match.username1) match.readyP1 = true;
                 if (data.username === match.username2) match.readyP2 = true;
                 if (match.readyP1 && match.readyP2 && match.status === 'ready') {
-                    match.status = 'started';
-                    activeMatches.delete(data.matchId);
-
-                    const payload = JSON.stringify({ type: 'MATCH_START', matchId: match.matchId })
-                    match.player1.send(payload);
-                    match.player2.send(payload);
+                    startMatch(match);
                 }
             }
             else if (data.type === 'DECLINE') {
@@ -57,6 +58,71 @@ export default function initWebSocketServer(server: Server) {
                 match.player1.send(payload);
                 match.player2.send(payload);
             }
+            else if (data.type === 'PLAYER_ENTERED_BATTLE') {
+                const match = activeMatches.get(data.matchId);
+                if (!match) return;
+                if ((match.player1 as any).username === data.username) {
+                    match.enterP1 = true;
+                }
+                if ((match.player2 as any).username === data.username) {
+                    match.enterP2 = true;
+                }
+                if (match.enterP1 && match.enterP2) {
+                    sendNextQuestion(match);
+                }
+            }
+            else if (data.type === 'ANSWER') {
+                const match = activeMatches.get(data.matchId);
+                if (!match) return;
+                if ((match.player1 as any).username === data.username) {
+                    match.answerP1 = data.answer;
+                }
+                if ((match.player2 as any).username === data.username) {
+                    match.answerP2 = data.answer;
+                }
+                if (match.answerP1 !== null && match.answerP2 !== null) {
+                    sendAnswerSummary(match)
+                }
+            }
+            // FUNCTIONS
+            function startMatch(match: Match) {
+                match.status = 'started';
+                // Dovuci pitanja za mec
+                const payload = JSON.stringify({ type: 'MATCH_START', matchId: match.matchId })
+                match.player1.send(payload);
+                match.player2.send(payload);
+            }
+
+            function sendNextQuestion(match: Match) {
+                match.currentQuestionIndex += 1;
+                const question = 'How much is 2 + 2?'
+                const payload = JSON.stringify({ type: 'NEW_QUESTION', question })
+                match.player1.send(payload);
+                match.player2.send(payload);
+                setTimeout(() => {
+                    sendAnswerSummary(match)
+                })
+            }
+
+            function sendAnswerSummary(match: Match) {
+                const correctAnswer = '';
+
+                match.player1.send(JSON.stringify({
+                    type: 'ANSWER_SUMMARY',
+                    yourAnswer: match.answerP1,
+                    opponentAnswer: match.answerP2,
+                    correctAnswer
+                }));
+
+                match.player2.send(JSON.stringify({
+                    type: 'ANSWER_SUMMARY',
+                    yourAnswer: match.answerP2,
+                    opponentAnswer: match.answerP1,
+                    correctAnswer
+                }));
+
+                // posle kratke pauze, možeš pozvati sendNextQuestion(match);
+            }
         });
 
         ws.on('close', () => {
@@ -65,3 +131,4 @@ export default function initWebSocketServer(server: Server) {
         });
     });
 }
+

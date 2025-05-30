@@ -1,6 +1,27 @@
-<label>{{question.text}}</label>
-<ul>
-    <li *ngFor="let a of question.answers">
-        {{a.text}}
-    </li>
-</ul>
+<div class="user">
+    <app-icon class="avatar" src="/assets/svg/icon_user.svg" color="white" />
+    <label>{{user.username}}</label>
+</div>
+<div class="battle">
+    <div class="time">
+        <label>{{remainingTime}}</label>
+        <div class="timer-bar">
+            <div class="progress" [style.width.%]="(remainingTime / totalTime) * 100"></div>
+        </div>
+    </div>
+    <div class="quiz-content">
+        <label class="question">{{question.text}}</label>
+        <span class="h-divider" style="background-color: var(--theme-darkblue-color-3);"></span>
+        <div class="answers">
+            <label class="answer" (click)="handleAnswerClick(a)"
+                *ngFor="let a of question.answers">
+                {{a.text}}
+            </label>
+        </div>
+
+    </div>
+</div>
+<div class="user">
+    <app-icon class="avatar" src="/assets/svg/icon_user.svg" color="white" />
+    <label>{{opponent.username}}</label>
+</div>

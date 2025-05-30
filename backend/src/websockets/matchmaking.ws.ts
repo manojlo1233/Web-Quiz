@@ -11,6 +11,8 @@ const matchQuestions: Map<string, QuizQuestion[]> = new Map();
 
 export default function initWebSocketServer(server: Server) {
     const wss = new WebSocketServer({ server });
+    // SEND ANSWER SUMMARY ? SECONDS AFTER QUESTION - IF USERS ARE IDLE
+    let answerSummaryIdleTimeout: NodeJS.Timeout;
 
     wss.on('connection', (ws) => {
         ws.on('message', (message) => {
@@ -84,6 +86,10 @@ export default function initWebSocketServer(server: Server) {
                     match.answerP2 = data.answer;
                 }
                 if (match.answerP1 !== null && match.answerP2 !== null) {
+                    if (answerSummaryIdleTimeout) {
+                        clearTimeout(answerSummaryIdleTimeout);
+                    }
+                    // CLEAR SEND SUMMARY ON IDLE USERS
                     sendAnswerSummary(match)
                 }
             }
@@ -108,8 +114,8 @@ export default function initWebSocketServer(server: Server) {
                 const answersResult = await pool.query(
                     `SELECT id, question_id, text, is_correct FROM answers WHERE question_id IN (?)`,
                     [questionIds]);
-             
-                const answers: QuizAnswer[] = (answersResult[0] as any[]); 
+
+                const answers: QuizAnswer[] = (answersResult[0] as any[]);
                 const groupedAnswers: { [key: number]: any[] } = {};
                 answers.forEach((a: any) => {
                     if (!groupedAnswers[a.question_id]) {
@@ -126,6 +132,7 @@ export default function initWebSocketServer(server: Server) {
                 }));
             }
 
+
             function sendNextQuestion(match: Match) {
                 const questions = matchQuestions.get(match.matchId);
                 if (!questions || match.currentQuestionIndex >= questions.length) {
@@ -137,15 +144,17 @@ export default function initWebSocketServer(server: Server) {
                 match.player2.send(payload);
                 match.answerP1 = null;
                 match.answerP2 = null;
-                setTimeout(() => {
-                    sendAnswerSummary(match)
+                answerSummaryIdleTimeout = setTimeout(() => {
+                    if (match.answerP1 === null || match.answerP2 === null) {
+                        sendAnswerSummary(match)
+                    }
                 }, 10000)
                 match.currentQuestionIndex += 1;
             }
 
             function sendAnswerSummary(match: Match) {
                 const questions = matchQuestions.get(match.matchId);
-                if (!questions || match.currentQuestionIndex >= questions.length) {
+                if (!questions || match.currentQuestionIndex > questions.length) {
                     return;
                 }
                 const currentQ = questions[match.currentQuestionIndex - 1];

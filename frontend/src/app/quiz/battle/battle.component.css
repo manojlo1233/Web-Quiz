@@ -1,10 +1,109 @@
 :host {
     box-sizing: border-box;
     display: flex;
+    flex-direction: row;
     width: 100%;
     height: 100%;
     background: radial-gradient(ellipse at center, #0056b9, #13243c 70%);
     color: #fff;
     font-family: 'Titillium_Web-Regular', sans-serif;
     overflow: hidden;
+}
+
+.user {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    gap: 10px;
+
+    .avatar {
+        border: 1px solid white;
+        border-radius: 2px;
+        padding: 5px;
+        width: 50px;
+        height: 50px;
+    }
+}
+
+.battle {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    
+    .time {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 20px;
+        padding: 20px;
+
+        label {
+            font-size: 32px;
+            color: white;
+        }
+
+        .timer-bar {
+            width: 100%;
+            height: 7px;
+            border-radius: 2px;
+            overflow: hidden;
+            box-shadow: 0 0 3px 2px var(--theme-darkblue-color-5);
+        }
+
+        .progress {
+            height: 100%;
+            background-color: var(--theme-darkblue-color-3);
+            transition: width 0.45s linear;
+        }
+    }
+}
+
+.quiz-content {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    padding: 20px;
+    background-color: var(--theme-darkblue-box-bg);
+
+    .question {
+        width: fit-content;
+        padding: 5px 10px;
+        font-size: 32px;
+    }
+
+    .answers {
+        margin-top: 10px;
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .answer {
+        width: 100%;
+        box-sizing: border-box;
+        padding: 5px 10px;
+        background-color: var(--theme-darkblue-color-5);
+        border: 1px solid var(--theme-darkblue-color-3);
+        border-radius: 2px;
+        cursor: pointer;
+        text-align: center;
+    }
+
+    .answer:hover {
+        background-color: var(--theme-darkblue-button-dark-hover);
+        box-shadow: 0 0 4px 2px var(--theme-darkblue-color-3);
+    }
+
+    .answer:active {
+        background-color: var(--theme-darkblue-button-dark-active);
+        box-shadow: 0 0 4px 2px var(--theme-darkblue-color-3);
+    }
 }

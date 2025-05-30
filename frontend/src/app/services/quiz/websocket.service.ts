@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Subject } from 'rxjs';
+import { QuizAnswer } from '../../shared/models/Quiz/QuizAnswer';
 
 @Injectable({
   providedIn: 'root'
@@ -82,6 +83,10 @@ export class WebsocketService {
 
   sendEnterBattle(matchId: string, username: string) {
     this.send({ type: 'PLAYER_ENTERED_BATTLE', matchId, username });
+  }
+
+  sendBattleAnswer(matchId: string, username: string, answer: string) {
+    this.send({ type: 'ANSWER', matchId, username, answer })
   }
 
   close(): void {

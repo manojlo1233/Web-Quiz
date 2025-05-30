@@ -1,9 +1,13 @@
 import { WebSocketServer, WebSocket } from 'ws';
 import { Server } from 'http';
 import { Match } from '../models/Match';
+import { QuizQuestion } from '../models/Quiz/QuizQuestion';
+import pool from '../config/db';
+import { QuizAnswer } from '../models/Quiz/QuizAnswer';
 
 const waitingList: WebSocket[] = [];
 const activeMatches: Map<string, Match> = new Map();
+const matchQuestions: Map<string, QuizQuestion[]> = new Map();
 
 export default function initWebSocketServer(server: Server) {
     const wss = new WebSocketServer({ server });
@@ -42,7 +46,6 @@ export default function initWebSocketServer(server: Server) {
             else if (data.type === 'READY') {
                 const match = activeMatches.get(data.matchId);
                 if (!match) return;
-
                 if (data.username === match.username1) match.readyP1 = true;
                 if (data.username === match.username2) match.readyP2 = true;
                 if (match.readyP1 && match.readyP2 && match.status === 'ready') {
@@ -85,43 +88,87 @@ export default function initWebSocketServer(server: Server) {
                 }
             }
             // FUNCTIONS
-            function startMatch(match: Match) {
+            async function startMatch(match: Match) {
                 match.status = 'started';
-                // Dovuci pitanja za mec
+                const questions = await getRandomQuestions(10);
+                matchQuestions.set(match.matchId, questions);
+
+                match.currentQuestionIndex = 0;
                 const payload = JSON.stringify({ type: 'MATCH_START', matchId: match.matchId })
                 match.player1.send(payload);
                 match.player2.send(payload);
             }
 
+            async function getRandomQuestions(limit = 10): Promise<QuizQuestion[]> {
+                const questionsResult = await pool.query(
+                    `SELECT id, text, difficulty FROM questions ORDER BY RAND() LIMIT ?`
+                    , [limit]);
+                const questions: QuizQuestion[] = (questionsResult[0] as any[]);
+                const questionIds = questions.map((q: any) => q.id);
+                const answersResult = await pool.query(
+                    `SELECT id, question_id, text, is_correct FROM answers WHERE question_id IN (?)`,
+                    [questionIds]);
+             
+                const answers: QuizAnswer[] = (answersResult[0] as any[]); 
+                const groupedAnswers: { [key: number]: any[] } = {};
+                answers.forEach((a: any) => {
+                    if (!groupedAnswers[a.question_id]) {
+                        groupedAnswers[a.question_id] = [];
+                    }
+                    groupedAnswers[a.question_id].push(new QuizAnswer(a.id, a.text, a.is_correct));
+                });
+
+                return questions.map((q: any) => ({
+                    id: q.id,
+                    text: q.text,
+                    difficulty: q.difficulty,
+                    answers: groupedAnswers[q.id] || []
+                }));
+            }
+
             function sendNextQuestion(match: Match) {
-                match.currentQuestionIndex += 1;
-                const question = 'How much is 2 + 2?'
-                const payload = JSON.stringify({ type: 'NEW_QUESTION', question })
+                const questions = matchQuestions.get(match.matchId);
+                if (!questions || match.currentQuestionIndex >= questions.length) {
+                    return;
+                }
+                const q = questions[match.currentQuestionIndex]
+                const payload = JSON.stringify({ type: 'NEW_QUESTION', question: q })
                 match.player1.send(payload);
                 match.player2.send(payload);
+                match.answerP1 = null;
+                match.answerP2 = null;
                 setTimeout(() => {
                     sendAnswerSummary(match)
-                })
+                }, 10000)
+                match.currentQuestionIndex += 1;
             }
 
             function sendAnswerSummary(match: Match) {
-                const correctAnswer = '';
+                const questions = matchQuestions.get(match.matchId);
+                if (!questions || match.currentQuestionIndex >= questions.length) {
+                    return;
+                }
+                const currentQ = questions[match.currentQuestionIndex - 1];
+                const correctAns = currentQ.answers.find(a => a.isCorrect);
 
-                match.player1.send(JSON.stringify({
+                const summary = {
                     type: 'ANSWER_SUMMARY',
                     yourAnswer: match.answerP1,
                     opponentAnswer: match.answerP2,
-                    correctAnswer
-                }));
+                    correctAnswer: correctAns.text || null
+                }
 
+                match.player1.send(JSON.stringify(summary));
                 match.player2.send(JSON.stringify({
-                    type: 'ANSWER_SUMMARY',
+                    ...summary,
                     yourAnswer: match.answerP2,
-                    opponentAnswer: match.answerP1,
-                    correctAnswer
+                    opponentAnswer: match.answerP1
                 }));
 
-                // posle kratke pauze, možeš pozvati sendNextQuestion(match);
+                // Možeš odmah slati novo pitanje ili čekati
+                setTimeout(() => {
+                    sendNextQuestion(match);
+                }, 5000);
             }
         });
 

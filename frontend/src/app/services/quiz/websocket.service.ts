@@ -16,9 +16,10 @@ export class WebsocketService {
   public matchStart$ = new Subject<any>();
   public matchDeclined$ = new Subject<string>();
   public newQuestion$ = new Subject<any>();
+  public answerSummary$ = new Subject<any>();
 
   connect(): void {
-    this.socket = new WebSocket('ws://192.168.19.62:3000');
+    this.socket = new WebSocket('ws://localhost:3000');
 
     this.socket.onopen = () => {
       console.log('Websocket connection open');
@@ -42,6 +43,9 @@ export class WebsocketService {
           break;
         case 'NEW_QUESTION':
           this.newQuestion$.next(data);
+          break;
+        case 'ANSWER_SUMMARY':
+          this.answerSummary$.next(data);
           break;
       }
     };
@@ -77,7 +81,7 @@ export class WebsocketService {
   }
 
   sendEnterBattle(matchId: string, username: string) {
-    this.send({type: 'PLAYER_ENTERED_BATTLE', matchId, username});
+    this.send({ type: 'PLAYER_ENTERED_BATTLE', matchId, username });
   }
 
   close(): void {

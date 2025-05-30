@@ -4,6 +4,6 @@ import { Injectable } from '@angular/core';
   providedIn: 'root'
 })
 export class UrlService {
-  url: string = 'http://192.168.19.62:3000/api';
+  url: string = 'http://localhost:3000/api';
   constructor() { }
 }

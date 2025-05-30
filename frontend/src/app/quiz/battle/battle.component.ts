@@ -32,6 +32,8 @@ export class BattleComponent implements OnInit {
   timerInterval;
   // QUESTION
   question: QuizQuestion = new QuizQuestion();
+  // ASNWERS
+  selectedAnswer: any = null;
 
   ngOnInit(): void {
     this.match = this.matchStateService.getCurrentMatch();
@@ -42,7 +44,7 @@ export class BattleComponent implements OnInit {
     // SUBSCRIBE TO QUESTIONS
     this.wsService.newQuestion$.subscribe(resp => {
       this.question = resp.question;
-      this.initTimerDecrease();
+      this.init();
     })
 
     // SUBSCRIBE TO ANSWER SUMMARY
@@ -73,6 +75,11 @@ export class BattleComponent implements OnInit {
   }
 
   // INIT
+  init() {
+    this.initTimerDecrease();
+    this.resetAnswer();
+  }
+
   initTimerDecrease() {
     if (this.timerInterval) clearInterval(this.timerInterval);
     this.totalTime = 10;
@@ -97,7 +104,13 @@ export class BattleComponent implements OnInit {
     }, 1000)
   }
 
+  resetAnswer() {
+    this.selectedAnswer = null;
+  }
+
   handleAnswerClick(answer: QuizAnswer) {
+    if (this.selectedAnswer) return;
+    this.selectedAnswer = answer;
     this.wsService.sendBattleAnswer(this.match.matchId.toString(), this.user.username, answer.text);
   }
 }

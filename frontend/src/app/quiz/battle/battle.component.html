@@ -13,7 +13,11 @@
         <label class="question">{{question.text}}</label>
         <span class="h-divider" style="background-color: var(--theme-darkblue-color-3);"></span>
         <div class="answers">
-            <label class="answer" (click)="handleAnswerClick(a)"
+            <label 
+            class="answer"
+            [class.selected]="selectedAnswer === a"
+            [class.disabled]="selectedAnswer !== null && selectedAnswer !== a"
+            (click)="handleAnswerClick(a)"
                 *ngFor="let a of question.answers">
                 {{a.text}}
             </label>

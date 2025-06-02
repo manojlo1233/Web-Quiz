@@ -76,7 +76,7 @@ export class ReadyScreenComponent implements OnInit, OnDestroy {
    
     console.log(this.match.startTimestamp);
     const timeLeft = this.match.startTimestamp - Date.now();
-    this.remainingSeconds = Math.ceil(timeLeft / 1000);
+    this.remainingSeconds = Math.ceil(timeLeft / 1000) + 2000;
     this.timer$ = interval(1000).subscribe(() => {
       this.remainingSeconds--;
       if (this.remainingSeconds <= 0) {

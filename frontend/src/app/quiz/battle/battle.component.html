@@ -17,8 +17,13 @@
             class="answer"
             [class.selected]="selectedAnswer === a"
             [class.disabled]="selectedAnswer !== null && selectedAnswer !== a"
+            [class.disable-events]="answerSummaryPhase || selectedAnswer !== null"
+            [class.correct-answer]="correctAnswerIndex === i"
+            [class.wrong-answer]="userAnswerIndex !== correctAnswerIndex && userAnswerIndex !== -1 && userAnswerIndex === i"
             (click)="handleAnswerClick(a)"
-                *ngFor="let a of question.answers">
+                *ngFor="let a of question.answers, let i = index">
+                <span class="circle user-answer-circle" *ngIf="userAnswerIndex === i" ></span>
+                <span class="circle opponent-answer-circle" *ngIf="opponentAnswerIndex === i"></span>
                 {{a.text}}
             </label>
         </div>

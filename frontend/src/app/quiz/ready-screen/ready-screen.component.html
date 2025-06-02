@@ -3,15 +3,20 @@
         <app-icon class="avatar" src="/assets/svg/icon_user.svg" color="white" />
         <label>{{user.username}}</label>
         <button class="btn-light-small" style="margin-top: auto;" (click)="onReadyClick()">Ready</button>
+        <app-icon *ngIf="!userReady" src="/assets/svg/icon_empty_circle.svg" color="var(--theme-darkblue-red)"/>
+        <app-icon *ngIf="userReady" src="/assets/svg/icon_check_circle.svg" color="var(--theme-darkblue-green)"/>
     </div>
     <div class="info">
         <app-icon class="btl" src="/assets/svg/icon_battle.svg" color="white" />
         <label>{{remainingSeconds}}s</label>
-        <button class="btn-dark-small" (click)="onCancelClick()">Cancel</button>
+        <button class="btn-dark-small" style="margin-top: auto;" (click)="onCancelClick()">Cancel</button>
     </div>
     <div class="user">
         <app-icon class="avatar" src="/assets/svg/icon_user.svg" color="white" />
         <label>{{opponent.username}}</label>
-        <button class="btn-light-small" style="margin-top: auto; user-select: none; pointer-events: none;">Ready</button>
+        <button class="btn-light-small"
+            style="margin-top: auto; user-select: none; pointer-events: none;" disabled>Ready</button>
+        <app-icon *ngIf="!opponentReady" src="/assets/svg/icon_empty_circle.svg" color="var(--theme-darkblue-red)"/>
+        <app-icon *ngIf="opponentReady" src="/assets/svg/icon_check_circle.svg" color="var(--theme-darkblue-green)"/>
     </div>
 </div>

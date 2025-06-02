@@ -48,8 +48,14 @@ export default function initWebSocketServer(server: Server) {
             else if (data.type === 'READY') {
                 const match = activeMatches.get(data.matchId);
                 if (!match) return;
-                if (data.username === match.username1) match.readyP1 = true;
-                if (data.username === match.username2) match.readyP2 = true;
+                if (data.username === match.username1) {
+                    match.readyP1 = true;
+                    match.player2.send(JSON.stringify({ type:'READY_STATUS', username: (match.player1 as any).username, matchId: match.matchId }))
+                }
+                if (data.username === match.username2) {
+                    match.readyP2 = true;
+                    match.player1.send(JSON.stringify({ type:'READY_STATUS', username: (match.player2 as any).username, matchId: match.matchId }))
+                }
                 if (match.readyP1 && match.readyP2 && match.status === 'ready') {
                     startMatch(match);
                 }

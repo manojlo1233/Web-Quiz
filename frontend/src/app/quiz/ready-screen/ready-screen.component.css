@@ -29,7 +29,7 @@
     gap: 10px;
 
     button {
-        border: 1px solid rgb(255, 100, 100);
+        border: 1px solid var(--theme-darkblue-red);
     }
 
     .btl {
@@ -50,5 +50,10 @@
         padding: 5px;
         width: 50px;
         height: 50px;
+    }
+
+    app-icon {
+        width: 20px;
+        height: 20px;
     }
 }

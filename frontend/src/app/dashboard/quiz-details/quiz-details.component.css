@@ -101,17 +101,17 @@
 }
 
 .qu-ex-cor {
-    border-top: 1px solid rgb(89, 241, 89);
+    border-top: 1px solid var(--theme-darkblue-green);
 }
 
 .qu-ex-wr {
-    border-top: 1px solid rgb(255, 100, 100);
+    border-top: 1px solid var(--theme-darkblue-red);
 }
 
 .correct {
-    border: 1px solid rgb(89, 241, 89);
+    border: 1px solid var(--theme-darkblue-green);
 }
 
 .wrong {
-    border: 1px solid rgb(255, 100, 100);
+    border: 1px solid var(--theme-darkblue-red);
 }

@@ -34,6 +34,11 @@ export class BattleComponent implements OnInit {
   question: QuizQuestion = new QuizQuestion();
   // ASNWERS
   selectedAnswer: any = null;
+  // ANSWER SUMMARY
+  answerSummaryPhase: boolean = false;
+  userAnswerIndex: number = -1;
+  opponentAnswerIndex: number = -1;
+  correctAnswerIndex: number = -1;
 
   ngOnInit(): void {
     this.match = this.matchStateService.getCurrentMatch();
@@ -43,13 +48,20 @@ export class BattleComponent implements OnInit {
     }
     // SUBSCRIBE TO QUESTIONS
     this.wsService.newQuestion$.subscribe(resp => {
+      this.answerSummaryPhase = false;
+      this.userAnswerIndex = -1;
+      this.opponentAnswerIndex = -1;
+      this.correctAnswerIndex = -1;
       this.question = resp.question;
       this.init();
     })
 
     // SUBSCRIBE TO ANSWER SUMMARY
     this.wsService.answerSummary$.subscribe(resp => {
+      this.answerSummaryPhase = true;
+      this.selectedAnswer = null;
       this.initTimerIncrease();
+      this.getAnswerIndices(resp);
     })
 
     const userId = parseInt(sessionStorage.getItem('userId'), 10);
@@ -102,6 +114,12 @@ export class BattleComponent implements OnInit {
       }
       this.remainingTime++;
     }, 1000)
+  }
+
+  getAnswerIndices(resp: any) {
+    this.userAnswerIndex = this.question.answers.findIndex(a => a.text === resp.yourAnswer);
+    this.opponentAnswerIndex = this.question.answers.findIndex(a => a.text === resp.opponentAnswer);
+    this.correctAnswerIndex = this.question.answers.findIndex(a => a.text === resp.correctAnswer);
   }
 
   resetAnswer() {

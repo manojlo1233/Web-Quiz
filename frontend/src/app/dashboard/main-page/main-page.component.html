@@ -5,7 +5,8 @@
             <div class="user">
                 <app-icon
                     style="width: 30px; height: 30px; border: 1px solid var(--theme-darkblue-color-3); border-radius: 2px; padding: 5px;"
-                    src="assets/svg/icon_user.svg" color="var(--theme-darkblue-color-3)"></app-icon>
+                    src="assets/svg/icon_user.svg" color="var(--theme-darkblue-color-3)" 
+                    />
                 <label>{{user.firstname}} {{user.lastname}}</label>
                 <span>-</span>
                 <label>{{user.username}}</label>
@@ -67,17 +68,28 @@
 
         </div>
         <div class="friends">
+            <div class="hdr">
+                <label>Friends</label>
+                <app-icon class="icon" src="/assets/svg/icon_add_user.svg" color="var(--theme-darkblue-color-3)" title="Add Friend"/>
+            </div>
+            <span class="h-divider" style="background-color: var(--theme-darkblue-color-3);"></span>
+            <div class="frnds-container">
+                <label *ngFor="let f of friends, let i = index">
+                    {{f.username}}
+                </label>
+            </div>
 
         </div>
         <div class="play-btns">
-            <button class="btn-light" style="width: 150px; height: fit-content;" [disabled]="isSearching">Singleplayer</button>
+            <button class="btn-light" style="width: 150px; height: fit-content;"
+                [disabled]="isSearching">Singleplayer</button>
             <div class="search">
                 <label *ngIf="isSearching">Searching {{ formattedTime }}</label>
                 <button class="btn-light" style="width: 150px; height: fit-content;" [ngClass]="{
                 'btn-glow': isSearching
             }" (click)="onBattleClick()">{{matchmakingLbl}}</button>
             </div>
-            
+
         </div>
     </div>
 </div>

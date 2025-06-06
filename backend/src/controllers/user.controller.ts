@@ -291,3 +291,31 @@ export const getUserQuizQuestionsById = async (req: Request, res: Response) => {
         res.status(500).json({ message: 'Get quiz question by id failed', error: error.message })
     }
 }
+
+export const getUserFriendsById = async (req: Request, res: Response) => {
+    try {
+        const userId = parseInt(req.params.userId, 10);
+        const [userFriends] = await pool.execute(
+            `SELECT 
+                u.id AS friendId,
+                u.username AS username
+            FROM 
+                friends f
+            JOIN 
+                users u ON 
+                    (f.userId1 = ? AND f.userId2 = u.id)
+                    OR
+                    (f.userId2 = ? AND f.userId1 = u.id)
+            `,
+            [userId, userId]
+        )
+        if ((userFriends as any[]).length === 0) {
+            res.status(404).json({ message: 'User friends not found' })
+            return;
+        }
+        res.status(200).json(userFriends);
+    } catch (error: any) {
+        console.log('Get user friends by id error', error);
+        res.status(500).json({ message: 'Get user friends by id failed', error: error.message })
+    }
+}

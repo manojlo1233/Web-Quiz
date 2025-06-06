@@ -7,6 +7,7 @@ import { QuizAnswer } from '../models/Quiz/QuizAnswer';
 
 const waitingList: WebSocket[] = [];
 const activeMatches: Map<string, Match> = new Map();
+const matchStartTimeout: Map<string, NodeJS.Timeout> = new Map();
 const matchQuestions: Map<string, QuizQuestion[]> = new Map();
 
 export default function initWebSocketServer(server: Server) {
@@ -35,11 +36,13 @@ export default function initWebSocketServer(server: Server) {
 
                     activeMatches.set(matchId, match);
 
-                    setTimeout(() => {
+                    const timeout = setTimeout(() => {
                         if (match.status !== 'started') {
                             startMatch(match);
                         }
                     }, 60000)
+
+                    matchStartTimeout.set(match.matchId, timeout);
 
                     p1.send(JSON.stringify({ type: 'MATCH_FOUND', opponent: (p2 as any).username, matchId, role: 'player1', startTimestamp: match.startTimestamp }));
                     p2.send(JSON.stringify({ type: 'MATCH_FOUND', opponent: (p1 as any).username, matchId, role: 'player2', startTimestamp: match.startTimestamp }));
@@ -65,6 +68,8 @@ export default function initWebSocketServer(server: Server) {
                 if (!match) return;
                 match.status = 'cancelled';
                 activeMatches.delete(match.matchId);
+                clearTimeout(matchStartTimeout.get(match.matchId));
+                matchStartTimeout.delete(match.matchId)
                 const payload = JSON.stringify({ type: 'MATCH_DECLINED' })
                 match.player1.send(payload);
                 match.player2.send(payload);
@@ -190,6 +195,9 @@ export default function initWebSocketServer(server: Server) {
         ws.on('close', () => {
             const index = waitingList.indexOf(ws);
             if (index !== -1) waitingList.splice(index, 1);
+            matchStartTimeout.forEach((v, k) => {
+                clearTimeout(v);
+            })
         });
     });
 }

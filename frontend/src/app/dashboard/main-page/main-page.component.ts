@@ -12,6 +12,7 @@ import { QuizDetailsComponent } from '../quiz-details/quiz-details.component';
 import { WebsocketService } from '../../services/quiz/websocket.service';
 import { WSMatchFoundMsg } from '../../shared/models/WSMatchFoundMsg';
 import { MatchStateService } from '../../services/quiz/match-state.service';
+import { Friend } from '../../shared/models/Friend';
 
 
 @Component({
@@ -46,6 +47,7 @@ export class MainPageComponent implements OnInit, OnDestroy {
   user: User = new User();
   userStatistic: Statistic = new Statistic();
   userPlayHistory: QuizPlayed[] = [];
+  friends: Friend[] = [];
 
   // SUBSCRIPTIONS
   private errorSub: Subscription;
@@ -61,7 +63,7 @@ export class MainPageComponent implements OnInit, OnDestroy {
   formattedTime = '00:00';
 
   // SOCKET ERROR
-  
+
   errorMessage: string | null = null;
 
   ngOnInit(): void {
@@ -103,6 +105,11 @@ export class MainPageComponent implements OnInit, OnDestroy {
       error: (error: any) => {
         console.error(error)
       }
+    })
+    // --------- GET USER FRIENDS ---------
+    this.userService.getUserFriendsById(userId).subscribe((resp: any) => {
+      this.friends = resp;
+      console.log(this.friends)
     })
     // --------- INITIALIZE WEBSOCKET CONNECTION ---------
     this.wsService.connect();

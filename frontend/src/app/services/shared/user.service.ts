@@ -34,4 +34,8 @@ export class UserService {
   getUserQuizQuestionsById(userId: number, quizId: number) {
     return this.http.get(`${this.url}/getUserQuizQuestionsById/${userId}/${quizId}`)
   }
+
+  getUserFriendsById(userId: number) {
+    return this.http.get(`${this.url}/getUserFriendsById/${userId}`)
+  }
 }

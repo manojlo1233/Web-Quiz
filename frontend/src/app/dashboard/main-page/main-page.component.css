@@ -180,3 +180,52 @@
     }
 
 }
+
+.friends {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 10px;
+    border: 1px solid var(--theme-darkblue-color-3);
+    background-color: var(--theme-darkblue-box-bg);
+    max-height: 50%;
+
+    .hdr {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+
+        label {
+            font-size: 20px;
+        }
+
+        .icon {
+            margin-left: auto;
+            background-color: white;
+            border-radius: 2px;
+            padding: 1px;
+            width: 25px;
+            height: 25px;
+            cursor: pointer;
+        }
+
+        .icon:hover {
+            background-color: var(--theme-darkblue-button-light-hover);
+        }
+
+        .icon:active {
+            background-color: var(--theme-darkblue-button-light-active);
+        }
+    }
+
+    .frnds-container {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+
+        label {
+            background-color: var(--theme-darkblue-color-6);
+            padding: 5px;
+        }
+    }
+}

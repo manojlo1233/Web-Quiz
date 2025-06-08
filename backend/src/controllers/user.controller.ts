@@ -195,8 +195,27 @@ export const getUserByUsername = async (req: Request, res: Response) => {
             ...user
         });
     } catch (error: any) {
-        console.log('Get user by id error', error);
-        res.status(500).json({ message: 'Get user by id failed', error: error.message })
+        console.log('Get user by username error', error);
+        res.status(500).json({ message: 'Get user by username failed', error: error.message })
+    }
+}
+
+export const getUsersByUsername = async (req: Request, res: Response) => {
+    try {
+        const searchUsername = req.body.searchUsername;
+        const userUsername = req.body.userUsername;
+        const [users] = await pool.execute(
+            `SELECT username from users WHERE LOWER(username) LIKE LOWER(?) AND username!=? LIMIT 50`,
+            [`%${searchUsername}%`, userUsername]
+        )
+        if ((users as any[]).length === 0) {
+            res.status(404).json({ message: 'Users not found' })
+            return;
+        }
+        res.status(200).json(users);
+    } catch (error: any) {
+        console.log('Get users by username error', error);
+        res.status(500).json({ message: 'Get users by username failed', error: error.message })
     }
 }
 
@@ -292,30 +311,28 @@ export const getUserQuizQuestionsById = async (req: Request, res: Response) => {
     }
 }
 
-export const getUserFriendsById = async (req: Request, res: Response) => {
+export const getLeaderBoard = async (req: Request, res: Response) => {
     try {
-        const userId = parseInt(req.params.userId, 10);
-        const [userFriends] = await pool.execute(
+        const [leaderBoard] = await pool.execute(
             `SELECT 
-                u.id AS friendId,
-                u.username AS username
+                u.id as userId,
+                u.username as username,
+                s.avg_score as score       
             FROM 
-                friends f
+                users u
             JOIN 
-                users u ON 
-                    (f.userId1 = ? AND f.userId2 = u.id)
-                    OR
-                    (f.userId2 = ? AND f.userId1 = u.id)
-            `,
-            [userId, userId]
+                statistics s ON u.id = s.user_id
+            ORDER BY
+                s.avg_score DESC
+            `
         )
-        if ((userFriends as any[]).length === 0) {
-            res.status(404).json({ message: 'User friends not found' })
+        if ((leaderBoard as any[]).length === 0) {
+            res.status(404).json({ message: 'Get leaderboard not found' })
             return;
         }
-        res.status(200).json(userFriends);
+        res.status(200).json(leaderBoard);
     } catch (error: any) {
-        console.log('Get user friends by id error', error);
-        res.status(500).json({ message: 'Get user friends by id failed', error: error.message })
+        console.log('Get leaderboard error', error);
+        res.status(500).json({ message: 'Get leaderboard failed', error: error.message })
     }
 }

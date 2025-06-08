@@ -1,6 +1,6 @@
 -- --------------------------------------------------------
 -- Host:                         127.0.0.1
--- Server version:               8.2.0 - MySQL Community Server - GPL
+-- Server version:               8.3.0 - MySQL Community Server - GPL
 -- Server OS:                    Win64
 -- HeidiSQL Version:             12.6.0.6765
 -- --------------------------------------------------------
@@ -82,7 +82,7 @@ CREATE TABLE IF NOT EXISTS `battle_attempts` (
 -- Dumping structure for table webquiz.categories
 CREATE TABLE IF NOT EXISTS `categories` (
   `id` int NOT NULL AUTO_INCREMENT,
-  `name` varchar(100) COLLATE utf8mb4_general_ci NOT NULL,
+  `name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `name` (`name`)
 ) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -92,11 +92,30 @@ INSERT INTO `categories` (`id`, `name`) VALUES
 	(1, 'History'),
 	(2, 'Mathemathics');
 
+-- Dumping structure for table webquiz.friends
+CREATE TABLE IF NOT EXISTS `friends` (
+  `userId1` int NOT NULL,
+  `userId2` int NOT NULL,
+  `userIdSent` int NOT NULL,
+  `accepted` tinyint NOT NULL DEFAULT (0),
+  PRIMARY KEY (`userId1`,`userId2`),
+  KEY `FK__users_2` (`userId2`),
+  CONSTRAINT `FK__users_1` FOREIGN KEY (`userId1`) REFERENCES `users` (`id`),
+  CONSTRAINT `FK__users_2` FOREIGN KEY (`userId2`) REFERENCES `users` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- Dumping data for table webquiz.friends: ~4 rows (approximately)
+INSERT INTO `friends` (`userId1`, `userId2`, `userIdSent`, `accepted`) VALUES
+	(9, 13, 9, 1),
+	(12, 9, 12, 1),
+	(13, 12, 13, 1),
+	(13, 14, 13, 0);
+
 -- Dumping structure for table webquiz.questions
 CREATE TABLE IF NOT EXISTS `questions` (
   `id` int NOT NULL AUTO_INCREMENT,
   `category_id` int NOT NULL DEFAULT '0',
-  `text` varchar(255) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '0',
+  `text` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '0',
   `difficulty` int NOT NULL DEFAULT (0),
   `description` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
   PRIMARY KEY (`id`),
@@ -191,33 +210,35 @@ CREATE TABLE IF NOT EXISTS `statistics` (
 
 -- Dumping data for table webquiz.statistics: ~1 rows (approximately)
 INSERT INTO `statistics` (`user_id`, `total_quizzes`, `avg_score`, `avg_time`) VALUES
+	(9, 10, 250.34, 5.7),
 	(13, 5, 213.12, 12.1);
 
 -- Dumping structure for table webquiz.users
 CREATE TABLE IF NOT EXISTS `users` (
   `id` int NOT NULL AUTO_INCREMENT,
-  `firstname` varchar(50) COLLATE utf8mb4_general_ci NOT NULL,
+  `firstname` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
   `lastname` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
   `username` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-  `email` varchar(100) COLLATE utf8mb4_general_ci NOT NULL,
-  `password_hash` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
-  `country` varchar(100) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `email` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `password_hash` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `country` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
   `role` int NOT NULL DEFAULT (0),
   `created_at` datetime DEFAULT NULL,
-  `reset_token` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `reset_token` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
   `reset_token_expires` datetime DEFAULT NULL,
   `receive_updates` tinyint DEFAULT NULL,
   `last_login` datetime DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `username` (`username`),
   UNIQUE KEY `email` (`email`)
-) ENGINE=InnoDB AUTO_INCREMENT=14 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=15 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
--- Dumping data for table webquiz.users: ~3 rows (approximately)
+-- Dumping data for table webquiz.users: ~4 rows (approximately)
 INSERT INTO `users` (`id`, `firstname`, `lastname`, `username`, `email`, `password_hash`, `country`, `role`, `created_at`, `reset_token`, `reset_token_expires`, `receive_updates`, `last_login`) VALUES
 	(9, 'Milan', 'Manojlovic', 'manjolo', 'milan.manojlo00@gmail.com', '$2b$10$M8rQ2IrzbWwVo6ELDQABee7oJJbapRdP3dtJiTFL.iDZ0in3JisJu', 'Serbia', 0, '2025-05-16 14:40:15', NULL, NULL, NULL, NULL),
 	(12, 'Milica', 'Man', 'milica123', 'milica@gmail.com', '$2b$10$TXPSEVXB54Os0/Mc/JEYH.EEW12klt5oQZ/JaFlyoopw0x2JnvDwC', 'Serbia', 0, '2025-05-16 14:44:09', NULL, NULL, NULL, NULL),
-	(13, 'Marko', 'Manojlovic', 'mareljino', 'marko@gmail.com', '$2b$10$buvoLJksqVgkdE55zFrWLe/S3DgG8p0TDFgTy896dkVJg5/0zOzaO', 'Serbia', 0, '2025-05-19 14:46:06', NULL, NULL, NULL, NULL);
+	(13, 'Marko', 'Manojlovic', 'mareljino', 'marko@gmail.com', '$2b$10$buvoLJksqVgkdE55zFrWLe/S3DgG8p0TDFgTy896dkVJg5/0zOzaO', 'Serbia', 0, '2025-05-19 14:46:06', NULL, NULL, NULL, NULL),
+	(14, 'Aleksandra', 'Biocanin', 'aleks', 'aleksandrabiocanin6@gmail.com', '$2b$10$t8eOflR9jfiUqLGj/ywi5egfymhjUVi5BISW40nV5AwzIsfRUguNW', 'Serbia', 0, '2025-06-07 19:38:00', NULL, NULL, NULL, NULL);
 
 /*!40103 SET TIME_ZONE=IFNULL(@OLD_TIME_ZONE, 'system') */;
 /*!40101 SET SQL_MODE=IFNULL(@OLD_SQL_MODE, '') */;

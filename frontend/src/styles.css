@@ -118,6 +118,7 @@ html {
 
 .btn-light-small {
     width: fit-content;
+    height: fit-content;
     padding: 5px 10px;
     background-color: white;
     color: var(--theme-darkblue-color-4);

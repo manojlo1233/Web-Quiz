@@ -13,6 +13,9 @@ import { WebsocketService } from '../../services/quiz/websocket.service';
 import { WSMatchFoundMsg } from '../../shared/models/WSMatchFoundMsg';
 import { MatchStateService } from '../../services/quiz/match-state.service';
 import { Friend } from '../../shared/models/Friend';
+import { UserLeaderBoard } from '../../shared/models/UserLeaderboard';
+import { AppComponent } from '../../app.component';
+import { FriendsService } from '../../services/friends/friends.service';
 
 
 @Component({
@@ -22,6 +25,7 @@ import { Friend } from '../../shared/models/Friend';
 })
 export class MainPageComponent implements OnInit, OnDestroy {
   @ViewChild('displayQuizQuestionsContainer', { read: ViewContainerRef }) displayQuizQuestionsContainer!: ViewContainerRef;
+  @ViewChild('friendRequestIcon') friendRequestIcon!: AppComponent;
 
   constructor(
     private router: Router,
@@ -29,7 +33,8 @@ export class MainPageComponent implements OnInit, OnDestroy {
     private quizService: QuizService,
     private utilService: UtilService,
     private wsService: WebsocketService,
-    private matchStateService: MatchStateService
+    private matchStateService: MatchStateService,
+    private friendsService: FriendsService
   ) {
     this.errorSub = this.wsService.error$.subscribe((msg) => {
       this.errorMessage = msg;
@@ -43,11 +48,21 @@ export class MainPageComponent implements OnInit, OnDestroy {
       this.handleWsMessage(resp);
     })
   }
-
   user: User = new User();
   userStatistic: Statistic = new Statistic();
   userPlayHistory: QuizPlayed[] = [];
+  // LEADRBOARD
+  leaderbaord: UserLeaderBoard[] = [];
+
+  // FIRENDS
+  FRIENDS_TAB = {
+    FRIENDS: 0,
+    FRIENDS_REQUEST: 1,
+    ADD_FRIEND: 2
+  }
   friends: Friend[] = [];
+  friendsRequest: Friend[] = [];
+  friendsTab: number = 2;
 
   // SUBSCRIPTIONS
   private errorSub: Subscription;
@@ -63,8 +78,12 @@ export class MainPageComponent implements OnInit, OnDestroy {
   formattedTime = '00:00';
 
   // SOCKET ERROR
-
   errorMessage: string | null = null;
+
+  // SEARCH USER
+  searchUserText: string = '';
+  suggestedUsers: any[] = [];
+  searchUsed: boolean = false;
 
   ngOnInit(): void {
     const userId = parseInt(sessionStorage.getItem('userId'), 10);
@@ -107,9 +126,13 @@ export class MainPageComponent implements OnInit, OnDestroy {
       }
     })
     // --------- GET USER FRIENDS ---------
-    this.userService.getUserFriendsById(userId).subscribe((resp: any) => {
-      this.friends = resp;
-      console.log(this.friends)
+    this.friendsService.getUserFriendsById(userId).subscribe((resp: any[]) => {
+      this.friends = resp.filter(f => f.accepted);
+      this.friendsRequest = resp.filter(f => !f.accepted && f.userIdSent !== userId);
+    })
+    // --------- GET LEADERBOARD ---------
+    this.userService.getLeaderBoard().subscribe((resp: any) => {
+      this.leaderbaord = resp;
     })
     // --------- INITIALIZE WEBSOCKET CONNECTION ---------
     this.wsService.connect();
@@ -175,6 +198,31 @@ export class MainPageComponent implements OnInit, OnDestroy {
       this.matchStateService.setCurrentMatch(msg);
       this.router.navigate(['/quiz/loading-screen'])
     }
+  }
+
+  handleFriendTabClick(num: number) {
+    this.friendsTab = num;
+    switch (this.friendsTab) {
+      case this.FRIENDS_TAB.FRIENDS:
+        break;
+      case this.FRIENDS_TAB.FRIENDS_REQUEST:
+        break;
+      case this.FRIENDS_TAB.ADD_FRIEND:
+        break;
+    }
+  }
+
+  handleSearchUsersClick() {
+    if (this.searchUserText.length === 0) return;
+    this.userService.getUsersByUsername(this.searchUserText, this.user.username).subscribe((resp: any) => {
+      this.suggestedUsers = resp;
+    })
+  }
+
+  handleRemoveFriendClick(friendId: number) {
+    this.friendsService.deleteUserFriendById(this.user.id, friendId).subscribe((resp) => {
+      console.log(resp)
+    })
   }
 
   ngOnDestroy(): void {

@@ -23,6 +23,15 @@ export class UserService {
     return this.http.get(`${this.url}/getUserByUsername/${username}`);
   }
 
+  getUsersByUsername(searchUsername: string, userUsername: string) {
+    const body = {
+      searchUsername: searchUsername,
+      userUsername: userUsername
+    }
+    console.log('ee')
+    return this.http.post(`${this.url}/getUsersByUsername`, body);
+  }
+
   getUserStatisticsById(id: number) {
     return this.http.get(`${this.url}/getUserStatisticsById/${id}`);
   }
@@ -35,7 +44,7 @@ export class UserService {
     return this.http.get(`${this.url}/getUserQuizQuestionsById/${userId}/${quizId}`)
   }
 
-  getUserFriendsById(userId: number) {
-    return this.http.get(`${this.url}/getUserFriendsById/${userId}`)
+  getLeaderBoard() {
+    return this.http.get(`${this.url}/getLeaderBoard`)
   }
 }

@@ -1,6 +1,5 @@
 import { Injectable } from '@angular/core';
 import { Subject } from 'rxjs';
-import { QuizAnswer } from '../../shared/models/Quiz/QuizAnswer';
 
 @Injectable({
   providedIn: 'root'
@@ -11,42 +10,52 @@ export class WebsocketService {
 
   private socket: WebSocket | null = null;
 
+  public connectionOpen$ = new Subject<void>();
   public error$ = new Subject<string>();
+  // BATTLE
   public startQuiz$ = new Subject<any>();
   public readyStatus$ = new Subject<{ username: string, matchId: string }>();
   public matchStart$ = new Subject<any>();
   public matchDeclined$ = new Subject<string>();
   public newQuestion$ = new Subject<any>();
   public answerSummary$ = new Subject<any>();
+  // FRIENDS
+  public refreshFriends$ = new Subject<void>();
 
   connect(): void {
     this.socket = new WebSocket('ws://localhost:3000');
 
     this.socket.onopen = () => {
+      this.connectionOpen$.next();
       console.log('Websocket connection open');
     }
 
     this.socket.onmessage = (event) => {
       const data = JSON.parse(event.data);
-
+      console.log(data.type);
       switch (data.type) {
-        case 'MATCH_FOUND':
+
+        // -------------- BATTLE --------------
+        case 'battle/MATCH_FOUND':
           this.startQuiz$.next(data);
           break;
-        case 'READY_STATUS':
+        case 'battle/READY_STATUS':
           this.readyStatus$.next({ username: data.username, matchId: data.matchid });
           break;
-        case 'MATCH_START':
+        case 'battle/MATCH_START':
           this.matchStart$.next(data);
           break;
-        case 'MATCH_DECLINED':
+        case 'battle/MATCH_DECLINED':
           this.matchDeclined$.next(data.matchId);
           break;
-        case 'NEW_QUESTION':
+        case 'battle/NEW_QUESTION':
           this.newQuestion$.next(data);
           break;
-        case 'ANSWER_SUMMARY':
+        case 'battle/ANSWER_SUMMARY':
           this.answerSummary$.next(data);
+          break;
+        case 'friends/REFRESH':
+          this.refreshFriends$.next();
           break;
       }
     };
@@ -69,24 +78,32 @@ export class WebsocketService {
     }
   }
 
+  sendHello(id: number, username: string) {
+    this.send({ type: 'USER_SUBSCRIBE', id, username });
+  }
+
   joinMatchmaking(username: string): void {
-    this.send({ type: 'join-queue', username })
+    this.send({ type: 'battle/JOIN_QUEUE', username });
+  }
+
+  cancelMatchmaking(username: string): void {
+    this.send({ type: 'battle/LEAVE_QUEUE', username });
   }
 
   sendReady(matchId: string, username: string): void {
-    this.send({ type: 'READY', matchId, username });
+    this.send({ type: 'battle/READY', matchId, username });
   }
 
   sendDecline(matchId: string, username: string): void {
-    this.send({ type: 'DECLINE', matchId, username });
+    this.send({ type: 'battle/DECLINE', matchId, username });
   }
 
   sendEnterBattle(matchId: string, username: string) {
-    this.send({ type: 'PLAYER_ENTERED_BATTLE', matchId, username });
+    this.send({ type: 'battle/PLAYER_ENTERED_BATTLE', matchId, username });
   }
 
   sendBattleAnswer(matchId: string, username: string, answer: string) {
-    this.send({ type: 'ANSWER', matchId, username, answer })
+    this.send({ type: 'battle/ANSWER', matchId, username, answer });
   }
 
   close(): void {

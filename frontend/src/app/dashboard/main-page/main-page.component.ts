@@ -1,6 +1,6 @@
 import { Component, OnDestroy, OnInit, ViewChild, ViewContainerRef } from '@angular/core';
 import { Router } from '@angular/router';
-import { Subscription } from 'rxjs';
+import { catchError, Subscription } from 'rxjs';
 
 import { User } from '../../shared/models/User';
 import { UserService } from '../../services/shared/user.service';
@@ -16,6 +16,7 @@ import { Friend } from '../../shared/models/Friend';
 import { UserLeaderBoard } from '../../shared/models/UserLeaderboard';
 import { AppComponent } from '../../app.component';
 import { FriendsService } from '../../services/friends/friends.service';
+import { SnackBarService } from '../../services/shared/snack-bar.service';
 
 
 @Component({
@@ -34,7 +35,8 @@ export class MainPageComponent implements OnInit, OnDestroy {
     private utilService: UtilService,
     private wsService: WebsocketService,
     private matchStateService: MatchStateService,
-    private friendsService: FriendsService
+    private friendsService: FriendsService,
+    private snackBarService: SnackBarService
   ) {
     this.errorSub = this.wsService.error$.subscribe((msg) => {
       this.errorMessage = msg;
@@ -60,9 +62,15 @@ export class MainPageComponent implements OnInit, OnDestroy {
     FRIENDS_REQUEST: 1,
     ADD_FRIEND: 2
   }
+  friendsLabel = 'Friends';
   friends: Friend[] = [];
   friendsRequest: Friend[] = [];
   friendsTab: number = 2;
+
+  // SEARCH USER
+  searchUserText: string = '';
+  suggestedUsers: any[] = [];
+  searchUsed: boolean = false;
 
   // SUBSCRIPTIONS
   private errorSub: Subscription;
@@ -80,17 +88,17 @@ export class MainPageComponent implements OnInit, OnDestroy {
   // SOCKET ERROR
   errorMessage: string | null = null;
 
-  // SEARCH USER
-  searchUserText: string = '';
-  suggestedUsers: any[] = [];
-  searchUsed: boolean = false;
-
   ngOnInit(): void {
     const userId = parseInt(sessionStorage.getItem('userId'), 10);
     // --------- GET USER ---------
     this.userService.getUserById(userId).subscribe({
       next: (resp: any) => {
         this.user = resp;
+        // --------- INITIALIZE WEBSOCKET CONNECTION ---------
+        this.wsService.connect();
+        this.wsService.connectionOpen$.subscribe(() => {
+          this.wsService.sendHello(userId, this.user.username);
+        })
       },
       error: (error: any) => {
         console.error(error)
@@ -126,16 +134,34 @@ export class MainPageComponent implements OnInit, OnDestroy {
       }
     })
     // --------- GET USER FRIENDS ---------
-    this.friendsService.getUserFriendsById(userId).subscribe((resp: any[]) => {
-      this.friends = resp.filter(f => f.accepted);
-      this.friendsRequest = resp.filter(f => !f.accepted && f.userIdSent !== userId);
+    this.getFriends(userId);
+    this.wsService.refreshFriends$.subscribe(() => {
+      this.getFriends(userId);
     })
     // --------- GET LEADERBOARD ---------
-    this.userService.getLeaderBoard().subscribe((resp: any) => {
-      this.leaderbaord = resp;
+    this.userService.getLeaderBoard().subscribe({
+      next: (resp: any) => {
+        this.leaderbaord = resp;
+      },
+      error: (error: any) => {
+
+      }
     })
-    // --------- INITIALIZE WEBSOCKET CONNECTION ---------
-    this.wsService.connect();
+  }
+
+  getFriends(userId: number) {
+    console.log("RADIM REFRESH FRIENDS");
+    this.friendsService.getUserFriendsById(userId)./*pipe(
+      catchError((error) => {
+        console.log(error);
+        return ({ error: true, message: 'Request failed' });
+      })
+    ).*/subscribe({
+      next: (resp: any[]) => {
+        this.friends = resp.filter(f => f.accepted);
+        this.friendsRequest = resp.filter(f => !f.accepted && f.userIdSent !== userId);
+      }
+    })
   }
 
   formatDuration(seconds: number): string {
@@ -183,6 +209,7 @@ export class MainPageComponent implements OnInit, OnDestroy {
       this.matchmakingLbl = 'Battle'
       this.isSearching = false;
       clearInterval(this.timerInterval);
+      this.wsService.cancelMatchmaking(this.user.username);
     }
   }
 
@@ -194,7 +221,7 @@ export class MainPageComponent implements OnInit, OnDestroy {
   }
 
   handleWsMessage(msg: WSMatchFoundMsg) {
-    if (msg.type === 'MATCH_FOUND') {
+    if (msg.type === 'battle/MATCH_FOUND') {
       this.matchStateService.setCurrentMatch(msg);
       this.router.navigate(['/quiz/loading-screen'])
     }
@@ -204,24 +231,76 @@ export class MainPageComponent implements OnInit, OnDestroy {
     this.friendsTab = num;
     switch (this.friendsTab) {
       case this.FRIENDS_TAB.FRIENDS:
+        this.friendsLabel = 'Friends';
         break;
       case this.FRIENDS_TAB.FRIENDS_REQUEST:
+        this.friendsLabel = 'Friend Requests';
         break;
       case this.FRIENDS_TAB.ADD_FRIEND:
+        this.friendsLabel = 'Add Friend'
         break;
     }
   }
 
   handleSearchUsersClick() {
     if (this.searchUserText.length === 0) return;
-    this.userService.getUsersByUsername(this.searchUserText, this.user.username).subscribe((resp: any) => {
-      this.suggestedUsers = resp;
+    this.userService.getUsersByUsername(this.searchUserText, this.user.username).subscribe({
+      next: (resp: any) => {
+        this.searchUsed = true;
+        let existingFriendsIDs = new Set(this.friends.map(f => f.friendId));
+        this.suggestedUsers = (resp as any[]).filter(u => !existingFriendsIDs.has(u.id));
+      },
+      error: (error: any) => {
+        this.searchUsed = true;
+      }
     })
   }
 
   handleRemoveFriendClick(friendId: number) {
-    this.friendsService.deleteUserFriendById(this.user.id, friendId).subscribe((resp) => {
-      console.log(resp)
+    this.friendsService.deleteUserFriendById(this.user.id, friendId).subscribe({
+      next: (resp: any) => {
+        this.snackBarService.showSnackBar(resp.message)
+        this.friends = this.friends.filter(f => f.friendId !== friendId);
+      },
+      error: (error) => {
+
+      }
+    })
+  }
+
+  handleSendFriendRequest(id: number) {
+    this.friendsService.sendFriendRequest(this.user.id, id).subscribe({
+      next: (resp: any) => {
+        this.snackBarService.showSnackBar(resp.message);
+      },
+      error: (error: any) => {
+        this.snackBarService.showSnackBar(error.error.message);
+      }
+    })
+  }
+
+  handleAcceptFriendRequest(friend: Friend) {
+    this.friendsService.acceptFriendRequest(this.user.id, friend.friendId).subscribe({
+      next: (resp: any) => {
+        this.friendsRequest = this.friendsRequest.filter(f => f.friendId !== friend.friendId);
+        this.friends.push(friend)
+        this.snackBarService.showSnackBar(resp.message);
+      },
+      error: (error: any) => {
+        this.snackBarService.showSnackBar(error.error.message);
+      }
+    })
+  }
+
+  handleRejectFriendRequest(id: number) {
+    this.friendsService.rejectFriendRequest(this.user.id, id).subscribe({
+      next: (resp: any) => {
+        this.friendsRequest = this.friendsRequest.filter(f => f.friendId !== id);
+        this.snackBarService.showSnackBar(resp.message);
+      },
+      error: (error: any) => {
+        this.snackBarService.showSnackBar(error.error.message);
+      }
     })
   }
 

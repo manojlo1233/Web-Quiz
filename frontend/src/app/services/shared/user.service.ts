@@ -28,7 +28,6 @@ export class UserService {
       searchUsername: searchUsername,
       userUsername: userUsername
     }
-    console.log('ee')
     return this.http.post(`${this.url}/getUsersByUsername`, body);
   }
 

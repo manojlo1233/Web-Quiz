@@ -5,7 +5,9 @@ import { QuizQuestion } from '../models/Quiz/QuizQuestion';
 import pool from '../config/db';
 import { QuizAnswer } from '../models/Quiz/QuizAnswer';
 
-const waitingList: WebSocket[] = [];
+let usersWebSockes: WebSocket[] = [];
+
+let waitingList: WebSocket[] = [];
 const activeMatches: Map<string, Match> = new Map();
 const matchStartTimeout: Map<string, NodeJS.Timeout> = new Map();
 const matchQuestions: Map<string, QuizQuestion[]> = new Map();
@@ -18,7 +20,17 @@ export default function initWebSocketServer(server: Server) {
     wss.on('connection', (ws) => {
         ws.on('message', (message) => {
             const data = JSON.parse(message.toString());
-            if (data.type === 'join-queue') {
+            if (data.type === 'USER_SUBSCRIBE') {
+                
+                if (usersWebSockes.filter(ws => (ws as any).username === data.username).length !== 0) {
+                    usersWebSockes = usersWebSockes.filter(ws => (ws as any).username !== data.username)
+                }
+                (ws as any).id = data.id;
+                (ws as any).username = data.username;
+                usersWebSockes.push(ws);
+            }
+            // ----------------- BATTLE -----------------
+            if (data.type === 'battle/JOIN_QUEUE') {
                 if (waitingList.filter(ws => (ws as any).username === data.username).length !== 0) { // Avoid adding same players to waitinList
                     return;
                 }
@@ -44,37 +56,40 @@ export default function initWebSocketServer(server: Server) {
 
                     matchStartTimeout.set(match.matchId, timeout);
 
-                    p1.send(JSON.stringify({ type: 'MATCH_FOUND', opponent: (p2 as any).username, matchId, role: 'player1', startTimestamp: match.startTimestamp }));
-                    p2.send(JSON.stringify({ type: 'MATCH_FOUND', opponent: (p1 as any).username, matchId, role: 'player2', startTimestamp: match.startTimestamp }));
+                    p1.send(JSON.stringify({ type: 'battle/MATCH_FOUND', opponent: (p2 as any).username, matchId, role: 'player1', startTimestamp: match.startTimestamp }));
+                    p2.send(JSON.stringify({ type: 'battle/MATCH_FOUND', opponent: (p1 as any).username, matchId, role: 'player2', startTimestamp: match.startTimestamp }));
                 }
             }
-            else if (data.type === 'READY') {
+            else if (data.type === 'battle/LEAVE_QUEUE') {
+                waitingList = waitingList.filter(ws => (ws as any).username !== data.username)
+            }
+            else if (data.type === 'battle/READY') {
                 const match = activeMatches.get(data.matchId);
                 if (!match) return;
                 if (data.username === match.username1) {
                     match.readyP1 = true;
-                    match.player2.send(JSON.stringify({ type:'READY_STATUS', username: (match.player1 as any).username, matchId: match.matchId }))
+                    match.player2.send(JSON.stringify({ type: 'battle/READY_STATUS', username: (match.player1 as any).username, matchId: match.matchId }))
                 }
                 if (data.username === match.username2) {
                     match.readyP2 = true;
-                    match.player1.send(JSON.stringify({ type:'READY_STATUS', username: (match.player2 as any).username, matchId: match.matchId }))
+                    match.player1.send(JSON.stringify({ type: 'battle/READY_STATUS', username: (match.player2 as any).username, matchId: match.matchId }))
                 }
                 if (match.readyP1 && match.readyP2 && match.status === 'ready') {
                     startMatch(match);
                 }
             }
-            else if (data.type === 'DECLINE') {
+            else if (data.type === 'battle/DECLINE') {
                 const match = activeMatches.get(data.matchId);
                 if (!match) return;
                 match.status = 'cancelled';
                 activeMatches.delete(match.matchId);
                 clearTimeout(matchStartTimeout.get(match.matchId));
                 matchStartTimeout.delete(match.matchId)
-                const payload = JSON.stringify({ type: 'MATCH_DECLINED' })
+                const payload = JSON.stringify({ type: 'battle/MATCH_DECLINED' })
                 match.player1.send(payload);
                 match.player2.send(payload);
             }
-            else if (data.type === 'PLAYER_ENTERED_BATTLE') {
+            else if (data.type === 'battle/PLAYER_ENTERED_BATTLE') {
                 const match = activeMatches.get(data.matchId);
                 if (!match) return;
                 if ((match.player1 as any).username === data.username) {
@@ -87,7 +102,7 @@ export default function initWebSocketServer(server: Server) {
                     sendNextQuestion(match);
                 }
             }
-            else if (data.type === 'ANSWER') {
+            else if (data.type === 'battle/ANSWER') {
                 const match = activeMatches.get(data.matchId);
                 if (!match) return;
                 if ((match.player1 as any).username === data.username) {
@@ -104,14 +119,15 @@ export default function initWebSocketServer(server: Server) {
                     sendAnswerSummary(match)
                 }
             }
-            // FUNCTIONS
+
+            // ----------------- BATTLE FUNCTIONS -----------------
             async function startMatch(match: Match) {
                 match.status = 'started';
                 const questions = await getRandomQuestions(10);
                 matchQuestions.set(match.matchId, questions);
 
                 match.currentQuestionIndex = 0;
-                const payload = JSON.stringify({ type: 'MATCH_START', matchId: match.matchId })
+                const payload = JSON.stringify({ type: 'battle/MATCH_START', matchId: match.matchId })
                 match.player1.send(payload);
                 match.player2.send(payload);
             }
@@ -143,14 +159,13 @@ export default function initWebSocketServer(server: Server) {
                 }));
             }
 
-
             function sendNextQuestion(match: Match) {
                 const questions = matchQuestions.get(match.matchId);
                 if (!questions || match.currentQuestionIndex >= questions.length) {
                     return;
                 }
                 const q = questions[match.currentQuestionIndex]
-                const payload = JSON.stringify({ type: 'NEW_QUESTION', question: q })
+                const payload = JSON.stringify({ type: 'battle/NEW_QUESTION', question: q })
                 match.player1.send(payload);
                 match.player2.send(payload);
                 match.answerP1 = null;
@@ -172,7 +187,7 @@ export default function initWebSocketServer(server: Server) {
                 const correctAns = currentQ.answers.find(a => a.isCorrect);
 
                 const summary = {
-                    type: 'ANSWER_SUMMARY',
+                    type: 'battle/ANSWER_SUMMARY',
                     yourAnswer: match.answerP1,
                     opponentAnswer: match.answerP2,
                     correctAnswer: correctAns.text || null
@@ -190,6 +205,8 @@ export default function initWebSocketServer(server: Server) {
                     sendNextQuestion(match);
                 }, 5000);
             }
+            // ----------------- END BATTLE FUNCTIONS END -----------------
+
         });
 
         ws.on('close', () => {
@@ -200,5 +217,13 @@ export default function initWebSocketServer(server: Server) {
             })
         });
     });
+}
+
+export function sendFriendRefreshSignal(userId: number) {
+    
+    if (usersWebSockes.filter(ws => (ws as any).id === userId).length !== 0) {
+        let soc = usersWebSockes.filter(ws => (ws as any).id === userId)[0];
+        soc.send(JSON.stringify({ type: 'friends/REFRESH' }));
+    }
 }
 

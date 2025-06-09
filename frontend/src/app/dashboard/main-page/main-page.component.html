@@ -77,14 +77,18 @@
         </div>
         <div class="friends">
             <div class="hdr">
-                <label>Friends</label>
+                <label>{{friendsLabel}}</label>
                 <div style="display: flex; flex-direction: row; gap: 10px; margin-left: auto;">
                     <app-icon class="icon" [class.selected]="friendsTab === FRIENDS_TAB.FRIENDS"
                         src="/assets/svg/icon_user.svg" color="var(--theme-darkblue-color-3)" title="Friends"
                         (click)="handleFriendTabClick(0)" />
-                    <app-icon class="icon" [class.selected]="friendsTab === FRIENDS_TAB.FRIENDS_REQUEST"
-                        #friendRequestIcon src="/assets/svg/icon_user_invite.svg" color="var(--theme-darkblue-color-3)"
-                        title="Friend Requests" (click)="handleFriendTabClick(1)" />
+                    <div style="position: relative;">
+                        <app-icon class="icon" style="display: block; z-index: 2;" [class.selected]="friendsTab === FRIENDS_TAB.FRIENDS_REQUEST"
+                            #friendRequestIcon src="/assets/svg/icon_user_invite.svg"
+                            color="var(--theme-darkblue-color-3)" title="Friend Requests"
+                            (click)="handleFriendTabClick(1)"></app-icon>
+                        <label *ngIf="friendsRequest.length > 0" class="floating-number" style="z-index: 1;">{{friendsRequest.length}}</label>
+                    </div>
                     <app-icon class="icon" [class.selected]="friendsTab === FRIENDS_TAB.ADD_FRIEND"
                         src="/assets/svg/icon_add_user.svg" color="var(--theme-darkblue-color-3)" title="Add Friend"
                         (click)="handleFriendTabClick(2)" />
@@ -94,29 +98,38 @@
             <span class="h-divider" style="background-color: var(--theme-darkblue-color-3);"></span>
             <div class="frnds-container">
                 <div *ngIf="friendsTab === FRIENDS_TAB.FRIENDS">
-                    <div class="frnd-div" *ngFor="let f of friends, let i = index">
-                        <label>
-                            {{f.username}}
-                        </label>
-                        <app-icon class="icon" style="margin-left: auto;" src="/assets/svg/icon_circle_minus.svg"
-                            color="var(--theme-darkblue-color-3)" title="Remove Friend" (click)="handleRemoveFriendClick(f.friendId)"/>
+                    <div *ngIf="friends.length > 0">
+                        <div class="frnd-div" *ngFor="let f of friends, let i = index">
+                            <label>
+                                {{f.username}}
+                            </label>
+                            <app-icon class="icon small" style="margin-left: auto;"
+                                src="/assets/svg/icon_circle_minus.svg" color="var(--theme-darkblue-color-3)"
+                                title="Remove Friend" (click)="handleRemoveFriendClick(f.friendId)" />
+                        </div>
                     </div>
-
+                    <label class="neutral-italic" *ngIf="friends.length === 0">No friends... You can add
+                        friends.</label>
                 </div>
                 <div *ngIf="friendsTab === FRIENDS_TAB.FRIENDS_REQUEST">
-                    <div class="frnd-div" *ngFor="let f of friendsRequest, let i = index">
-                        <label>
-                            {{f.username}}
-                        </label>
-                        <app-icon class="icon" style="margin-left: auto;" src="/assets/svg/icon_circle_check.svg"
-                            color="var(--theme-darkblue-color-3)" title="Accept Friend Request" />
-                        <app-icon class="icon" src="/assets/svg/icon_circle_x.svg" color="var(--theme-darkblue-color-3)"
-                            title="Reject Friend Request" />
+                    <div *ngIf="friendsRequest.length !== 0">
+                        <div class="frnd-div" *ngFor="let f of friendsRequest, let i = index">
+                            <label>
+                                {{f.username}}
+                            </label>
+                            <app-icon class="icon small" style="margin-left: auto;"
+                                src="/assets/svg/icon_circle_check.svg" color="var(--theme-darkblue-color-3)"
+                                title="Accept Friend Request" (click)="handleAcceptFriendRequest(f)" />
+                            <app-icon class="icon small" src="/assets/svg/icon_circle_x.svg"
+                                color="var(--theme-darkblue-color-3)" title="Reject Friend Request"
+                                (click)="handleRejectFriendRequest(f.friendId)" />
+                        </div>
                     </div>
+                    <label class="neutral-italic" *ngIf="friendsRequest.length === 0">No friend requests...</label>
                 </div>
                 <div *ngIf="friendsTab === FRIENDS_TAB.ADD_FRIEND">
                     <div class="srch-usr-div">
-                        <input id="searchUser" name="searchUser" [(ngModel)]="searchUserText" size="50"
+                        <input id="searchUser" name="searchUser" [(ngModel)]="searchUserText" size="30"
                             placeholder="Enter username..." />
                         <button class="btn-light-small" (click)="handleSearchUsersClick()">Search</button>
                     </div>
@@ -125,12 +138,15 @@
                         <div *ngIf="suggestedUsers.length !== 0">
                             <div class="frnd-div" *ngFor="let u of suggestedUsers">
                                 {{ u.username }}
-                                <app-icon class="icon" style="margin-left: auto;" src="/assets/svg/icon_circle_plus.svg"
-                                    color="var(--theme-darkblue-color-3)" title="Send Friend Request" />
+                                <app-icon class="icon small" style="margin-left: auto;"
+                                    src="/assets/svg/icon_circle_plus.svg" color="var(--theme-darkblue-color-3)"
+                                    title="Send Friend Request" (click)="handleSendFriendRequest(u.id)" />
                             </div>
                         </div>
-                        <label *ngIf="suggestedUsers.length === 0 && !searchUsed">Suggested users...</label>
-                        <label *ngIf="suggestedUsers.length === 0 && searchUsed">Users not found...</label>
+                        <label class="neutral-italic" *ngIf="suggestedUsers.length === 0 && !searchUsed">Suggested
+                            users...</label>
+                        <label class="neutral-italic" *ngIf="suggestedUsers.length === 0 && searchUsed">Users not
+                            found...</label>
                     </div>
 
                 </div>

@@ -19,9 +19,22 @@ export class FriendsService {
   getUserFriendsById(userId: number) {
     return this.http.get(`${this.url}/getUserFriendsById/${userId}`)
   }
-  
+
   deleteUserFriendById(userId: number, friendId: number) {
     return this.http.delete(`${this.url}/deleteUserFriendById/${userId}/${friendId}`)
   }
 
+  sendFriendRequest(userId: number, friendId: number) {
+    const body = { userId, friendId };
+    return this.http.post(`${this.url}/sendFriendRequest`, body);
+  }
+
+  acceptFriendRequest(userId: number, friendId: number) {
+    const body = { userId, friendId };
+    return this.http.put(`${this.url}/acceptFriendRequest`, body);
+  }
+
+  rejectFriendRequest(userId: number, friendId: number) {
+    return this.http.delete(`${this.url}/rejectFriendRequest/${userId}/${friendId}`)
+  }
 }

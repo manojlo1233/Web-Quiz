@@ -205,7 +205,7 @@ export const getUsersByUsername = async (req: Request, res: Response) => {
         const searchUsername = req.body.searchUsername;
         const userUsername = req.body.userUsername;
         const [users] = await pool.execute(
-            `SELECT username from users WHERE LOWER(username) LIKE LOWER(?) AND username!=? LIMIT 50`,
+            `SELECT id, username from users WHERE LOWER(username) LIKE LOWER(?) AND username!=? LIMIT 50`,
             [`%${searchUsername}%`, userUsername]
         )
         if ((users as any[]).length === 0) {

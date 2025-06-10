@@ -319,41 +319,8 @@
     height: 20px;
 }
 
-
-.moving-div {
+.fr-notif {
     position: fixed;
-    bottom: 15%;
-    right: -200px;
-    /* pocinje van ekrana */
-    width: 200px;
-    height: 50px;
-    background-color: #3498db;
-    color: white;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    border-radius: 8px;
-    animation: slideInOut 5s linear forwards;
-}
-
-@keyframes slideInOut {
-    0% {
-        right: -200px;
-        /* van ekrana desno */
-    }
-
-    20% {
-        right: 0px;
-        /* njegova desna ivica poklapa desnu ivicu ekrana */
-    }
-
-    70% {
-        right: 0px;
-        /* stoji u mestu 5 sekundi (50% od ukupnog trajanja 10s) */
-    }
-
-    100% {
-        right: -200px;
-        /* vraća se iza ekrana */
-    }
+    bottom: 0;
+    right: 0;
 }

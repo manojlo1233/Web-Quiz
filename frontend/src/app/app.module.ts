@@ -18,6 +18,8 @@ import { QuizDetailsComponent } from './dashboard/quiz-details/quiz-details.comp
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { BattleComponent } from './quiz/battle/battle.component';
 import { ReadyScreenComponent } from './quiz/ready-screen/ready-screen.component';
+import { FriendNotificationComponent } from './shared/ui-indicators/friend-notification/friend-notification.component';
+import { NotificationContainerComponent } from './shared/ui-indicators/notification-container/notification-container.component';
 
 
 @NgModule({
@@ -34,7 +36,9 @@ import { ReadyScreenComponent } from './quiz/ready-screen/ready-screen.component
     MainPageComponent,
     QuizDetailsComponent,
     BattleComponent,
-    ReadyScreenComponent
+    ReadyScreenComponent,
+    FriendNotificationComponent,
+    NotificationContainerComponent
   ],
   imports: [
     BrowserModule,

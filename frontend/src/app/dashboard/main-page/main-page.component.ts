@@ -17,6 +17,7 @@ import { UserLeaderBoard } from '../../shared/models/UserLeaderboard';
 import { AppComponent } from '../../app.component';
 import { FriendsService } from '../../services/friends/friends.service';
 import { SnackBarService } from '../../services/shared/snack-bar.service';
+import { NotificationService } from '../../services/shared/notification.service';
 
 
 @Component({
@@ -36,7 +37,8 @@ export class MainPageComponent implements OnInit, OnDestroy {
     private wsService: WebsocketService,
     private matchStateService: MatchStateService,
     private friendsService: FriendsService,
-    private snackBarService: SnackBarService
+    private snackBarService: SnackBarService,
+    private notificationService: NotificationService
   ) {
     this.errorSub = this.wsService.error$.subscribe((msg) => {
       this.errorMessage = msg;
@@ -65,7 +67,7 @@ export class MainPageComponent implements OnInit, OnDestroy {
   friendsLabel = 'Friends';
   friends: Friend[] = [];
   friendsRequest: Friend[] = [];
-  friendsTab: number = 2;
+  friendsTab: number = 0;
 
   // SEARCH USER
   searchUserText: string = '';
@@ -150,7 +152,6 @@ export class MainPageComponent implements OnInit, OnDestroy {
   }
 
   getFriends(userId: number) {
-    console.log("RADIM REFRESH FRIENDS");
     this.friendsService.getUserFriendsById(userId)./*pipe(
       catchError((error) => {
         console.log(error);
@@ -204,6 +205,7 @@ export class MainPageComponent implements OnInit, OnDestroy {
         this.updateFormattedTime();
       }, 1000)
       this.wsService.joinMatchmaking(this.user.username);
+      this.notificationService.showNotification('Milica has accepted your friend request!')
     }
     else {
       this.matchmakingLbl = 'Battle'

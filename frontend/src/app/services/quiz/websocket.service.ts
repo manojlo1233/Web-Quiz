@@ -20,7 +20,7 @@ export class WebsocketService {
   public newQuestion$ = new Subject<any>();
   public answerSummary$ = new Subject<any>();
   // FRIENDS
-  public refreshFriends$ = new Subject<void>();
+  public refreshFriends$ = new Subject<any>();
 
   connect(): void {
     this.socket = new WebSocket('ws://localhost:3000');
@@ -55,7 +55,7 @@ export class WebsocketService {
           this.answerSummary$.next(data);
           break;
         case 'friends/REFRESH':
-          this.refreshFriends$.next();
+          this.refreshFriends$.next({ userId: data.userId, action: data.action });
           break;
       }
     };

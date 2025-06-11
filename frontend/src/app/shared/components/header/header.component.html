@@ -1,7 +1,5 @@
 <app-icon class="logo" src="assets/svg/quiz_logo_icon.svg" color="var(--theme-darkblue-color-3)"></app-icon>
 <div>
-    <button class="btn-light-small" >Home</button>
-    <button class="btn-light-small" >Explore</button>
-    <button class="btn-light-small" >Settings</button>
-    <app-icon class="icon" title="Log out" src="/assets/svg/icon_logout.svg" color="var(--theme-darkblue-color-3)"/>
+    <app-icon class="icon" title="Settings" src="/assets/svg/icon_settings2.svg" color="var(--theme-darkblue-color-3)" (click)="handleSettingsClick()"/>
+    <app-icon class="icon" title="Log out" src="/assets/svg/icon_logout.svg" color="var(--theme-darkblue-color-3)" (click)="handleLogoutClick()"/>
 </div>

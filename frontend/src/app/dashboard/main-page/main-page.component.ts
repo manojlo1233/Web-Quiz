@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, ViewChild, ViewContainerRef } from '@angular/core';
+import { AfterViewInit, Component, OnDestroy, OnInit, ViewChild, ViewContainerRef } from '@angular/core';
 import { Router } from '@angular/router';
 import { catchError, Subscription } from 'rxjs';
 
@@ -18,6 +18,7 @@ import { AppComponent } from '../../app.component';
 import { FriendsService } from '../../services/friends/friends.service';
 import { SnackBarService } from '../../services/shared/snack-bar.service';
 import { NotificationService } from '../../services/shared/notification.service';
+import { UserSettingsService } from '../../services/dashboard/user-settings.service';
 
 
 @Component({
@@ -25,7 +26,8 @@ import { NotificationService } from '../../services/shared/notification.service'
   templateUrl: './main-page.component.html',
   styleUrl: './main-page.component.css'
 })
-export class MainPageComponent implements OnInit, OnDestroy {
+export class MainPageComponent implements OnInit, AfterViewInit, OnDestroy {
+  @ViewChild('appUserSettingsContainer', { read: ViewContainerRef }) appUserSettingsContainer!: ViewContainerRef;
   @ViewChild('displayQuizQuestionsContainer', { read: ViewContainerRef }) displayQuizQuestionsContainer!: ViewContainerRef;
   @ViewChild('friendRequestIcon') friendRequestIcon!: AppComponent;
 
@@ -38,7 +40,8 @@ export class MainPageComponent implements OnInit, OnDestroy {
     private matchStateService: MatchStateService,
     private friendsService: FriendsService,
     private snackBarService: SnackBarService,
-    private notificationService: NotificationService
+    private notificationService: NotificationService,
+    private userSettingsService: UserSettingsService
   ) {
     this.errorSub = this.wsService.error$.subscribe((msg) => {
       this.errorMessage = msg;
@@ -96,6 +99,7 @@ export class MainPageComponent implements OnInit, OnDestroy {
     this.userService.getUserById(userId).subscribe({
       next: (resp: any) => {
         this.user = resp;
+        this.userSettingsService.setUser(this.user);
         // --------- INITIALIZE WEBSOCKET CONNECTION ---------
         this.wsService.connect();
         this.wsService.connectionOpen$.subscribe(() => {
@@ -137,7 +141,27 @@ export class MainPageComponent implements OnInit, OnDestroy {
     })
     // --------- GET USER FRIENDS ---------
     this.getFriends(userId);
-    this.wsService.refreshFriends$.subscribe(() => {
+    this.wsService.refreshFriends$.subscribe((resp: any) => {
+      console.log(resp);
+      const userIdFrom = resp.userId;
+      const action = resp.action;
+      if (action !== 'NONE') {
+        this.userService.getUserById(userIdFrom).subscribe({
+          next: (resp: User) => {
+            switch (action) {
+              case 'FR_RQ_SENT':
+                this.notificationService.showNotification(resp.username + ' has sent you a friend request.')
+                break;
+              case 'FR_RQ_ACCEPT':
+                this.notificationService.showNotification(resp.username + ' has accepted your friend request.')
+                break;
+            }
+          },
+          error: (error: any) => {
+            console.log(error.error.message)
+          }
+        })
+      }
       this.getFriends(userId);
     })
     // --------- GET LEADERBOARD ---------
@@ -151,16 +175,20 @@ export class MainPageComponent implements OnInit, OnDestroy {
     })
   }
 
+  ngAfterViewInit(): void {
+    this.userSettingsService.setContainer(this.appUserSettingsContainer);
+  }
+
   getFriends(userId: number) {
-    this.friendsService.getUserFriendsById(userId)./*pipe(
-      catchError((error) => {
-        console.log(error);
-        return ({ error: true, message: 'Request failed' });
-      })
-    ).*/subscribe({
+    this.friendsService.getUserFriendsById(userId).subscribe({
       next: (resp: any[]) => {
+        console.log(resp);
         this.friends = resp.filter(f => f.accepted);
         this.friendsRequest = resp.filter(f => !f.accepted && f.userIdSent !== userId);
+      },
+      error: (error: any) => {
+        this.friends = [];
+        this.friendsRequest = [];
       }
     })
   }
@@ -205,7 +233,6 @@ export class MainPageComponent implements OnInit, OnDestroy {
         this.updateFormattedTime();
       }, 1000)
       this.wsService.joinMatchmaking(this.user.username);
-      this.notificationService.showNotification('Milica has accepted your friend request!')
     }
     else {
       this.matchmakingLbl = 'Battle'

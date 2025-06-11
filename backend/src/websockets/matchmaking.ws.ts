@@ -219,11 +219,10 @@ export default function initWebSocketServer(server: Server) {
     });
 }
 
-export function sendFriendRefreshSignal(userId: number) {
-    
-    if (usersWebSockes.filter(ws => (ws as any).id === userId).length !== 0) {
-        let soc = usersWebSockes.filter(ws => (ws as any).id === userId)[0];
-        soc.send(JSON.stringify({ type: 'friends/REFRESH' }));
+export function sendFriendRefreshSignal(userId: number, friendId: number, action: string) {
+    if (usersWebSockes.filter(ws => (ws as any).id === friendId).length !== 0) {
+        let soc = usersWebSockes.filter(ws => (ws as any).id === friendId)[0];
+        soc.send(JSON.stringify({ type: 'friends/REFRESH', action, userId}));
     }
 }
 

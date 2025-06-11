@@ -33,20 +33,19 @@ div {
     gap: 10px;
 
     .icon {
-        box-sizing: border-box;
-        background-color: white;
         border-radius: 2px;
-        padding: 2px;
+        padding: 1px;
         width: 25px;
         height: 25px;
         cursor: pointer;
+        transition: all 0.1s ease;
     }
 
     .icon:hover {
-        background-color: var(--theme-darkblue-button-light-hover);
+        box-shadow: 0 0 3px 1px var(--theme-darkblue-color-3);
     }
 
     .icon:active {
-        background-color: var(--theme-darkblue-button-light-active);
+        box-shadow: 0 0 5px 2px var(--theme-darkblue-color-3);
     }
 }

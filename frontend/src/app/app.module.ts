@@ -20,6 +20,7 @@ import { BattleComponent } from './quiz/battle/battle.component';
 import { ReadyScreenComponent } from './quiz/ready-screen/ready-screen.component';
 import { FriendNotificationComponent } from './shared/ui-indicators/friend-notification/friend-notification.component';
 import { NotificationContainerComponent } from './shared/ui-indicators/notification-container/notification-container.component';
+import { UserSettingsComponent } from './dashboard/user-settings/user-settings.component';
 
 
 @NgModule({
@@ -38,7 +39,8 @@ import { NotificationContainerComponent } from './shared/ui-indicators/notificat
     BattleComponent,
     ReadyScreenComponent,
     FriendNotificationComponent,
-    NotificationContainerComponent
+    NotificationContainerComponent,
+    UserSettingsComponent
   ],
   imports: [
     BrowserModule,

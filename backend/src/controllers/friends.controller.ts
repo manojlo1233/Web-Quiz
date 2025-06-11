@@ -50,7 +50,7 @@ export const deleteUserFriendById = async (req: Request, res) => {
             [userId, friendId, userId, friendId]
         )
         if ((result as any).affectedRows > 0) {
-            sendFriendRefreshSignal(friendId);
+            sendFriendRefreshSignal(userId, friendId, 'NONE');
             res.status(200).json({ message: "Friend deleted successfully.", });
         } else {
             res.status(404).json({ message: "Friendship not found." });
@@ -73,7 +73,7 @@ export const sendFriendRequest = async (req: Request, res) => {
             [userId, friendId, userId]
         )
         if ((result as any).affectedRows > 0) {
-            sendFriendRefreshSignal(friendId);
+            sendFriendRefreshSignal(userId, friendId, 'FR_RQ_SENT');
             res.status(201).json({ message: "Friend request sent successfully." });
         } else {
             res.status(500).json({ message: "Friend request failed." });
@@ -114,7 +114,7 @@ export const acceptFriendRequest = async (req: Request, res) => {
             [userId, friendId, userId, friendId, userId, userId]
         )
         if ((result as any).affectedRows > 0) {
-            sendFriendRefreshSignal(friendId);
+            sendFriendRefreshSignal(userId, friendId, 'FR_RQ_ACCEPT');
             res.status(201).json({ message: "Friend request accepted successfully." });
         } else {
             res.status(500).json({ message: "Friend request accept failed." });
@@ -143,7 +143,7 @@ export const rejectFriendRequest = async (req: Request, res) => {
             [userId, friendId, userId, friendId]
         )
         if ((result as any).affectedRows > 0) {
-            sendFriendRefreshSignal(friendId);
+            sendFriendRefreshSignal(userId, friendId, 'NONE');
             res.status(200).json({ message: "Friend request rejected successfully.", });
         } else {
             res.status(404).json({ message: "Friend request reject failed." });

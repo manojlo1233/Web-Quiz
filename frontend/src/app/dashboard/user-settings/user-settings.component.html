@@ -33,14 +33,14 @@
     <span class="h-divider" style="background-color: var(--theme-darkblue-color-3);"></span>
     <div class="user-info-pre">
         <label class="prop-name">Receive updates</label>
-        <label *ngIf="!editing" class="prop-value">{{this.user.receive_updates}}</label>
+        <label *ngIf="!editing" class="prop-value">{{this.user.receive_updates == 1? 'Yes': 'No'}}</label>
         <div *ngIf="editing" style="display: flex; flex-direction: row; gap: 15px; align-items: center;">
             <div style="display: flex; flex-direction: row; gap: 5px; align-items: center;">
-                <input type="radio" id="yes" name="updates" [value]="true" [(ngModel)]="updateEdit">
+                <input type="radio" id="yes" name="updates" [value]="true" style="box-shadow: none;" [(ngModel)]="updateEdit">
                 <label for="yes">Yes</label>
             </div>
             <div style="display: flex; flex-direction: row; gap: 5px; align-items: center;">
-                <input type="radio" id="no" name="updates" [value]="false" [(ngModel)]="updateEdit">
+                <input type="radio" id="no" name="updates" [value]="false" style="box-shadow: none;" [(ngModel)]="updateEdit">
                 <label for="no">No</label>
             </div>
         </div>

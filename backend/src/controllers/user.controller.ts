@@ -35,7 +35,7 @@ export const loginUser = async (req: Request, res: Response) => {
 }
 
 export const registerUser = async (req: Request, res: Response) => {
-    const { firstName, lastName, email, userName, password, country, time } = req.body;
+    const { firstName, lastName, email, userName, password, country, time, notification } = req.body;
     const dateTime = new Date(time);
     try {
         const [existingEmail] = await pool.execute(
@@ -61,9 +61,9 @@ export const registerUser = async (req: Request, res: Response) => {
         const hashedPassword = await bcrypt.hash(password, 10);
 
         const [result] = await pool.execute(
-            `INSERT INTO users (firstname, lastname, username, email, password_hash, country, role, created_at)` +
-            `VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-            [firstName, lastName, userName, email, hashedPassword, country, 0, dateTime]
+            `INSERT INTO users (firstname, lastname, username, email, password_hash, country, role, created_at, receive_updates)` +
+            `VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            [firstName, lastName, userName, email, hashedPassword, country, 0, dateTime, notification]
         );
 
         res.status(201).json({ message: 'User registered successfully' })
@@ -171,7 +171,8 @@ export const getUserById = async (req: Request, res: Response) => {
             username: user.username,
             email: user.email,
             country: user.country,
-            role: user.role
+            role: user.role,
+            receive_updates: user.receive_updates
         });
     } catch (error: any) {
         console.log('Get user by id error', error);

@@ -1,83 +1,60 @@
 <div class="modal-window">
-    <label>User settings</label>
-    <div class="user-info">
-        <!-- <form (ngSubmit)="onSubmit()" #registerForm="ngForm">
-            <label style="font-size: 32px;">Quiz App Registration</label>
-            <div style="display: flex; flex-direction: row; gap: 30px; justify-content: space-between;">
-                <div class="form-input">
-                    <label for="firstName">First Name*</label>
-                    <input id="firstName" name="firstName" #firstNameRef="ngModel" type="text"
-                        [ngClass]="{'invalid': firstNameRef.invalid && firstNameRef.touched}" size="20"
-                        [(ngModel)]="firstName" required placeholder="First Name" />
-                    <label *ngIf="firstNameRef.invalid && firstNameRef.touched" class="error">
-                        Username cannot be blank
-                    </label>
-                </div>
-                <div class="form-input">
-                    <label for="secondName">Second Name</label>
-                    <input id="secondName" name="secondName" type="text" size="20" [(ngModel)]="secondName"
-                        placeholder="Second Name" />
-                </div>
-            </div>
-            <div class="form-input">
-                <label for="email">Email*</label>
-                <input id="email" name="email" #emailRef="ngModel" type="text"
-                    [ngClass]="{'invalid': emailRef.invalid && emailRef.touched}" [(ngModel)]="email" size="20" required
-                    email placeholder="Email" />
-                <label *ngIf="emailRef.invalid && emailRef.touched" class="error">
-                    Please enter a valid email.
-                </label>
-            </div>
-            <div class="form-input">
-                <label for="username">Username*</label>
-                <input id="username" name="username" #usernameRef="ngModel" type="text" [(ngModel)]="username" size="20"
-                    pattern="^[a-zA-Z0-9]*$" [ngClass]="{'invalid': usernameRef.invalid && usernameRef.touched}"
-                    required placeholder="Username" />
-                <label *ngIf="usernameRef.invalid && usernameRef.touched" class="error">
-                    Username is required and must be alphanumeric.
-                </label>
-                <label class="note">Username may only contain alphanumeric characters. </label>
-            </div>
-            <div class="form-input">
-                <label for="password">Password*</label>
-                <input id="password" name="password" #passwordRef="ngModel" type="password"
-                    [ngClass]="{'invalid': passwordRef.invalid && passwordRef.touched}" [(ngModel)]="password" size="20"
-                    required minlength="8" placeholder="Password" />
-                <label *ngIf="passwordRef.invalid && passwordRef.touched" class="error">
-                    Please enter a valid password
-                </label>
-                <label class="note">Password should be at least 8 characters long.</label>
-            </div>
-            <div class="form-input">
-                <label for="conf-password">Confirm Password*</label>
-                <input id="conf-password" name="confPassword" #confPasswordRef="ngModel" type="password"
-                    [ngClass]="{'invalid': confPasswordRef.invalid && confPasswordRef.touched}"
-                    [(ngModel)]="confPassword" size="20" required placeholder="Confirm password" />
-                <label *ngIf="confPasswordRef.touched && (confPasswordRef.invalid || password !== confPassword)"
-                    class="error">Passwords do not match.</label>
-            </div>
-            <div class="form-input">
-                <label for="country">Your Country/Region</label>
-                <select [(ngModel)]="country" id="country" name="country" required="">
-                    <option *ngFor="let cntr of countries" [value]="cntr">{{cntr}}</option>
-                </select>
-                <label class="note">For compliance reasons, we're required to collect country information to send you
-                    occasional updates and announcements. </label>
-            </div>
-            <div style="font-size: 14px;">
-                <div>
-                    <input id="notification" name="notification" type="checkbox" [(ngModel)]="notification" />
-                    <label for="notification">Receive occasional product updates and announcements</label>
-                </div>
-                <div>
-                    <input id="terms" name="terms" type="checkbox" [(ngModel)]="terms" required />
-                    <label for="terms">By creating an account, you agree to the <a routerLink="/auth/terms"
-                            target="_blank" rel="noopener noreferrer">Terms of Service.</a></label>
-                </div>
-            </div>
-            <button class="btn-dark-large" type="submit"
-                [disabled]="!registerForm.form.valid || password !== confPassword">Register</button>
-        </form> -->
+    <label class="hdr">User settings</label>
+    <span class="h-divider" style="background-color: var(--theme-darkblue-color-3);"></span>
+    <div class="user-info-pre">
+        <label class="prop-name">Name</label>
+        <label *ngIf="!editing" class="prop-value">{{this.user.firstname}} {{this.user.lastname}}</label>
+        <div *ngIf="editing" style="display: flex; flex-direction: row; gap: 10px; align-items: center;">
+            <input id="firstname" name="firstname" type="text" size="10" [(ngModel)]="firstnameEdit" required />
+            <input id="lastname" name="lastname" type="text" size="10" [(ngModel)]="lastnameEdit" required />
+        </div>
     </div>
-    <button class="btn-light-small" style="margin-bottom: 0;" (click)="closeModal()">Close</button>
+    <span class="h-divider" style="background-color: var(--theme-darkblue-color-3);"></span>
+    <div class="user-info-pre">
+        <label class="prop-name">Username</label>
+        <label *ngIf="!editing" class="prop-value">{{this.user.username}}</label>
+        <input *ngIf="editing" id="username" name="username" type="text" [(ngModel)]="usernameEdit" required />
+    </div>
+    <span class="h-divider" style="background-color: var(--theme-darkblue-color-3);"></span>
+    <div class="user-info-pre">
+        <label class="prop-name">Email</label>
+        <label *ngIf="!editing" class="prop-value">{{this.user.email}}</label>
+        <input *ngIf="editing" id="username" name="username" type="text" email [(ngModel)]="emailEdit"
+            required />
+    </div>
+    <span class="h-divider" style="background-color: var(--theme-darkblue-color-3);"></span>
+    <div class="user-info-pre">
+        <label class="prop-name">Country</label>
+        <label *ngIf="!editing" class="prop-value">{{this.user.country}}</label>
+        <select *ngIf="editing" [(ngModel)]="countryEdit" id="country" name="country" required="">
+            <option *ngFor="let cntr of countries" [value]="cntr">{{cntr}}</option>
+        </select>
+    </div>
+    <span class="h-divider" style="background-color: var(--theme-darkblue-color-3);"></span>
+    <div class="user-info-pre">
+        <label class="prop-name">Receive updates</label>
+        <label *ngIf="!editing" class="prop-value">{{this.user.receive_updates}}</label>
+        <div *ngIf="editing" style="display: flex; flex-direction: row; gap: 15px; align-items: center;">
+            <div style="display: flex; flex-direction: row; gap: 5px; align-items: center;">
+                <input type="radio" id="yes" name="updates" [value]="true" [(ngModel)]="updateEdit">
+                <label for="yes">Yes</label>
+            </div>
+            <div style="display: flex; flex-direction: row; gap: 5px; align-items: center;">
+                <input type="radio" id="no" name="updates" [value]="false" [(ngModel)]="updateEdit">
+                <label for="no">No</label>
+            </div>
+        </div>
+
+    </div>
+    <span class="h-divider" style="background-color: var(--theme-darkblue-color-3);"></span>
+    <div style="width: 100%; display: flex; flex-direction: row-reverse; gap: 10px;">
+        <button class="btn-light-small" style="margin-bottom: 0; border: 1px solid transparent;"
+            (click)="closeModal()">Close</button>
+        <button *ngIf="!editing" class="btn-light-small" style="margin-bottom: 0; border: 1px solid transparent"
+            (click)="editUser()">Edit</button>
+        <button *ngIf="editing" class="btn-light-small btn-red" style="margin-bottom: 0;"
+            (click)="cancelEditing()">Cancel</button>
+        <button *ngIf="editing" class="btn-light-small btn-green" style="margin-bottom: 0;"
+            (click)="saveEditing()">Save</button>
+    </div>
 </div>

@@ -23,7 +23,7 @@ export class AuthService {
     return this.http.post(`${this.url}/loginUser`, body);
   }
 
-  registerUser(firstName: string, lastName: string, email: string, userName: string, password: string, country: string): Observable<any> {
+  registerUser(firstName: string, lastName: string, email: string, userName: string, password: string, country: string, notification: boolean): Observable<any> {
     const body = {
       firstName,
       lastName,
@@ -31,7 +31,8 @@ export class AuthService {
       userName,
       password,
       country,
-      time: Date.now()
+      time: Date.now(),
+      notification
     }
     return this.http.post(`${this.url}/registerUser`, body);
   }

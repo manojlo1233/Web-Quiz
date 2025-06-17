@@ -6,4 +6,5 @@ export class User {
     email: string;
     country: string;
     role: number;
+    receive_updates: number;
 }

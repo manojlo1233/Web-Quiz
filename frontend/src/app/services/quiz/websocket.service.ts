@@ -19,6 +19,8 @@ export class WebsocketService {
   public matchDeclined$ = new Subject<string>();
   public newQuestion$ = new Subject<any>();
   public answerSummary$ = new Subject<any>();
+  // BATTLE - CHAT
+  public chatMessage$ = new Subject<any>();
   // FRIENDS
   public refreshFriends$ = new Subject<any>();
 
@@ -56,6 +58,9 @@ export class WebsocketService {
           break;
         case 'friends/REFRESH':
           this.refreshFriends$.next({ userId: data.userId, action: data.action });
+          break;
+        case 'battle/CHAT_MESSAGE':
+          this.chatMessage$.next({ username: data.username, message: data.message, time: data.time });
           break;
       }
     };
@@ -104,6 +109,10 @@ export class WebsocketService {
 
   sendBattleAnswer(matchId: string, username: string, answer: string) {
     this.send({ type: 'battle/ANSWER', matchId, username, answer });
+  }
+
+  sendChatMessage(matchId: string, username: string, message, time: string) {
+    this.send({ type: 'battle/CHAT_MESSAGE', matchId, username, message, time });
   }
 
   close(): void {

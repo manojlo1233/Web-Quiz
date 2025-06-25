@@ -10,7 +10,8 @@ import {
     loginUser,
     registerUser,
     requestPasswordReset,
-    resetPassword
+    resetPassword,
+    updateUserSettingsById
 } from '../controllers/user.controller';
 
 const userRouter = express.Router();
@@ -27,5 +28,6 @@ userRouter.get('/getUserStatisticsById/:id', getUserStatisticsById);
 userRouter.get('/getUserPlayHistoryById/:id', getUserPlayHistoryById);
 userRouter.get('/getUserQuizQuestionsById/:userId/:quizId', getUserQuizQuestionsById)
 userRouter.get('/getLeaderBoard', getLeaderBoard);
+userRouter.post('/updateUserSettingsById', updateUserSettingsById);
 
 export default userRouter;

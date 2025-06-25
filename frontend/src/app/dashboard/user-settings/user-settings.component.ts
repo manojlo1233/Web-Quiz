@@ -1,7 +1,9 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnInit, ViewChild, ViewContainerRef } from '@angular/core';
 import { User } from '../../shared/models/User';
 import { UserSettingsService } from '../../services/dashboard/user-settings.service';
 import { CountriesService } from '../../services/shared/countries.service';
+import { SnackBarService } from '../../services/shared/snack-bar.service';
+import { SpinnerComponent } from '../../shared/ui-indicators/spinner/spinner.component';
 
 @Component({
   selector: 'app-user-settings',
@@ -10,10 +12,12 @@ import { CountriesService } from '../../services/shared/countries.service';
 })
 export class UserSettingsComponent implements OnInit {
   @Input() user: User;
+  @ViewChild('spinnerContainer', { read: ViewContainerRef }) spinnerContainer!: ViewContainerRef;
 
   constructor(
     private userSettingsService: UserSettingsService,
-    private countriesService: CountriesService
+    private countriesService: CountriesService,
+    private snackBarService: SnackBarService
   ) { }
 
   editing: boolean = false;
@@ -25,6 +29,7 @@ export class UserSettingsComponent implements OnInit {
   emailEdit: string;
   countryEdit: string;
   updateEdit: boolean;
+  showSpinner: boolean = false;
 
   ngOnInit(): void {
     this.countries = this.countriesService.countries;
@@ -49,6 +54,29 @@ export class UserSettingsComponent implements OnInit {
   }
 
   saveEditing() {
-    this.editing = false;
+    this.showSpinner = true;
+    this.userSettingsService.updateUserSettingsById(this.user.id, this.firstnameEdit, this.lastnameEdit, this.usernameEdit, this.emailEdit, this.countryEdit, this.updateEdit).subscribe({
+      next: (resp: any) => {
+        this.updateUser();
+        this.snackBarService.showSnackBar(resp.message);
+        this.showSpinner = false;
+        this.editing = false;
+      },
+      error: (error: any) => {
+        this.updateUser();
+        this.snackBarService.showSnackBar('Update failed.')
+        this.showSpinner = false;
+        this.editing = false;
+      }
+    })
+  }
+
+  updateUser() {
+    this.user.firstname = this.firstnameEdit;
+    this.user.lastname = this.lastnameEdit;
+    this.user.username = this.usernameEdit;
+    this.user.email = this.emailEdit;
+    this.user.country = this.countryEdit;
+    this.user.receive_updates = this.updateEdit ? 1 : 0;
   }
 }

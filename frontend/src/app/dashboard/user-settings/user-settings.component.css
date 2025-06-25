@@ -103,6 +103,7 @@ select {
     border-radius: 2px;
     text-align: right;
     transition: all 0.2s ease;
+    cursor: pointer;
 }
 
 select:focus {

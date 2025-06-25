@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { MatchStateService } from '../../services/quiz/match-state.service';
 import { WSMatchFoundMsg } from '../../shared/models/WSMatchFoundMsg';
 import { WebsocketService } from '../../services/quiz/websocket.service';
@@ -6,6 +6,7 @@ import { User } from '../../shared/models/User';
 import { UserService } from '../../services/shared/user.service';
 import { QuizQuestion } from '../../shared/models/Quiz/QuizQuestion';
 import { QuizAnswer } from '../../shared/models/Quiz/QuizAnswer';
+import { ChatMessage } from '../../shared/models/ChatMessage';
 
 
 @Component({
@@ -14,7 +15,7 @@ import { QuizAnswer } from '../../shared/models/Quiz/QuizAnswer';
   styleUrl: './battle.component.css'
 })
 export class BattleComponent implements OnInit {
-
+  @ViewChild('chatBox') chatBox!: ElementRef;
   match: WSMatchFoundMsg;
 
   constructor(
@@ -39,6 +40,10 @@ export class BattleComponent implements OnInit {
   userAnswerIndex: number = -1;
   opponentAnswerIndex: number = -1;
   correctAnswerIndex: number = -1;
+
+  //CHAT
+  messageText: string = "";
+  chatMessages: ChatMessage[] = [];
 
   ngOnInit(): void {
     this.match = this.matchStateService.getCurrentMatch();
@@ -83,6 +88,15 @@ export class BattleComponent implements OnInit {
       error: (error: any) => {
         console.error(error)
       }
+    })
+
+    // --------- CHAT SUBSCRIBTION ---------
+    this.wsService.chatMessage$.subscribe((data: any) => {
+      let tmp: ChatMessage = new ChatMessage();
+      tmp.message = data.message;
+      tmp.time = data.time;
+      tmp.username = data.username;
+      this.chatMessages.push(tmp);
     })
   }
 
@@ -130,5 +144,10 @@ export class BattleComponent implements OnInit {
     if (this.selectedAnswer) return;
     this.selectedAnswer = answer;
     this.wsService.sendBattleAnswer(this.match.matchId.toString(), this.user.username, answer.text);
+  }
+
+  sendMessage() {
+    if (this.messageText === '') return;
+    this.wsService.sendChatMessage(this.match.matchId.toString(), this.user.username, this.messageText, new Date().toLocaleString("en-GB"));
   }
 }

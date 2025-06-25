@@ -119,6 +119,25 @@ export default function initWebSocketServer(server: Server) {
                     sendAnswerSummary(match)
                 }
             }
+            else if (data.type === 'battle/CHAT_MESSAGE') {
+                const match = activeMatches.get(data.matchId);
+                if (!match) return;
+
+                const senderUsername = data.username;
+                const messageText = data.message;
+                const time = data.time;
+
+                const payload = JSON.stringify({
+                    type: 'battle/CHAT_MESSAGE',
+                    from: senderUsername,
+                    message: messageText,
+                    time
+                })
+
+                // Send to both players
+                match.player1.send(payload);
+                match.player2.send(payload);
+            }
 
             // ----------------- BATTLE FUNCTIONS -----------------
             async function startMatch(match: Match) {

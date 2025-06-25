@@ -13,16 +13,13 @@
         <label class="question">{{question.text}}</label>
         <span class="h-divider" style="background-color: var(--theme-darkblue-color-3);"></span>
         <div class="answers">
-            <label 
-            class="answer"
-            [class.selected]="selectedAnswer === a"
-            [class.disabled]="selectedAnswer !== null && selectedAnswer !== a"
-            [class.disable-events]="answerSummaryPhase || selectedAnswer !== null"
-            [class.correct-answer]="correctAnswerIndex === i"
-            [class.wrong-answer]="userAnswerIndex !== correctAnswerIndex && userAnswerIndex !== -1 && userAnswerIndex === i"
-            (click)="handleAnswerClick(a)"
-                *ngFor="let a of question.answers, let i = index">
-                <span class="circle user-answer-circle" *ngIf="userAnswerIndex === i" ></span>
+            <label class="answer" [class.selected]="selectedAnswer === a"
+                [class.disabled]="selectedAnswer !== null && selectedAnswer !== a"
+                [class.disable-events]="answerSummaryPhase || selectedAnswer !== null"
+                [class.correct-answer]="correctAnswerIndex === i"
+                [class.wrong-answer]="userAnswerIndex !== correctAnswerIndex && userAnswerIndex !== -1 && userAnswerIndex === i"
+                (click)="handleAnswerClick(a)" *ngFor="let a of question.answers, let i = index">
+                <span class="circle user-answer-circle" *ngIf="userAnswerIndex === i"></span>
                 <span class="circle opponent-answer-circle" *ngIf="opponentAnswerIndex === i"></span>
                 {{a.text}}
             </label>
@@ -30,7 +27,30 @@
 
     </div>
 </div>
-<div class="user">
-    <app-icon class="avatar" src="/assets/svg/icon_user.svg" color="white" />
-    <label>{{opponent.username}}</label>
+<div style="display: flex; flex-direction: column; width: 100%;">
+    <div class="user" style="height: 100%;">
+        <app-icon class="avatar" src="/assets/svg/icon_user.svg" color="white" />
+        <label>{{opponent.username}}</label>
+    </div>
+    <div class="chat-container" style="height: 100%;">
+        <div class="chat-box">
+            <label style="user-select: none; font-size: 28px;">Chat</label>
+            <span class="h-divider" style="background-color: var(--theme-darkblue-color-3);"></span>
+            <div class="chat" #chatBox>
+                <div class="chat-message" *ngFor="let msg of chatMessages, let i = index">
+                    <div style="display: flex; flex-direction: row; gap: 10px; ">
+                        <label>{{msg.username}}</label>
+                        <label>{{msg.time}}</label>
+                    </div>
+                    <label>{{msg.message}}</label>
+                </div>
+            </div>
+            <div class="chat-text">
+                <input type="text" placeholder="Chat with opponent..." (keydown.enter)="sendMessage()"
+                    [(ngModel)]="messageText" />
+                <app-icon src="/assets/svg/icon_chat_send.svg" color="var(--theme-darkblue-color-3)"
+                    title="Send message" (click)="sendMessage()" />
+            </div>
+        </div>
+    </div>
 </div>

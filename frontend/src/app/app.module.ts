@@ -21,6 +21,7 @@ import { ReadyScreenComponent } from './quiz/ready-screen/ready-screen.component
 import { FriendNotificationComponent } from './shared/ui-indicators/friend-notification/friend-notification.component';
 import { NotificationContainerComponent } from './shared/ui-indicators/notification-container/notification-container.component';
 import { UserSettingsComponent } from './dashboard/user-settings/user-settings.component';
+import { SpinnerComponent } from './shared/ui-indicators/spinner/spinner.component';
 
 
 @NgModule({
@@ -40,7 +41,8 @@ import { UserSettingsComponent } from './dashboard/user-settings/user-settings.c
     ReadyScreenComponent,
     FriendNotificationComponent,
     NotificationContainerComponent,
-    UserSettingsComponent
+    UserSettingsComponent,
+    SpinnerComponent
   ],
   imports: [
     BrowserModule,

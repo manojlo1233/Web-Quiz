@@ -337,3 +337,36 @@ export const getLeaderBoard = async (req: Request, res: Response) => {
         res.status(500).json({ message: 'Get leaderboard failed', error: error.message })
     }
 }
+
+export const updateUserSettingsById = async (req: Request, res: Response) => {
+    try {
+        const userId = req.body.userId;
+        const firstName = req.body.firstName;
+        const lastName = req.body.lastName;
+        const username = req.body.username;
+        const email = req.body.email;
+        const country = req.body.country;
+        const receive_updates = req.body.receive_updates;
+        const [result] = await pool.execute(
+            `UPDATE users u
+            SET
+                u.firstname=?,
+                u.lastname=?,
+                u.username=?,
+                u.email=?,
+                u.country=?,
+                u.receive_updates=?   
+            WHERE
+                u.id=?
+            `
+        , [firstName, lastName, username, email, country, receive_updates, userId])
+        if ((result as any).affectedRows <= 0) {
+            res.status(404).json({ message: 'Update user failed.' })
+            return;
+        }
+        res.status(200).json({ message: 'User settings successfully updated.' });
+    } catch (error: any) {
+        console.log('Update user error', error);
+        res.status(500).json({ message: 'User settings update failed', error: error.message })
+    }
+}

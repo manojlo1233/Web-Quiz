@@ -30,7 +30,7 @@ CREATE TABLE IF NOT EXISTS `answers` (
   CONSTRAINT `answers_ibfk_1` FOREIGN KEY (`question_id`) REFERENCES `questions` (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
--- Dumping data for table webquiz.answers: ~9 rows (approximately)
+-- Dumping data for table webquiz.answers: ~6 rows (approximately)
 INSERT INTO `answers` (`id`, `question_id`, `text`, `is_correct`) VALUES
 	(1, 1, '3', 0),
 	(2, 1, '4', 1),
@@ -110,6 +110,20 @@ INSERT INTO `friends` (`userId1`, `userId2`, `userIdSent`, `accepted`) VALUES
 	(12, 9, 12, 1),
 	(13, 12, 13, 1),
 	(13, 14, 13, 0);
+
+-- Dumping structure for table webquiz.hints
+CREATE TABLE IF NOT EXISTS `hints` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `text` text COLLATE utf8mb4_general_ci NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- Dumping data for table webquiz.hints: ~4 rows (approximately)
+INSERT INTO `hints` (`id`, `text`) VALUES
+	(0, 'Take your time analysing questions'),
+	(1, 'Never quit a game, it is not correct to your opponent'),
+	(2, 'You can use half-time to reduce time for opponent'),
+	(3, 'This is a very long hint, and now I am about to tell you a little story. Get ready, because it is going to be the one you will never forget. And beleive me when i say that, I would never joke around like that.');
 
 -- Dumping structure for table webquiz.questions
 CREATE TABLE IF NOT EXISTS `questions` (
@@ -208,7 +222,7 @@ CREATE TABLE IF NOT EXISTS `statistics` (
   CONSTRAINT `statistics_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
--- Dumping data for table webquiz.statistics: ~1 rows (approximately)
+-- Dumping data for table webquiz.statistics: ~0 rows (approximately)
 INSERT INTO `statistics` (`user_id`, `total_quizzes`, `avg_score`, `avg_time`) VALUES
 	(9, 10, 250.34, 5.7),
 	(13, 5, 213.12, 12.1);

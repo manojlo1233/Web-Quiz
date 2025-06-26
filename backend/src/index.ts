@@ -14,9 +14,7 @@ const app = express();      // Keriramo Express aplikaciju
 const PORT = process.env.PORT || 3000;      // Port iz env fajla ili 3000 ako nije definisan
 
 app.use(cors({    // Dozvoljava cross-origin zahteve (npr. iz Angular aplikacije)
-  origin: '*',
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  credentials: true
+  origin: '*'
 }));
 app.use(express.json());        // Omogućava da se šalje JSON u telu zahteva
 

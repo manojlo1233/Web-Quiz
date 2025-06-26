@@ -45,6 +45,7 @@ export class BattleComponent implements OnInit {
   messageText: string = "";
   chatMessages: ChatMessage[] = [];
   muteActive: boolean = false;
+  chatDebouncerActive: boolean = false;
 
   ngOnInit(): void {
     this.match = this.matchStateService.getCurrentMatch();
@@ -149,9 +150,13 @@ export class BattleComponent implements OnInit {
   }
 
   sendMessage() {
-    if (this.messageText === '' || this.messageText.trim() === '') return;
+    if (this.messageText === '' || this.messageText.trim() === '' || this.chatDebouncerActive) return;
+    this.chatDebouncerActive = true;
     this.wsService.sendChatMessage(this.match.matchId.toString(), this.user.username, this.messageText, new Date().toLocaleString("en-GB"));
     this.messageText = '';
+    setTimeout(() => {
+      this.chatDebouncerActive = false;
+    }, 500)
   }
 
   checkIfUser(username: string): string {

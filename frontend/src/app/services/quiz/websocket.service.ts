@@ -34,7 +34,6 @@ export class WebsocketService {
 
     this.socket.onmessage = (event) => {
       const data = JSON.parse(event.data);
-      console.log(data.type);
       switch (data.type) {
 
         // -------------- BATTLE --------------
@@ -60,7 +59,7 @@ export class WebsocketService {
           this.refreshFriends$.next({ userId: data.userId, action: data.action });
           break;
         case 'battle/CHAT_MESSAGE':
-          this.chatMessage$.next({ username: data.username, message: data.message, time: data.time });
+          this.chatMessage$.next({ username: data.from, message: data.message, time: data.time });
           break;
       }
     };
@@ -111,7 +110,7 @@ export class WebsocketService {
     this.send({ type: 'battle/ANSWER', matchId, username, answer });
   }
 
-  sendChatMessage(matchId: string, username: string, message, time: string) {
+  sendChatMessage(matchId: string, username: string, message: string, time: string) {
     this.send({ type: 'battle/CHAT_MESSAGE', matchId, username, message, time });
   }
 

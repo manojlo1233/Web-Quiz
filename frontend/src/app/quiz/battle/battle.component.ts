@@ -44,6 +44,7 @@ export class BattleComponent implements OnInit {
   //CHAT
   messageText: string = "";
   chatMessages: ChatMessage[] = [];
+  muteActive: boolean = false;
 
   ngOnInit(): void {
     this.match = this.matchStateService.getCurrentMatch();
@@ -92,11 +93,12 @@ export class BattleComponent implements OnInit {
 
     // --------- CHAT SUBSCRIBTION ---------
     this.wsService.chatMessage$.subscribe((data: any) => {
+      if (this.muteActive && data.username !== this.user.username) return;
       let tmp: ChatMessage = new ChatMessage();
       tmp.message = data.message;
       tmp.time = data.time;
       tmp.username = data.username;
-      this.chatMessages.push(tmp);
+      this.chatMessages.unshift(tmp);
     })
   }
 
@@ -147,7 +149,21 @@ export class BattleComponent implements OnInit {
   }
 
   sendMessage() {
-    if (this.messageText === '') return;
+    if (this.messageText === '' || this.messageText.trim() === '') return;
     this.wsService.sendChatMessage(this.match.matchId.toString(), this.user.username, this.messageText, new Date().toLocaleString("en-GB"));
+    this.messageText = '';
+  }
+
+  checkIfUser(username: string): string {
+    return this.user.username === username ? '0' : 'auto';
+  }
+
+  getIcon() {
+    if (this.muteActive) {
+      return '';
+    }
+    else {
+      return '/assets/svg/icon_munute.svg';
+    }
   }
 }

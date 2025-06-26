@@ -34,15 +34,21 @@
     </div>
     <div class="chat-container" style="height: 100%;">
         <div class="chat-box">
-            <label style="user-select: none; font-size: 28px;">Chat</label>
+            <div
+                style="height: fit-content; width: 100%; display: flex; flex-direction: row; justify-content: space-between; align-items: center;">
+                <label style="user-select: none; font-size: 28px;">Chat</label>
+                <app-icon *ngIf="!muteActive" class="icon" src='/assets/svg/icon_volume_on.svg' color="var(--theme-darkblue-color-3)"
+                    title="Mute chat" (click)="muteActive = !muteActive" [class.selected]="muteActive" />
+                <app-icon *ngIf="muteActive" class="icon" src='/assets/svg/icon_volume_off.svg' color="var(--theme-darkblue-color-3)"
+                    title="Unmute chat" (click)="muteActive = !muteActive" [class.selected]="muteActive" />
+            </div>
             <span class="h-divider" style="background-color: var(--theme-darkblue-color-3);"></span>
             <div class="chat" #chatBox>
-                <div class="chat-message" *ngFor="let msg of chatMessages, let i = index">
-                    <div style="display: flex; flex-direction: row; gap: 10px; ">
-                        <label>{{msg.username}}</label>
-                        <label>{{msg.time}}</label>
-                    </div>
-                    <label>{{msg.message}}</label>
+                <div class="chat-message" *ngFor="let msg of chatMessages, let i = index"
+                    [style.margin-left]="checkIfUser(msg.username)">
+                    <label style="font-size: 12px;"
+                        [style.margin-left]="checkIfUser(msg.username)">{{msg.username}}</label>
+                    <label class="chat-msg-container">{{msg.message}}</label>
                 </div>
             </div>
             <div class="chat-text">

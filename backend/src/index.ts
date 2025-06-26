@@ -6,6 +6,7 @@ import userRouter from './routes/user.routes';
 import friendsRouter from './routes/friend.routes';
 import { createServer } from 'http';
 import initWebSocketServer from './websockets/matchmaking.ws';
+import quizRouter from './routes/quiz.rouites';
 
 
 dotenv.config();        // Omogućava da koristimo npr. process.env.DB_HOST
@@ -23,6 +24,7 @@ createConnection();         // Povezivanje sa bazom
 const router = express.Router()
 router.use('/users', userRouter)
 router.use('/friends', friendsRouter)
+router.use('/quiz', quizRouter)
 
 app.use('/api', router);
 

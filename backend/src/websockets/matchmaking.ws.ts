@@ -4,6 +4,7 @@ import { Match } from '../models/Match';
 import { QuizQuestion } from '../models/Quiz/QuizQuestion';
 import pool from '../config/db';
 import { QuizAnswer } from '../models/Quiz/QuizAnswer';
+import { BattleStatusMapper } from '../mappers/BattleStatusMapper';
 
 let usersWebSockes: WebSocket[] = [];
 
@@ -18,10 +19,10 @@ export default function initWebSocketServer(server: Server) {
     let answerSummaryIdleTimeout: NodeJS.Timeout;
 
     wss.on('connection', (ws) => {
-        ws.on('message', (message) => {
+        ws.on('message', async (message) => {
             const data = JSON.parse(message.toString());
             if (data.type === 'USER_SUBSCRIBE') {
-                
+
                 if (usersWebSockes.filter(ws => (ws as any).username === data.username).length !== 0) {
                     usersWebSockes = usersWebSockes.filter(ws => (ws as any).username !== data.username)
                 }
@@ -41,7 +42,7 @@ export default function initWebSocketServer(server: Server) {
                     const p1 = waitingList.shift()!;
                     const p2 = waitingList.shift()!;
 
-                    const matchId = Math.random().toString(36).substring(2, 10);
+                    const matchId = (await createMatch()).toString();
 
                     let match: Match = new Match(matchId, p1, p2, (p1 as any).username, (p2 as any).username);
                     match.status = 'ready';
@@ -50,7 +51,13 @@ export default function initWebSocketServer(server: Server) {
 
                     const timeout = setTimeout(() => {
                         if (match.status !== 'started') {
-                            startMatch(match);
+                            match.status = 'cancelled';
+                            deleteMatchFromDB(match);
+                            activeMatches.delete(match.matchId);
+                            matchStartTimeout.delete(match.matchId)
+                            const payload = JSON.stringify({ type: 'battle/MATCH_CANCELLED' })
+                            match.player1.send(payload);
+                            match.player2.send(payload);
                         }
                     }, 60000)
 
@@ -81,11 +88,12 @@ export default function initWebSocketServer(server: Server) {
             else if (data.type === 'battle/DECLINE') {
                 const match = activeMatches.get(data.matchId);
                 if (!match) return;
+                deleteMatchFromDB(match);
                 match.status = 'cancelled';
                 activeMatches.delete(match.matchId);
                 clearTimeout(matchStartTimeout.get(match.matchId));
                 matchStartTimeout.delete(match.matchId)
-                const payload = JSON.stringify({ type: 'battle/MATCH_DECLINED' })
+                const payload = JSON.stringify({ type: 'battle/MATCH_DECLINED', username: data.username })
                 match.player1.send(payload);
                 match.player2.send(payload);
             }
@@ -140,11 +148,21 @@ export default function initWebSocketServer(server: Server) {
             }
 
             // ----------------- BATTLE FUNCTIONS -----------------
+
+            async function createMatch(): Promise<number> {
+                const [quizResult] = await pool.query(
+                    `INSERT INTO quizzes (category_id, created_at) VALUES (0, NOW())`
+                )
+                return (quizResult as any).insertId;
+            }
+
             async function startMatch(match: Match) {
                 match.status = 'started';
                 const questions = await getRandomQuestions(10);
                 matchQuestions.set(match.matchId, questions);
-
+                insertIntoQuizQuestions(match, questions);
+                createQuizAttempts(match)
+                createBattle(match);
                 match.currentQuestionIndex = 0;
                 const payload = JSON.stringify({ type: 'battle/MATCH_START', matchId: match.matchId })
                 match.player1.send(payload);
@@ -178,6 +196,18 @@ export default function initWebSocketServer(server: Server) {
                 }));
             }
 
+            function insertIntoQuizQuestions(match: Match, questions: QuizQuestion[]) {
+                questions.forEach(async q => {
+                    const [result] = await pool.query(
+                        `INSERT INTO quiz_questions (quiz_id, question_id) VALUES (?, ?)`,
+                        [Number.parseInt(match.matchId), q.id]
+                    )
+                    if ((result as any).affectedRows <= 0) {
+                        sendError(match);
+                    }
+                });
+            }
+
             function sendNextQuestion(match: Match) {
                 const questions = matchQuestions.get(match.matchId);
                 if (!questions || match.currentQuestionIndex >= questions.length) {
@@ -205,10 +235,22 @@ export default function initWebSocketServer(server: Server) {
                 const currentQ = questions[match.currentQuestionIndex - 1];
                 const correctAns = currentQ.answers.find(a => a.isCorrect);
 
+                const correctText = correctAns?.text || null;
+
+                if (match.answerP1 === correctText) {
+                    match.scoreP1 += 5;
+                }
+
+                if (match.answerP2 === correctText) {
+                    match.scoreP2 += 5;
+                }
+
                 const summary = {
                     type: 'battle/ANSWER_SUMMARY',
                     yourAnswer: match.answerP1,
+                    yourScore: match.scoreP1,
                     opponentAnswer: match.answerP2,
+                    opponentScore: match.scoreP2,
                     correctAnswer: correctAns.text || null
                 }
 
@@ -216,13 +258,150 @@ export default function initWebSocketServer(server: Server) {
                 match.player2.send(JSON.stringify({
                     ...summary,
                     yourAnswer: match.answerP2,
-                    opponentAnswer: match.answerP1
+                    yourScore: match.scoreP2,
+                    opponentAnswer: match.answerP1,
+                    opponentScore: match.scoreP2
                 }));
 
-                // Možeš odmah slati novo pitanje ili čekati
-                setTimeout(() => {
-                    sendNextQuestion(match);
-                }, 5000);
+                const attemptP1 = (match.player1 as any).quizAttemptId;
+                const attemptP2 = (match.player2 as any).quizAttemptId;
+                const answerP1Id = match.answerP1 === null ? null : currentQ.answers.find(a => a.text === match.answerP1).id;
+                const answerP2Id = match.answerP2 === null ? null : currentQ.answers.find(a => a.text === match.answerP2).id;
+                insertQuizAttempt(attemptP1, currentQ.id, answerP1Id, match.answerP1 === correctText, match);
+                insertQuizAttempt(attemptP2, currentQ.id, answerP2Id, match.answerP2 === correctText, match);
+
+                if (match.currentQuestionIndex === questions.length) {
+                    setTimeout(() => {
+                        finishMatch(match);
+                    }, 5000);
+                } else {
+                    setTimeout(() => {
+                        sendNextQuestion(match);
+                    }, 5000);
+                }
+            }
+
+            async function finishMatch(match: Match) {
+                match.status = 'finished';
+                let winnerId: number | null = null;
+                if (match.scoreP1 > match.scoreP2) {
+                    winnerId = (match.player1 as any).id;
+                }
+                else if (match.scoreP1 < match.scoreP2) {
+                    winnerId = (match.player2 as any).id;
+                }
+                const [result] = await pool.query(
+                    `UPDATE battles SET winnerId=?, status=?, player1_score=?, player2_score=? WHERE quiz_id=?`,
+                    [winnerId, Number.parseInt(match.matchId), BattleStatusMapper.getBattleStatus('finished'), match.scoreP1, match.scoreP2]
+                )
+                if ((result as any).affectedRows <= 0) {
+                    sendError(match);
+                }
+
+                const player1Id = (match.player1 as any).id
+                const player2Id = (match.player1 as any).id
+
+                const [resultP1] = await pool.query(
+                    `UPDATE quiz_attempts SET completed_at WHERE quiz_id=? AND user_id=?`,
+                    [Number.parseInt(match.matchId), player1Id]
+                )
+                if ((resultP1 as any).affectedRows <= 0) {
+                    sendError(match);
+                }
+
+                const [resultP2] = await pool.query(
+                    `UPDATE quiz_attempts SET completed_at WHERE quiz_id=? AND user_id=?`,
+                    [Number.parseInt(match.matchId), player2Id]
+                )
+                if ((resultP2 as any).affectedRows <= 0) {
+                    sendError(match);
+                }
+
+                const summary = {
+                    type: 'battle/MATCH_FINISHED',
+                    yourScore: match.scoreP1,
+                    opponentScore: match.scoreP2,
+                    winner: winnerId
+                }
+
+                match.player1.send(JSON.stringify(summary));
+                match.player2.send(JSON.stringify({
+                    ...summary,
+                    yourScore: match.scoreP2,
+                    opponentScore: match.scoreP2
+                }));
+
+                // CLEAN UP
+                activeMatches.delete(match.matchId);
+                matchQuestions.delete(match.matchId);
+            }
+
+            async function createQuizAttempts(match: Match) {
+                const player1Id = (match.player1 as any).id
+                const player2Id = (match.player2 as any).id
+                // PLAYER 1 
+                const [resultP1] = await pool.query(
+                    `INSERT INTO quiz_attempts (quiz_id, user_id, started_at) VALUES (?, ?, NOW())`,
+                    [Number.parseInt(match.matchId), player1Id]
+                )
+                if ((resultP1 as any).affectedRows <= 0) {
+                    sendError(match);
+                }
+                else {
+                    (match.player1 as any).quizAttemptId = (resultP1 as any).insertId;
+                }
+                // PLAYER 2
+                const [resultP2] = await pool.query(
+                    `INSERT INTO quiz_attempts (quiz_id, user_id, started_at) VALUES (?, ?, NOW())`,
+                    [Number.parseInt(match.matchId), player2Id]
+                )
+                if ((resultP2 as any).affectedRows <= 0) {
+                    sendError(match);
+                }
+                else {
+                    (match.player2 as any).quizAttemptId = (resultP2 as any).insertId;
+                }
+            }
+
+            async function insertQuizAttempt(attemptId: number, questionId: number, answerId: number, isCorrect: boolean, match: Match) {
+                const [result] = await pool.query(
+                    `INSERT INTO quiz_attempt_questions (attempt_id, question_id, answer_id, is_correct) VALUES (?, ?, ?, ?)`,
+                    [attemptId, questionId, answerId, isCorrect]
+                )
+                if ((result as any).affectedRows <= 0) {
+                    sendError(match);
+                }
+            }
+
+            async function createBattle(match: Match) {
+                const player1Id = (match.player1 as any).id
+                const player2Id = (match.player2 as any).id
+                const [result] = await pool.query(
+                    `INSERT INTO battles (quiz_id, player1_id, player2_id, created_at, status, player1_score, player2_score) 
+                    VALUES (?, ?, ?, NOW(), ?, 0, 0)`,
+                    [Number.parseInt(match.matchId), player1Id, player2Id, BattleStatusMapper.getBattleStatus('started')]
+                )
+                if ((result as any).affectedRows <= 0) {
+                    sendError(match);
+                }
+            }
+
+            async function deleteMatchFromDB(match: Match) {
+                const [resultP2] = await pool.query(
+                    `DELETE FROM quizzes WHERE id=?`,
+                    [Number.parseInt(match.matchId)]
+                )
+                if ((resultP2 as any).affectedRows <= 0) {
+                    sendError(match);
+                }
+            }
+
+            function sendError(match: Match) {
+                const payload = JSON.stringify({
+                    type: 'ERROR'
+                })
+                match.player1.send(payload);
+                match.player2.send(payload);
             }
             // ----------------- END BATTLE FUNCTIONS END -----------------
 
@@ -241,7 +420,7 @@ export default function initWebSocketServer(server: Server) {
 export function sendFriendRefreshSignal(userId: number, friendId: number, action: string) {
     if (usersWebSockes.filter(ws => (ws as any).id === friendId).length !== 0) {
         let soc = usersWebSockes.filter(ws => (ws as any).id === friendId)[0];
-        soc.send(JSON.stringify({ type: 'friends/REFRESH', action, userId}));
+        soc.send(JSON.stringify({ type: 'friends/REFRESH', action, userId }));
     }
 }
 

@@ -14,7 +14,9 @@ export class Match {
     currentQuestionIndex: number;
     answerP1: string;
     answerP2: string;
-    status: 'waiting' | 'ready' | 'started' | 'cancelled' = 'waiting';
+    scoreP1: number;
+    scoreP2: number;
+    status: 'waiting' | 'ready' | 'started' | 'cancelled' | 'finished'= 'waiting';
 
 
     constructor(matchId: string, player1: WebSocket, player2: WebSocket,

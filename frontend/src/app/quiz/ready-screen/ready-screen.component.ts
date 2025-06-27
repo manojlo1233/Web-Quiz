@@ -8,6 +8,7 @@ import { WebsocketService } from '../../services/quiz/websocket.service';
 import { Router } from '@angular/router';
 import { QuizService } from '../../services/shared/quiz.service';
 import { animate, style, transition, trigger } from '@angular/animations';
+import { ConfirmService } from '../../services/shared/confirm.service';
 
 @Component({
   selector: 'app-ready-screen',
@@ -31,6 +32,7 @@ export class ReadyScreenComponent implements OnInit, OnDestroy {
   constructor(
     private userService: UserService,
     private quizService: QuizService,
+    private confirmService: ConfirmService,
     private matchStateService: MatchStateService,
     private wsService: WebsocketService,
     private router: Router
@@ -48,6 +50,12 @@ export class ReadyScreenComponent implements OnInit, OnDestroy {
   tips: any[] = [];
   currentTipIndex = 0;
   currentTip: string = '';
+
+  // DECLINE
+  showDeclined = false;
+  showCancelled = false;
+  declineUsername: string = '';
+  declineTimeRemaining = 5;
 
   ngOnInit(): void {
     this.match = this.matchStateService.getCurrentMatch();
@@ -89,8 +97,25 @@ export class ReadyScreenComponent implements OnInit, OnDestroy {
       this.router.navigate(['/quiz/battle']);
     })
 
-    this.wsService.matchDeclined$.subscribe(matchId => {
-      this.router.navigate(['/dashboard/main-page']);
+    this.wsService.matchDeclined$.subscribe((data: any) => {
+      this.showDeclined = true;
+      this.declineUsername = data.username;
+      setInterval(() => {
+        this.declineTimeRemaining--;
+        if (this.declineTimeRemaining === 0) {
+          this.router.navigate(['/dashboard/main-page']);
+        }
+      }, 1000)
+    })
+
+    this.wsService.matchCancelled$.subscribe(() => {
+      this.showCancelled = true;
+      setInterval(() => {
+        this.declineTimeRemaining--;
+        if (this.declineTimeRemaining === 0) {
+          this.router.navigate(['/dashboard/main-page']);
+        }
+      }, 1000)
     })
 
     const timeLeft = this.match.startTimestamp - Date.now();
@@ -116,7 +141,7 @@ export class ReadyScreenComponent implements OnInit, OnDestroy {
             setTimeout(() => {
               this.currentTip = this.tips[this.currentTipIndex].text;
             }, 600); // omogucava animaciju leave + enter
-          }, 10000)
+          }, 8000)
         }
       },
       error: (error: any) => {
@@ -126,12 +151,13 @@ export class ReadyScreenComponent implements OnInit, OnDestroy {
   }
 
   onReadyClick(): void {
+    if (this.userReady) return;
     this.userReady = true;
     this.wsService.sendReady(this.match.matchId.toString(), this.user.username);
   }
 
   onCancelClick(): void {
-    this.wsService.sendDecline(this.match.matchId.toString(), this.user.username)
+    this.wsService.sendDecline(this.match.matchId.toString(), this.user.username);
   }
 
   ngOnDestroy(): void {

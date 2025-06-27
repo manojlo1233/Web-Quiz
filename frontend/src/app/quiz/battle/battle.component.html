@@ -1,46 +1,58 @@
-<div class="user">
-    <app-icon class="avatar" src="/assets/svg/icon_user.svg" color="white" />
-    <label>{{user.username}}</label>
+<div style="display: flex; flex-direction: column; width: 100%;">
+    <div class="user">
+        <app-icon class="avatar" src="/assets/svg/icon_user.svg" color="white" />
+        <label>{{user.username}}</label>
+        <label>Score: </label>
+    </div>
+    <div class="actions-container">
+        <label>User Actions</label>
+    </div>
 </div>
 <div class="battle">
-    <div class="time">
-        <label>{{remainingTime}}</label>
-        <div class="timer-bar">
-            <div class="progress" [style.width.%]="(remainingTime / totalTime) * 100"></div>
+    <app-icon src="assets/svg/quiz_logo_icon.svg" color="var(--theme-darkblue-color-3)" style="width: 300px;
+        height: 200px; margin-top: 10%;" />
+    <div style="display: flex; flex-direction: column; height: 70%; margin-top: auto; width: 100%; align-items: center; padding: 2px 5px; box-sizing: border-box;">
+        <div class="time">
+            <label>{{remainingTime}}</label>
+            <div class="timer-bar">
+                <div class="progress" [style.width.%]="(remainingTime / totalTime) * 100"></div>
+            </div>
         </div>
-    </div>
-    <div class="quiz-content">
-        <label class="question">{{question.text}}</label>
-        <span class="h-divider" style="background-color: var(--theme-darkblue-color-3);"></span>
-        <div class="answers">
-            <label class="answer" [class.selected]="selectedAnswer === a"
-                [class.disabled]="selectedAnswer !== null && selectedAnswer !== a"
-                [class.disable-events]="answerSummaryPhase || selectedAnswer !== null"
-                [class.correct-answer]="correctAnswerIndex === i"
-                [class.wrong-answer]="userAnswerIndex !== correctAnswerIndex && userAnswerIndex !== -1 && userAnswerIndex === i"
-                (click)="handleAnswerClick(a)" *ngFor="let a of question.answers, let i = index">
-                <span class="circle user-answer-circle" *ngIf="userAnswerIndex === i"></span>
-                <span class="circle opponent-answer-circle" *ngIf="opponentAnswerIndex === i"></span>
-                {{a.text}}
-            </label>
-        </div>
+        <div class="quiz-content">
+            <label class="question">{{question.text}}</label>
+            <span class="h-divider" style="background-color: var(--theme-darkblue-color-3);"></span>
+            <div class="answers">
+                <label class="answer" [class.selected]="selectedAnswer === a"
+                    [class.disabled]="selectedAnswer !== null && selectedAnswer !== a"
+                    [class.disable-events]="answerSummaryPhase || selectedAnswer !== null"
+                    [class.correct-answer]="correctAnswerIndex === i"
+                    [class.wrong-answer]="userAnswerIndex !== correctAnswerIndex && userAnswerIndex !== -1 && userAnswerIndex === i"
+                    (click)="handleAnswerClick(a)" *ngFor="let a of question.answers, let i = index">
+                    <span class="circle user-answer-circle" *ngIf="userAnswerIndex === i"></span>
+                    <span class="circle opponent-answer-circle" *ngIf="opponentAnswerIndex === i"></span>
+                    {{a.text}}
+                </label>
+            </div>
 
+        </div>
     </div>
 </div>
 <div style="display: flex; flex-direction: column; width: 100%;">
-    <div class="user" style="height: 100%;">
+    <div class="user">
         <app-icon class="avatar" src="/assets/svg/icon_user.svg" color="white" />
         <label>{{opponent.username}}</label>
     </div>
-    <div class="chat-container" style="height: 100%;">
+    <div class="chat-container">
         <div class="chat-box">
             <div
                 style="height: fit-content; width: 100%; display: flex; flex-direction: row; justify-content: space-between; align-items: center;">
                 <label style="user-select: none; font-size: 28px;">Chat</label>
-                <app-icon *ngIf="!muteActive" class="icon" src='/assets/svg/icon_volume_on.svg' color="var(--theme-darkblue-color-3)"
-                    title="Mute chat" (click)="muteActive = !muteActive" [class.selected]="muteActive" />
-                <app-icon *ngIf="muteActive" class="icon" src='/assets/svg/icon_volume_off.svg' color="var(--theme-darkblue-color-3)"
-                    title="Unmute chat" (click)="muteActive = !muteActive" [class.selected]="muteActive" />
+                <app-icon *ngIf="!muteActive" class="icon" src='/assets/svg/icon_volume_on.svg'
+                    color="var(--theme-darkblue-color-3)" title="Mute chat" (click)="muteActive = !muteActive"
+                    [class.selected]="muteActive" />
+                <app-icon *ngIf="muteActive" class="icon" src='/assets/svg/icon_volume_off.svg'
+                    color="var(--theme-darkblue-color-3)" title="Unmute chat" (click)="muteActive = !muteActive"
+                    [class.selected]="muteActive" />
             </div>
             <span class="h-divider" style="background-color: var(--theme-darkblue-color-3);"></span>
             <div class="chat" #chatBox>

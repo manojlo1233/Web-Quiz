@@ -69,6 +69,7 @@ export class BattleComponent implements OnInit {
       this.selectedAnswer = null;
       this.initTimerIncrease();
       this.getAnswerIndices(resp);
+      console.log(resp);
     })
 
     const userId = parseInt(sessionStorage.getItem('userId'), 10);

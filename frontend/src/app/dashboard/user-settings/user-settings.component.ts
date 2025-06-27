@@ -4,6 +4,7 @@ import { UserSettingsService } from '../../services/dashboard/user-settings.serv
 import { CountriesService } from '../../services/shared/countries.service';
 import { SnackBarService } from '../../services/shared/snack-bar.service';
 import { SpinnerComponent } from '../../shared/ui-indicators/spinner/spinner.component';
+import { ConfirmService } from '../../services/shared/confirm.service';
 
 @Component({
   selector: 'app-user-settings',
@@ -17,7 +18,8 @@ export class UserSettingsComponent implements OnInit {
   constructor(
     private userSettingsService: UserSettingsService,
     private countriesService: CountriesService,
-    private snackBarService: SnackBarService
+    private snackBarService: SnackBarService,
+    private confirmService: ConfirmService
   ) { }
 
   editing: boolean = false;
@@ -50,7 +52,13 @@ export class UserSettingsComponent implements OnInit {
   }
 
   cancelEditing() {
-    this.editing = false;
+    this.confirmService.showCustomConfirm(
+      `Are you sure you want to cancel editing?`,
+      () => {
+        this.editing = false;
+      },
+      () => {}
+    )
   }
 
   saveEditing() {

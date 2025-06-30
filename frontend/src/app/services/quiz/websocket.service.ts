@@ -18,6 +18,7 @@ export class WebsocketService {
   public matchStart$ = new Subject<any>();
   public matchDeclined$ = new Subject<string>();
   public matchCancelled$ = new Subject<void>();
+  public matchFinished$ = new Subject<void>();
   public newQuestion$ = new Subject<any>();
   public answerSummary$ = new Subject<any>();
   // BATTLE - CHAT
@@ -69,7 +70,10 @@ export class WebsocketService {
         case 'battle/CHAT_MESSAGE':
           this.chatMessage$.next({ username: data.from, message: data.message, time: data.time });
           break;
-
+        case 'battle/MATCH_FINISHED':
+          console.log(data);
+          this.matchFinished$.next(data);
+          break;
       }
     };
 

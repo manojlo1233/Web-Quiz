@@ -28,6 +28,8 @@ export class Match {
             this.username2 = username2;
             this.startTimestamp = Date.now() + 60000;
             this.currentQuestionIndex = -1;
+            this.scoreP1 = 0;
+            this.scoreP2 = 0;
         }
 
     setReady(playerRole: 'player1' | 'player2') {

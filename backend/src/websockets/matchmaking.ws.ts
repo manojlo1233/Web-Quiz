@@ -51,7 +51,7 @@ export default function initWebSocketServer(server: Server) {
                     activeMatches.set(matchId, match);
 
                     const timeout = setTimeout(() => {
-                        if (match.status !== 'started') {
+                        if (match.status == 'ready') {
                             match.status = 'cancelled';
                             deleteMatchFromDB(match);
                             activeMatches.delete(match.matchId);
@@ -159,7 +159,7 @@ export default function initWebSocketServer(server: Server) {
 
             async function startMatch(match: Match) {
                 match.status = 'started';
-                const questions = await getRandomQuestions(10);
+                const questions = await getRandomQuestions(5);
                 matchQuestions.set(match.matchId, questions);
                 insertIntoQuizQuestions(match, questions);
                 createQuizAttempts(match)
@@ -285,36 +285,25 @@ export default function initWebSocketServer(server: Server) {
             async function finishMatch(match: Match) {
                 match.status = 'finished';
                 let winnerId: number | null = null;
-                if (match.scoreP1 > match.scoreP2) {
+                if (match.scoreP1 >= match.scoreP2) {
                     winnerId = (match.player1 as any).id;
                 }
                 else if (match.scoreP1 < match.scoreP2) {
                     winnerId = (match.player2 as any).id;
                 }
-                const [result] = await pool.query(
-                    `UPDATE battles SET winnerId=?, status=?, player1_score=?, player2_score=? WHERE quiz_id=?`,
-                    [winnerId, Number.parseInt(match.matchId), BattleStatusMapper.getBattleStatus('finished'), match.scoreP1, match.scoreP2]
+                const [resultBattle] = await pool.query(
+                    `UPDATE battles SET winner_id=?, status=?, player1_score=?, player2_score=? WHERE quiz_id=?`,
+                    [winnerId, BattleStatusMapper.getBattleStatus('finished'), match.scoreP1, match.scoreP2, Number.parseInt(match.matchId)]
                 )
-                if ((result as any).affectedRows <= 0) {
+                if ((resultBattle as any).affectedRows <= 0) {
                     sendError(match);
                 }
 
-                const player1Id = (match.player1 as any).id
-                const player2Id = (match.player1 as any).id
-
-                const [resultP1] = await pool.query(
-                    `UPDATE quiz_attempts SET completed_at WHERE quiz_id=? AND user_id=?`,
-                    [Number.parseInt(match.matchId), player1Id]
+                const [resultQuizAttempts] = await pool.query(
+                    `UPDATE quiz_attempts SET completed_at=NOW() WHERE quiz_id=?`,
+                    [Number.parseInt(match.matchId)]
                 )
-                if ((resultP1 as any).affectedRows <= 0) {
-                    sendError(match);
-                }
-
-                const [resultP2] = await pool.query(
-                    `UPDATE quiz_attempts SET completed_at WHERE quiz_id=? AND user_id=?`,
-                    [Number.parseInt(match.matchId), player2Id]
-                )
-                if ((resultP2 as any).affectedRows <= 0) {
+                if ((resultQuizAttempts as any).affectedRows <= 0) {
                     sendError(match);
                 }
 

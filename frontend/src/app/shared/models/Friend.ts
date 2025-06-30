@@ -3,4 +3,5 @@ export class Friend {
     username: string;
     userIdSent: number;
     accepted: boolean;
+    online: boolean;
 }

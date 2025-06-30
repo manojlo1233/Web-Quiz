@@ -4,7 +4,8 @@ import {
     deleteUserFriendById,
     sendFriendRequest,
     acceptFriendRequest,
-    rejectFriendRequest
+    rejectFriendRequest,
+    getUserFriendsOnlineStatus
 } from '../controllers/friends.controller';
 
 const friendsRouter = express.Router();
@@ -14,6 +15,7 @@ friendsRouter.delete('/deleteUserFriendById/:userId/:friendId', deleteUserFriend
 friendsRouter.post('/sendFriendRequest', sendFriendRequest);
 friendsRouter.put('/acceptFriendRequest', acceptFriendRequest);
 friendsRouter.delete('/rejectFriendRequest/:userId/:friendId', rejectFriendRequest);
+friendsRouter.post('/getUserFriendsOnlineStatus', getUserFriendsOnlineStatus);
 
 
 export default friendsRouter;

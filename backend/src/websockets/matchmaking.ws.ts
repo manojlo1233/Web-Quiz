@@ -6,9 +6,9 @@ import pool from '../config/db';
 import { QuizAnswer } from '../models/Quiz/QuizAnswer';
 import { BattleStatusMapper } from '../mappers/BattleStatusMapper';
 
-let usersWebSockes: WebSocket[] = [];
-
+let usersWebSockets: WebSocket[] = [];
 let waitingList: WebSocket[] = [];
+
 const activeMatches: Map<string, Match> = new Map();
 const matchStartTimeout: Map<string, NodeJS.Timeout> = new Map();
 const matchQuestions: Map<string, QuizQuestion[]> = new Map();
@@ -22,13 +22,14 @@ export default function initWebSocketServer(server: Server) {
         ws.on('message', async (message) => {
             const data = JSON.parse(message.toString());
             if (data.type === 'USER_SUBSCRIBE') {
-
-                if (usersWebSockes.filter(ws => (ws as any).username === data.username).length !== 0) {
-                    usersWebSockes = usersWebSockes.filter(ws => (ws as any).username !== data.username)
+                if (usersWebSockets.filter(ws => (ws as any).username === data.username).length !== 0) {
+                    usersWebSockets = usersWebSockets.filter(ws => (ws as any).username !== data.username)
                 }
                 (ws as any).id = data.id;
                 (ws as any).username = data.username;
-                usersWebSockes.push(ws);
+                broadcastActiveUsersChangeEvent(data.id, true);
+                usersWebSockets.push(ws);
+                console.log(usersWebSockets.length);
             }
             // ----------------- BATTLE -----------------
             if (data.type === 'battle/JOIN_QUEUE') {
@@ -54,11 +55,11 @@ export default function initWebSocketServer(server: Server) {
                             match.status = 'cancelled';
                             deleteMatchFromDB(match);
                             activeMatches.delete(match.matchId);
-                            matchStartTimeout.delete(match.matchId)
                             const payload = JSON.stringify({ type: 'battle/MATCH_CANCELLED' })
                             match.player1.send(payload);
                             match.player2.send(payload);
                         }
+                        matchStartTimeout.delete(match.matchId)
                     }, 60000)
 
                     matchStartTimeout.set(match.matchId, timeout);
@@ -176,7 +177,7 @@ export default function initWebSocketServer(server: Server) {
                 const questions: QuizQuestion[] = (questionsResult[0] as any[]);
                 const questionIds = questions.map((q: any) => q.id);
                 const answersResult = await pool.query(
-                    `SELECT id, question_id, text, is_correct FROM answers WHERE question_id IN (?)`,
+                    `SELECT id, question_id, text, is_correct FROM answers WHERE question_id IN (?) ORDER BY RAND()`,
                     [questionIds]);
 
                 const answers: QuizAnswer[] = (answersResult[0] as any[]);
@@ -408,19 +409,43 @@ export default function initWebSocketServer(server: Server) {
         });
 
         ws.on('close', () => {
-            const index = waitingList.indexOf(ws);
-            if (index !== -1) waitingList.splice(index, 1);
-            matchStartTimeout.forEach((v, k) => {
-                clearTimeout(v);
-            })
+            waitingList = waitingList.filter(sock => sock !== ws);
+            const sock: WebSocket = usersWebSockets.filter(sock => sock === ws)[0];
+            usersWebSockets = usersWebSockets.filter(sock => sock !== ws);
+            broadcastActiveUsersChangeEvent((sock as any).id, false);
         });
     });
 }
 
+function broadcastActiveUsersChangeEvent(userId, online) {
+    usersWebSockets.forEach(ws => {
+        if ((ws as any).id !== userId) {
+            const payload = JSON.stringify({
+                type: 'friends/ACTIVE_CHANGE',
+                friendId: userId,
+                online
+            })
+            ws.send(payload);
+        }
+    })
+}
+
 export function sendFriendRefreshSignal(userId: number, friendId: number, action: string) {
-    if (usersWebSockes.filter(ws => (ws as any).id === friendId).length !== 0) {
-        let soc = usersWebSockes.filter(ws => (ws as any).id === friendId)[0];
-        soc.send(JSON.stringify({ type: 'friends/REFRESH', action, userId }));
+    if (usersWebSockets.filter(ws => (ws as any).id === friendId).length !== 0) {
+        let sock = usersWebSockets.filter(ws => (ws as any).id === friendId)[0];
+        sock.send(JSON.stringify({ type: 'friends/REFRESH', action, userId }));
     }
 }
 
+export function checkUserFriendsOnlineStatus(userFriends: any[]): any[] {
+    const userIds = usersWebSockets.map(ws => (ws as any).id);
+    userFriends.forEach(friend => {
+        if (userIds.filter(id => id === friend.friendId).length !== 0) {
+            friend.online = true
+        }
+        else {
+            friend.online = false;
+        }
+    });
+    return userFriends;
+}

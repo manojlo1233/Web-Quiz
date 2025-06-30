@@ -1,6 +1,7 @@
 import { Component, EventEmitter, Output } from '@angular/core';
 import { UserSettingsService } from '../../../services/dashboard/user-settings.service';
 import { Router } from '@angular/router';
+import { WebsocketService } from '../../../services/quiz/websocket.service';
 
 @Component({
   selector: 'app-header',
@@ -11,15 +12,20 @@ export class HeaderComponent {
 
   constructor(
     private router: Router,
-    private userSettingsService: UserSettingsService
-  ) {}
+    private userSettingsService: UserSettingsService,
+    private wsService: WebsocketService
+  ) { }
 
   handleSettingsClick() {
     this.userSettingsService.showUserSettings();
   }
 
   handleLogoutClick() {
-   this.router.navigate([''])
+    this.wsService.close();
+    this.router.navigate([''])
   }
 
+  handleNotificationClick() {
+
+  }
 }

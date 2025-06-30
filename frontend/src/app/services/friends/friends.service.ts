@@ -37,4 +37,11 @@ export class FriendsService {
   rejectFriendRequest(userId: number, friendId: number) {
     return this.http.delete(`${this.url}/rejectFriendRequest/${userId}/${friendId}`)
   }
+
+  getUserFriendsOnlineStatus(userFriends: any[]) {
+    const body = {
+      userFriends
+    };
+    return this.http.post(`${this.url}/getUserFriendsOnlineStatus`, body);
+  }
 }

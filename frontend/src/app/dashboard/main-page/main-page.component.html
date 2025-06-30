@@ -64,7 +64,6 @@
         <label> B </label>
     </div>
     <div class="col-cont">
-
         <div class="lboard">
             <div class="hdr">
                 <label>Leaderboard </label>
@@ -85,11 +84,12 @@
                         src="/assets/svg/icon_user.svg" color="var(--theme-darkblue-color-3)" title="Friends"
                         (click)="handleFriendTabClick(0)" />
                     <div style="position: relative;">
-                        <app-icon class="icon" style="display: block; z-index: 2;" [class.selected]="friendsTab === FRIENDS_TAB.FRIENDS_REQUEST"
-                            #friendRequestIcon src="/assets/svg/icon_user_invite.svg"
-                            color="var(--theme-darkblue-color-3)" title="Friend Requests"
-                            (click)="handleFriendTabClick(1)"></app-icon>
-                        <label *ngIf="friendsRequest.length > 0" class="floating-number" style="z-index: 1;">{{friendsRequest.length}}</label>
+                        <app-icon class="icon" style="display: block; z-index: 2;"
+                            [class.selected]="friendsTab === FRIENDS_TAB.FRIENDS_REQUEST" #friendRequestIcon
+                            src="/assets/svg/icon_user_invite.svg" color="var(--theme-darkblue-color-3)"
+                            title="Friend Requests" (click)="handleFriendTabClick(1)"></app-icon>
+                        <label *ngIf="friendsRequest.length > 0" class="floating-number"
+                            style="z-index: 1;">{{friendsRequest.length}}</label>
                     </div>
                     <app-icon class="icon" [class.selected]="friendsTab === FRIENDS_TAB.ADD_FRIEND"
                         src="/assets/svg/icon_add_user.svg" color="var(--theme-darkblue-color-3)" title="Add Friend"
@@ -102,12 +102,17 @@
                 <div *ngIf="friendsTab === FRIENDS_TAB.FRIENDS">
                     <div *ngIf="friends.length > 0">
                         <div class="frnd-div" *ngFor="let f of friends, let i = index">
-                            <label>
-                                {{f.username}}
-                            </label>
+                            <div style="display: flex; flex-direction: row; gap: 2px; align-items: center;">
+                                <label>{{f.username}}</label>
+                                <app-icon *ngIf="f.online" style="width: 16px; height: 16px;"
+                                    src="/assets/svg/icon_radio_circle.svg" color="var(--theme-darkblue-green)" />
+                            </div>
                             <app-icon class="icon small" style="margin-left: auto;"
-                                src="/assets/svg/icon_circle_minus.svg" color="var(--theme-darkblue-color-3)"
-                                title="Remove Friend" (click)="handleRemoveFriendClick(f.friendId)" />
+                                src="/assets/svg/icon_battle.svg" color="var(--theme-darkblue-color-3)"
+                                title="Battle friend" />
+                            <app-icon class="icon small" src="/assets/svg/icon_circle_minus.svg"
+                                color="var(--theme-darkblue-color-3)" title="Remove Friend"
+                                (click)="handleRemoveFriendClick(f.friendId)" />
                         </div>
                     </div>
                     <label class="neutral-italic" *ngIf="friends.length === 0">No friends... You can add

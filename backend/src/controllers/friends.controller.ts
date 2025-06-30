@@ -1,11 +1,11 @@
 import { Request, Response } from "express";
 import pool from "../config/db";
-import { sendFriendRefreshSignal } from "../websockets/matchmaking.ws";
+import { checkUserFriendsOnlineStatus, sendFriendRefreshSignal } from "../websockets/matchmaking.ws";
 
 export const getUserFriendsById = async (req: Request, res: Response) => {
     try {
         const userId = parseInt(req.params.userId, 10);
-        const [userFriends] = await pool.execute(
+        let [userFriends] = await pool.execute(
             `SELECT 
                 u.id AS friendId,
                 u.username AS username,
@@ -25,6 +25,7 @@ export const getUserFriendsById = async (req: Request, res: Response) => {
             res.status(404).json({ message: 'User friends not found' })
             return;
         }
+        userFriends = checkUserFriendsOnlineStatus(userFriends as any[]);
         res.status(200).json(userFriends);
     } catch (error: any) {
         console.log('Get user friends by id error', error);
@@ -154,4 +155,14 @@ export const rejectFriendRequest = async (req: Request, res) => {
     }
 }
 
+export const getUserFriendsOnlineStatus = async (req: Request, res: Response) => {
+    try {
+        let userFriends: any[] = req.body.userFriends;
+        userFriends = checkUserFriendsOnlineStatus(userFriends as any[]);
+        res.status(200).json(userFriends);
+    } catch (error: any) {
+        console.log('Get user friends online status error', error);
+        res.status(500).json({ message: 'Get user friends online status failed', error: error.message })
+    }
+}
 

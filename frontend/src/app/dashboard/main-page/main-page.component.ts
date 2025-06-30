@@ -80,6 +80,7 @@ export class MainPageComponent implements OnInit, AfterViewInit, OnDestroy {
   // SUBSCRIPTIONS
   private errorSub: Subscription;
   private startQuizSub: Subscription;
+  private connectionSub: Subscription;
 
   // MATCHMAKING
   matchmakingLbl: string = 'Battle'
@@ -102,7 +103,8 @@ export class MainPageComponent implements OnInit, AfterViewInit, OnDestroy {
         this.userSettingsService.setUser(this.user);
         // --------- INITIALIZE WEBSOCKET CONNECTION ---------
         this.wsService.connect();
-        this.wsService.connectionOpen$.subscribe(() => {
+        if (this.connectionSub) this.connectionSub.unsubscribe();
+        this.connectionSub = this.wsService.connectionOpen$.subscribe(() => {
           this.wsService.sendHello(userId, this.user.username);
         })
       },
@@ -110,7 +112,7 @@ export class MainPageComponent implements OnInit, AfterViewInit, OnDestroy {
         console.error(error)
       }
     })
-    // --------- GET USER STATISTICS---------
+    // --------- USER STATISTICS---------
     this.userService.getUserStatisticsById(userId).subscribe({
       next: (resp: any) => {
         this.userStatistic = resp;
@@ -119,7 +121,7 @@ export class MainPageComponent implements OnInit, AfterViewInit, OnDestroy {
         console.error(error)
       }
     })
-    // --------- GET USER PLAY HISTORY ---------
+    // --------- USER PLAY HISTORY ---------
     this.userService.getUserPlayHistoryById(userId).subscribe({
       next: (resp: any) => {
         const ret: any = (resp as any[]).map((val) => {
@@ -139,7 +141,7 @@ export class MainPageComponent implements OnInit, AfterViewInit, OnDestroy {
         console.error(error)
       }
     })
-    // --------- GET USER FRIENDS ---------
+    // --------- USER FRIENDS ---------
     this.getFriends(userId);
     this.wsService.refreshFriends$.subscribe((resp: any) => {
       console.log(resp);
@@ -164,7 +166,16 @@ export class MainPageComponent implements OnInit, AfterViewInit, OnDestroy {
       }
       this.getFriends(userId);
     })
-    // --------- GET LEADERBOARD ---------
+    this.wsService.friendsActiveStatus$.subscribe((resp: any) => {
+      const friendId = resp.friendId;
+      this.friends.forEach(f => {
+        if (f.friendId === friendId) {
+          f.online = resp.online;
+        }
+      })
+      console.log(resp); 
+    })
+    // --------- LEADERBOARD ---------
     this.userService.getLeaderBoard().subscribe({
       next: (resp: any) => {
         this.leaderbaord = resp;
@@ -336,5 +347,6 @@ export class MainPageComponent implements OnInit, AfterViewInit, OnDestroy {
   ngOnDestroy(): void {
     this.errorSub.unsubscribe();
     this.startQuizSub.unsubscribe();
+    this.connectionSub.unsubscribe();
   }
 }

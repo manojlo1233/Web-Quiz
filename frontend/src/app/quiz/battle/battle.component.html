@@ -1,8 +1,9 @@
+<app-battle-summary *ngIf="showBattleSummary" [data]="battleSummaryData" (closeEvent)="goToMainPage()"/>
 <div style="display: flex; flex-direction: column; width: 100%;">
     <div class="user">
         <app-icon class="avatar" src="/assets/svg/icon_user.svg" color="white" />
         <label>{{user.username}}</label>
-        <label>Score: </label>
+        <label>Score: {{userScore}}</label>
     </div>
     <div class="actions-container">
         <label>User Actions</label>
@@ -41,6 +42,7 @@
     <div class="user">
         <app-icon class="avatar" src="/assets/svg/icon_user.svg" color="white" />
         <label>{{opponent.username}}</label>
+         <label>Score: {{opponentScore}}</label>
     </div>
     <div class="chat-container">
         <div class="chat-box">

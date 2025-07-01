@@ -144,7 +144,6 @@ export class MainPageComponent implements OnInit, AfterViewInit, OnDestroy {
     // --------- USER FRIENDS ---------
     this.getFriends(userId);
     this.wsService.refreshFriends$.subscribe((resp: any) => {
-      console.log(resp);
       const userIdFrom = resp.userId;
       const action = resp.action;
       if (action !== 'NONE') {
@@ -166,14 +165,8 @@ export class MainPageComponent implements OnInit, AfterViewInit, OnDestroy {
       }
       this.getFriends(userId);
     })
-    this.wsService.friendsActiveStatus$.subscribe((resp: any) => {
-      const friendId = resp.friendId;
-      this.friends.forEach(f => {
-        if (f.friendId === friendId) {
-          f.online = resp.online;
-        }
-      })
-      console.log(resp); 
+    this.wsService.refreshFriendsStatus$.subscribe((resp: any) => {
+      this.getFriends(userId);
     })
     // --------- LEADERBOARD ---------
     this.userService.getLeaderBoard().subscribe({
@@ -181,7 +174,6 @@ export class MainPageComponent implements OnInit, AfterViewInit, OnDestroy {
         this.leaderbaord = resp;
       },
       error: (error: any) => {
-
       }
     })
   }
@@ -193,8 +185,10 @@ export class MainPageComponent implements OnInit, AfterViewInit, OnDestroy {
   getFriends(userId: number) {
     this.friendsService.getUserFriendsById(userId).subscribe({
       next: (resp: any[]) => {
-        console.log(resp);
-        this.friends = resp.filter(f => f.accepted);
+        const tmpFriends = resp.filter(f => f.accepted);
+        const onlineFriends = tmpFriends.filter(f => f.online);
+        const offlineFriends = tmpFriends.filter(f => !f.online);
+        this.friends = [...onlineFriends, ...offlineFriends];
         this.friendsRequest = resp.filter(f => !f.accepted && f.userIdSent !== userId);
       },
       error: (error: any) => {
@@ -223,14 +217,6 @@ export class MainPageComponent implements OnInit, AfterViewInit, OnDestroy {
         console.error(error)
       }
     })
-  }
-
-  getDifficultyLabel(level: number) {
-    return this.quizService.getDifficultyLabel(level);
-  }
-
-  getDifficultyColor(level: number) {
-    return this.quizService.getDifficultyColor(level);
   }
 
   onBattleClick() {

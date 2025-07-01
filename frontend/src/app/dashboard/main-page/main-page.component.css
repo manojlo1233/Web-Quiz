@@ -103,6 +103,13 @@
         border-radius: 2px;
         border-collapse: collapse;
 
+        thead {
+            position: sticky;
+            top: 0;
+            background-color: var(--theme-darkblue-color-6);
+            box-shadow: 0 0 3px 1px var(--theme-darkblue-color-3)
+        }
+
         th {
             font-weight: normal;
             padding: 10px 10px;
@@ -315,8 +322,8 @@
 }
 
 .icon.small {
-    width: 20px;
-    height: 20px;
+    width: 23px;
+    height: 23px;
 }
 
 .fr-notif {

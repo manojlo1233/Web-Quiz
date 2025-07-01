@@ -1,4 +1,4 @@
-import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
+import { Component, ElementRef, OnInit, ViewChild, ViewContainerRef } from '@angular/core';
 import { MatchStateService } from '../../services/quiz/match-state.service';
 import { WSMatchFoundMsg } from '../../shared/models/WSMatchFoundMsg';
 import { WebsocketService } from '../../services/quiz/websocket.service';
@@ -7,6 +7,9 @@ import { UserService } from '../../services/shared/user.service';
 import { QuizQuestion } from '../../shared/models/Quiz/QuizQuestion';
 import { QuizAnswer } from '../../shared/models/Quiz/QuizAnswer';
 import { ChatMessage } from '../../shared/models/ChatMessage';
+import { BattleSummary } from '../../shared/models/Battle/BattleSummary';
+import { Router } from '@angular/router';
+import { AnswerSummary } from '../../shared/models/Battle/AnswerSummary';
 
 
 @Component({
@@ -16,12 +19,14 @@ import { ChatMessage } from '../../shared/models/ChatMessage';
 })
 export class BattleComponent implements OnInit {
   @ViewChild('chatBox') chatBox!: ElementRef;
+
   match: WSMatchFoundMsg;
 
   constructor(
     private matchStateService: MatchStateService,
     private wsService: WebsocketService,
-    private userService: UserService
+    private userService: UserService,
+    private router: Router
   ) { }
   // USERS
   user: User = new User();
@@ -40,12 +45,16 @@ export class BattleComponent implements OnInit {
   userAnswerIndex: number = -1;
   opponentAnswerIndex: number = -1;
   correctAnswerIndex: number = -1;
-
+  userScore: number = 0;
+  opponentScore: number = 0;
   //CHAT
   messageText: string = "";
   chatMessages: ChatMessage[] = [];
   muteActive: boolean = false;
   chatDebouncerActive: boolean = false;
+  // BATTLE SUMMARY
+  showBattleSummary: boolean = false;
+  battleSummaryData: BattleSummary = null;
 
   ngOnInit(): void {
     this.match = this.matchStateService.getCurrentMatch();
@@ -64,12 +73,14 @@ export class BattleComponent implements OnInit {
     })
 
     // SUBSCRIBE TO ANSWER SUMMARY
-    this.wsService.answerSummary$.subscribe(resp => {
+    this.wsService.answerSummary$.subscribe((resp: AnswerSummary) => {
+      console.log(resp);
       this.answerSummaryPhase = true;
       this.selectedAnswer = null;
       this.initTimerIncrease();
       this.getAnswerIndices(resp);
-      console.log(resp);
+      this.userScore = resp.yourScore;
+      this.opponentScore = resp.opponentScore;
     })
 
     const userId = parseInt(sessionStorage.getItem('userId'), 10);
@@ -92,7 +103,6 @@ export class BattleComponent implements OnInit {
         console.error(error)
       }
     })
-
     // --------- CHAT SUBSCRIBTION ---------
     this.wsService.chatMessage$.subscribe((data: any) => {
       if (this.muteActive && data.username !== this.user.username) return;
@@ -101,6 +111,12 @@ export class BattleComponent implements OnInit {
       tmp.time = data.time;
       tmp.username = data.username;
       this.chatMessages.unshift(tmp);
+    })
+    // --------- BATTLE SUMMARY ---------
+    this.wsService.matchFinished$.subscribe((data: any) => {
+      this.showBattleSummary = true;
+      this.battleSummaryData = new BattleSummary();
+      this.battleSummaryData = {...data};
     })
   }
 
@@ -134,7 +150,7 @@ export class BattleComponent implements OnInit {
     }, 1000)
   }
 
-  getAnswerIndices(resp: any) {
+  getAnswerIndices(resp: AnswerSummary) {
     this.userAnswerIndex = this.question.answers.findIndex(a => a.text === resp.yourAnswer);
     this.opponentAnswerIndex = this.question.answers.findIndex(a => a.text === resp.opponentAnswer);
     this.correctAnswerIndex = this.question.answers.findIndex(a => a.text === resp.correctAnswer);
@@ -171,5 +187,9 @@ export class BattleComponent implements OnInit {
     else {
       return '/assets/svg/icon_munute.svg';
     }
+  }
+
+  goToMainPage() {
+    this.router.navigate(['dashboard/main-page']);
   }
 }

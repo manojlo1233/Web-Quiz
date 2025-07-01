@@ -1,0 +1,10 @@
+<div class="decline-container">
+    <div class="winner-container">
+        <label style="font-size: 32px;">Winner</label>
+        <label>{{data.winnerUsername}}</label>
+    </div>
+    <div class="return-container">
+        <label>Returning to main page in {{timeRemaining}}s...</label>
+        <button class="btn-light-small" (click)="goToMainPage()">Return</button>
+    </div>
+</div>

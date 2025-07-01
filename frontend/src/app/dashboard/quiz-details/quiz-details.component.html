@@ -11,10 +11,6 @@
                 <label>{{ selectedQuizPlayed.category }}</label>
             </div>
             <div class="det">
-                <app-icon class="icon" title="Difficulty" src="/assets/svg/icon_dumbbell.svg" color="var(--theme-darkblue-color-3)" />
-                <label>{{ getDifficultyLabel(selectedQuizPlayed.difficulty) }}</label>
-            </div>
-            <div class="det">
                 <app-icon class="icon" title="Start date" src="/assets/svg/icon_flag.svg" color="var(--theme-darkblue-color-3)" />
                 <label>{{ selectedQuizPlayed.start | date:'dd.MM.yy HH:mm:ss' }}</label>
             </div>

@@ -25,7 +25,7 @@ export class WebsocketService {
   public chatMessage$ = new Subject<any>();
   // FRIENDS
   public refreshFriends$ = new Subject<any>();
-  public friendsActiveStatus$ = new Subject<any>();
+  public refreshFriendsStatus$ = new Subject<void>();
 
   connect(): void {
     this.socket = new WebSocket('ws://localhost:3000');
@@ -64,14 +64,13 @@ export class WebsocketService {
         case 'friends/REFRESH':
           this.refreshFriends$.next({ userId: data.userId, action: data.action });
           break;
-        case 'friends/ACTIVE_CHANGE':
-          this.friendsActiveStatus$.next(data);
+        case 'friends/REFRESH_STATUS':
+          this.refreshFriendsStatus$.next();
           break;
         case 'battle/CHAT_MESSAGE':
           this.chatMessage$.next({ username: data.from, message: data.message, time: data.time });
           break;
         case 'battle/MATCH_FINISHED':
-          console.log(data);
           this.matchFinished$.next(data);
           break;
       }

@@ -13,10 +13,12 @@ const activeMatches: Map<string, Match> = new Map();
 const matchStartTimeout: Map<string, NodeJS.Timeout> = new Map();
 const matchQuestions: Map<string, QuizQuestion[]> = new Map();
 
+const answerSummaryIdleTimeout: Map<string, NodeJS.Timeout> = new Map();
+
 export default function initWebSocketServer(server: Server) {
     const wss = new WebSocketServer({ server });
-    // SEND ANSWER SUMMARY ? SECONDS AFTER QUESTION - IF USERS ARE IDLE
-    let answerSummaryIdleTimeout: NodeJS.Timeout;
+    // INIT
+    initUserOnlineStatusBroadcast();
 
     wss.on('connection', (ws) => {
         ws.on('message', async (message) => {
@@ -27,9 +29,7 @@ export default function initWebSocketServer(server: Server) {
                 }
                 (ws as any).id = data.id;
                 (ws as any).username = data.username;
-                broadcastActiveUsersChangeEvent(data.id, true);
                 usersWebSockets.push(ws);
-                console.log(usersWebSockets.length);
             }
             // ----------------- BATTLE -----------------
             if (data.type === 'battle/JOIN_QUEUE') {
@@ -121,8 +121,8 @@ export default function initWebSocketServer(server: Server) {
                     match.answerP2 = data.answer;
                 }
                 if (match.answerP1 !== null && match.answerP2 !== null) {
-                    if (answerSummaryIdleTimeout) {
-                        clearTimeout(answerSummaryIdleTimeout);
+                    if (answerSummaryIdleTimeout.has(match.matchId)) {
+                        clearTimeout(answerSummaryIdleTimeout.get(match.matchId));
                     }
                     // CLEAR SEND SUMMARY ON IDLE USERS
                     sendAnswerSummary(match)
@@ -216,15 +216,16 @@ export default function initWebSocketServer(server: Server) {
                 }
                 const q = questions[match.currentQuestionIndex]
                 const payload = JSON.stringify({ type: 'battle/NEW_QUESTION', question: q })
-                match.player1.send(payload);
-                match.player2.send(payload);
                 match.answerP1 = null;
                 match.answerP2 = null;
-                answerSummaryIdleTimeout = setTimeout(() => {
+                match.player1.send(payload);
+                match.player2.send(payload);
+                answerSummaryIdleTimeout.set(match.matchId, setTimeout(() => {
                     if (match.answerP1 === null || match.answerP2 === null) {
                         sendAnswerSummary(match)
                     }
                 }, 10000)
+                )
                 match.currentQuestionIndex += 1;
             }
 
@@ -261,7 +262,7 @@ export default function initWebSocketServer(server: Server) {
                     yourAnswer: match.answerP2,
                     yourScore: match.scoreP2,
                     opponentAnswer: match.answerP1,
-                    opponentScore: match.scoreP2
+                    opponentScore: match.scoreP1
                 }));
 
                 const attemptP1 = (match.player1 as any).quizAttemptId;
@@ -285,11 +286,14 @@ export default function initWebSocketServer(server: Server) {
             async function finishMatch(match: Match) {
                 match.status = 'finished';
                 let winnerId: number | null = null;
+                let winnerUsername: string = null;
                 if (match.scoreP1 >= match.scoreP2) {
                     winnerId = (match.player1 as any).id;
+                    winnerUsername = (match.player1 as any).username;
                 }
                 else if (match.scoreP1 < match.scoreP2) {
                     winnerId = (match.player2 as any).id;
+                    winnerUsername = (match.player2 as any).username;
                 }
                 const [resultBattle] = await pool.query(
                     `UPDATE battles SET winner_id=?, status=?, player1_score=?, player2_score=? WHERE quiz_id=?`,
@@ -311,7 +315,8 @@ export default function initWebSocketServer(server: Server) {
                     type: 'battle/MATCH_FINISHED',
                     yourScore: match.scoreP1,
                     opponentScore: match.scoreP2,
-                    winner: winnerId
+                    winnerId,
+                    winnerUsername
                 }
 
                 match.player1.send(JSON.stringify(summary));
@@ -401,22 +406,16 @@ export default function initWebSocketServer(server: Server) {
             waitingList = waitingList.filter(sock => sock !== ws);
             const sock: WebSocket = usersWebSockets.filter(sock => sock === ws)[0];
             usersWebSockets = usersWebSockets.filter(sock => sock !== ws);
-            broadcastActiveUsersChangeEvent((sock as any).id, false);
         });
     });
 }
 
-function broadcastActiveUsersChangeEvent(userId, online) {
-    usersWebSockets.forEach(ws => {
-        if ((ws as any).id !== userId) {
-            const payload = JSON.stringify({
-                type: 'friends/ACTIVE_CHANGE',
-                friendId: userId,
-                online
-            })
-            ws.send(payload);
-        }
-    })
+function initUserOnlineStatusBroadcast() {
+    setInterval(() => {
+        usersWebSockets.forEach(ws => {
+            ws.send(JSON.stringify({ type: 'friends/REFRESH_STATUS' }));
+        })
+    }, 30000);
 }
 
 export function sendFriendRefreshSignal(userId: number, friendId: number, action: string) {

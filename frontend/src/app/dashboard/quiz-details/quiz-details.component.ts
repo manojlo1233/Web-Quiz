@@ -68,14 +68,6 @@ export class QuizDetailsComponent implements OnChanges {
     this.ansPercent = this.utilService.formatPercentTwoFixed(this.correctAns, this.totalNumOfAns);
   }
 
-  getDifficultyLabel(level: number) {
-    return this.quizService.getDifficultyLabel(level);
-  }
-
-  getDifficultyColor(level: number) {
-    return this.quizService.getDifficultyColor(level);
-  }
-
   formatDuration(seconds: number): string {
     return this.utilService.formatDurationToMinSecFromSec(seconds);
   }

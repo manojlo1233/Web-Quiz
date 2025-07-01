@@ -38,7 +38,6 @@
                     <thead>
                         <tr>
                             <th>Category</th>
-                            <th>Difficulty</th>
                             <th>Start</th>
                             <th>Duration</th>
                             <th></th>
@@ -47,8 +46,6 @@
                     <tbody>
                         <tr *ngFor="let item of userPlayHistory">
                             <td>{{ item.category }}</td>
-                            <td [style.color]="getDifficultyColor(item.difficulty)">{{
-                                getDifficultyLabel(item.difficulty) }}</td>
                             <td>{{ item.start | date: 'dd.MM.yy HH:mm:ss' }}</td>
                             <td>{{ formatDuration(item.duration) }}</td>
                             <td>

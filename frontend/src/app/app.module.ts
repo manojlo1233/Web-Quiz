@@ -22,6 +22,7 @@ import { FriendNotificationComponent } from './shared/ui-indicators/friend-notif
 import { NotificationContainerComponent } from './shared/ui-indicators/notification-container/notification-container.component';
 import { UserSettingsComponent } from './dashboard/user-settings/user-settings.component';
 import { SpinnerComponent } from './shared/ui-indicators/spinner/spinner.component';
+import { BattleSummaryComponent } from './quiz/battle-summary/battle-summary.component';
 
 
 @NgModule({
@@ -42,7 +43,8 @@ import { SpinnerComponent } from './shared/ui-indicators/spinner/spinner.compone
     FriendNotificationComponent,
     NotificationContainerComponent,
     UserSettingsComponent,
-    SpinnerComponent
+    SpinnerComponent,
+    BattleSummaryComponent
   ],
   imports: [
     BrowserModule,

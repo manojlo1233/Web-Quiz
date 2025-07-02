@@ -64,7 +64,7 @@
                 <label *ngIf="isSearching">Searching {{ formattedTime }}</label>
                 <button class="btn-light" style="width: 150px; height: fit-content;" [ngClass]="{
                 'btn-glow': isSearching
-            }" (click)="onBattleClick()">{{matchmakingLbl}}</button>
+            }" (click)="onBattleClick()" [disabled]="searchDisabled" >{{matchmakingLbl}}</button>
             </div>
 
         </div>
@@ -113,22 +113,24 @@
                                     src="/assets/svg/icon_radio_circle.svg" color="var(--theme-darkblue-green)" />
                             </div>
                             <div
-                                style="display: flex; margin-left: auto; flex-direction: row-reverse; gap: 2px; align-items: center;">
+                                style="display: flex; margin-left: auto; flex-direction: row-reverse; gap: 5px; align-items: center;">
                                 <app-icon class="icon small" src="/assets/svg/icon_circle_minus.svg"
                                     color="var(--theme-darkblue-color-3)" title="Remove Friend"
                                     (click)="handleRemoveFriendClick(f.friendId)" />
                                 <app-icon class="icon small" src="/assets/svg/icon_battle.svg"
                                     [color]="getBattleIconColor(f)" title="Battle friend"
-                                    (click)="handleBattleFriend(f)" [class.disabled]="f.battleRequestReceived" 
-                                    [style.marginLeft]="updateLeftMargin(f)"/>
+                                    (click)="handleBattleFriend(f)" [class.disabled]="f.battleRequestReceived || f.battleRequestSent"
+                                    [style.marginLeft]="updateLeftMargin(f)" />
+                                <app-icon *ngIf="f.battleRequestSent" class="icon small"
+                                    src="/assets/svg/icon_flag_2.svg" color="white" (click)="handleWithdrawClick(f)"
+                                    title="Withdraw" />
                                 <app-icon *ngIf="f.battleRequestReceived" class="icon small"
-                                    src="/assets/svg/icon_circle_x.svg" color="var(--theme-darkblue-color-3)"
-                                    title="Battle friend" />
+                                    src="/assets/svg/icon_circle_x.svg" color="var(--theme-darkblue-color-3)" (click)="handleBattleDecline(f)"
+                                    title="Decline battle" />
                                 <app-icon *ngIf="f.battleRequestReceived" class="icon small"
-                                    src="/assets/svg/icon_circle_check.svg" color="var(--theme-darkblue-color-3)"
-                                    title="Battle friend" />
+                                    src="/assets/svg/icon_circle_check.svg" color="var(--theme-darkblue-color-3)" (click)="handleBattleAccept(f)"
+                                    title="Accept battle" />
                             </div>
-
                         </div>
                     </div>
                     <label class="neutral-italic" *ngIf="friends.length === 0">No friends... You can add
@@ -152,7 +154,7 @@
                 </div>
                 <div *ngIf="friendsTab === FRIENDS_TAB.ADD_FRIEND">
                     <div class="srch-usr-div">
-                        <input id="searchUser" name="searchUser" [(ngModel)]="searchUserText" size="30"
+                        <input id="searchUser" name="searchUser" [(ngModel)]="searchUserText"
                             placeholder="Enter username..." />
                         <div style="height: 100%; display: flex; flex-direction: row; gap: 10px; align-items: center;">
                             <button class="btn-light-small" (click)="handleSearchUsersClick()">Search</button>

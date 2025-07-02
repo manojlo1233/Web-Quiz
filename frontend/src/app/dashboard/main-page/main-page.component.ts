@@ -48,11 +48,6 @@ export class MainPageComponent implements OnInit, OnDestroy {
       this.isSearching = false;
       console.error('Error: ', msg)
     })
-    this.startQuizSub = this.wsService.startQuiz$.subscribe((resp: WSMatchFoundMsg) => {
-      this.isSearching = false;
-      this.matchmakingLbl = 'Battle'
-      this.handleWsMessage(resp);
-    })
   }
   user: User = new User();
   userStatistic: Statistic = new Statistic();
@@ -85,10 +80,14 @@ export class MainPageComponent implements OnInit, OnDestroy {
   private refreshFriendsSub: Subscription;
   private refreshFriendsStatusSub: Subscription;
   private battleRequestSub: Subscription;
+  private battleAcceptSub: Subscription;
+  private battleDeclineSub: Subscription;
+  private battleWithdrawSub: Subscription;
 
   // MATCHMAKING
   matchmakingLbl: string = 'Battle'
   isSearching: boolean = false;
+  searchDisabled: boolean = false;
 
   // MATCHMAKING TIMER
   secondsElapsed = 0;
@@ -185,12 +184,40 @@ export class MainPageComponent implements OnInit, OnDestroy {
       error: (error: any) => {
       }
     })
+    // --------- START QUIZ ---------
+    this.startQuizSub = this.wsService.startQuiz$.subscribe((resp: WSMatchFoundMsg) => {
+      this.isSearching = false;
+      this.matchmakingLbl = 'Battle'
+      this.friends.forEach(f => {
+        if (f.battleRequestReceived) {
+          this.wsService.sendBattleDecline(this.user.id, f.friendId);
+        }
+      })
+      this.handleWsMessage(resp);
+    })
     // --------- BATTLE REQUESTS ---------
     this.battleRequestSub = this.wsService.battleRequest$.subscribe((resp: any) => {
-      console.log(resp);
       const friendId = resp.friendId;
-      this.friends.filter(f => f.friendId === friendId)[0].battleRequestReceived = true;
+      const friend = this.friends.filter(f => f.friendId === friendId)[0];
+      friend.battleRequestReceived = true;
+      this.notificationService.showNotification(`${friend.username} has sent you a battle request.`)
     })
+
+    this.battleWithdrawSub = this.wsService.battleWithdraw$.subscribe((resp: any) => {
+      const friendId = resp.friendId;
+      const friend = this.friends.filter(f => f.friendId === friendId)[0];
+      friend.battleRequestReceived = false;
+      this.notificationService.showNotification(`${friend.username} has withdrawn a battle request.`)
+    })
+
+    this.battleDeclineSub = this.wsService.battleDecline$.subscribe((resp: any) => {
+      const friendId = resp.friendId;
+      const friend = this.friends.filter(f => f.friendId === friendId)[0];
+      friend.battleRequestSent = false;
+      this.searchDisabled = false;
+      this.notificationService.showNotification(`${friend.username} has declined a battle request.`)
+    })
+
   }
 
   getFriends(userId: number) {
@@ -362,11 +389,11 @@ export class MainPageComponent implements OnInit, OnDestroy {
   }
 
   getBattleIconColor(friend: Friend) {
-    if (!friend.battleRequestReceived) {
-      return 'var(--theme-darkblue-color-3)';
+    if (friend.battleRequestReceived || friend.battleRequestSent) {
+      return 'var(--theme-darkblue-red)';
     }
     else {
-      return 'var(--theme-darkblue-red)';
+      return 'var(--theme-darkblue-color-3)';
     }
   }
 
@@ -382,7 +409,8 @@ export class MainPageComponent implements OnInit, OnDestroy {
   handleBattleFriend(friend: Friend) {
     if (!this.battleFriendInterval) {
       friend.battleRequestSent = true;
-      this.wsService.sendBattleFriend(this.user.id, friend.friendId);
+      this.searchDisabled = true;
+      this.wsService.sendBattleRequest(this.user.id, friend.friendId);
       this.battleFriendInterval = setInterval(() => {
         this.battleFriendCounter--;
         if (this.battleFriendCounter === 0) {
@@ -394,12 +422,34 @@ export class MainPageComponent implements OnInit, OnDestroy {
     }
   }
 
+  handleWithdrawClick(friend: Friend) {
+    this.searchDisabled = false;
+    friend.battleRequestSent = false;
+    this.wsService.sendBattleWithdraw(this.user.id, friend.friendId);
+  }
+
+  handleBattleAccept(friend: Friend) {
+    this.matchmakingLbl = 'Battle'
+    this.isSearching = false;
+    clearInterval(this.timerInterval);
+    this.wsService.cancelMatchmaking(this.user.username);
+    this.wsService.sendBattleAccept(this.user.id, friend.friendId);
+  }
+
+  handleBattleDecline(friend: Friend) {
+    friend.battleRequestReceived = false;
+    this.wsService.sendBattleDecline(this.user.id, friend.friendId);
+  }
+
   ngOnDestroy(): void {
-    this.errorSub.unsubscribe();
-    this.startQuizSub.unsubscribe();
-    this.connectionSub.unsubscribe();
-    this.refreshFriendsSub.unsubscribe();
-    this.refreshFriendsStatusSub.unsubscribe();
-    this.battleRequestSub.unsubscribe();
+    if(this.errorSub) this.errorSub.unsubscribe();
+    if(this.startQuizSub) this.startQuizSub.unsubscribe();
+    if(this.connectionSub) this.connectionSub.unsubscribe();
+    if(this.refreshFriendsSub) this.refreshFriendsSub.unsubscribe();
+    if(this.refreshFriendsStatusSub) this.refreshFriendsStatusSub.unsubscribe();
+    if(this.battleRequestSub) this.battleRequestSub.unsubscribe();
+    if(this.battleAcceptSub) this.battleAcceptSub.unsubscribe();
+    if(this.battleDeclineSub) this.battleDeclineSub.unsubscribe();
+    if(this.battleWithdrawSub) this.battleWithdrawSub.unsubscribe();
   }
 }

@@ -22,6 +22,9 @@ export class WebsocketService {
   public newQuestion$ = new Subject<any>();
   public answerSummary$ = new Subject<any>();
   public battleRequest$ = new Subject<any>();
+  public battleAccept$ = new Subject<any>();
+  public battleDecline$ = new Subject<any>();
+  public battleWithdraw$ = new Subject<any>();
   // BATTLE - CHAT
   public chatMessage$ = new Subject<any>();
   // FRIENDS
@@ -39,7 +42,6 @@ export class WebsocketService {
     this.socket.onmessage = (event) => {
       const data = JSON.parse(event.data);
       switch (data.type) {
-
         // -------------- BATTLE --------------
         case 'battle/MATCH_FOUND':
           this.startQuiz$.next(data);
@@ -77,7 +79,15 @@ export class WebsocketService {
         case 'friends/BATTLE_REQUEST':
           this.battleRequest$.next(data);
           break;
-
+        case 'friends/BATTLE_ACCEPT':
+          
+          break;
+        case 'friends/BATTLE_DECLINE':
+          this.battleDecline$.next(data);
+          break;
+        case 'friends/BATTLE_WITHDRAW':
+          this.battleWithdraw$.next(data);
+          break;
       }
     };
 
@@ -131,8 +141,20 @@ export class WebsocketService {
     this.send({ type: 'battle/CHAT_MESSAGE', matchId, username, message, time });
   }
 
-  sendBattleFriend(userId: number, friendId: number) {
+  sendBattleRequest(userId: number, friendId: number) {
     this.send({ type: 'friends/BATTLE_REQUEST', userId, friendId });
+  }
+
+  sendBattleWithdraw(userId: number, friendId: number) {
+    this.send({ type: 'friends/BATTLE_WITHDRAW', userId, friendId });
+  }
+
+  sendBattleAccept(userId: number, friendId: number) {
+    this.send({ type: 'friends/BATTLE_ACCEPT', userId, friendId });
+  }
+
+  sendBattleDecline(userId: number, friendId: number) {
+    this.send({ type: 'friends/BATTLE_DECLINE', userId, friendId });
   }
 
   close(): void {

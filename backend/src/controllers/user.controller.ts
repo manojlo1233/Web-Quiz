@@ -359,7 +359,7 @@ export const updateUserSettingsById = async (req: Request, res: Response) => {
             WHERE
                 u.id=?
             `
-        , [firstName, lastName, username, email, country, receive_updates, userId])
+            , [firstName, lastName, username, email, country, receive_updates, userId])
         if ((result as any).affectedRows <= 0) {
             res.status(404).json({ message: 'Update user failed.' })
             return;

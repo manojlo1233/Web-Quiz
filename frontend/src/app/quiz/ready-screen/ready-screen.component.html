@@ -9,7 +9,7 @@
             <label>{{user.username}}</label>
             <button class="btn-light-small" style="margin-top: auto;" (click)="onReadyClick()" [disabled]="userReady">Ready</button>
             <app-icon *ngIf="!userReady" src="/assets/svg/icon_empty_circle.svg" color="var(--theme-darkblue-red)" />
-            <app-icon *ngIf="userReady" src="/assets/svg/icon_check_circle.svg" color="var(--theme-darkblue-green)" />
+            <app-icon *ngIf="userReady" src="/assets/svg/icon_circle_check.svg" color="var(--theme-darkblue-green)" />
         </div>
         <div class="info">
             <app-icon class="btl" src="/assets/svg/icon_battle.svg" color="white" />
@@ -23,7 +23,7 @@
                 disabled>Ready</button>
             <app-icon *ngIf="!opponentReady" src="/assets/svg/icon_empty_circle.svg"
                 color="var(--theme-darkblue-red)" />
-            <app-icon *ngIf="opponentReady" src="/assets/svg/icon_check_circle.svg"
+            <app-icon *ngIf="opponentReady" src="/assets/svg/icon_circle_check.svg"
                 color="var(--theme-darkblue-green)" />
         </div>
     </div>

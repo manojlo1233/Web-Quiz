@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, ViewChild, ViewContainerRef } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output, ViewChild, ViewContainerRef } from '@angular/core';
 import { User } from '../../shared/models/User';
 import { UserSettingsService } from '../../services/dashboard/user-settings.service';
 import { CountriesService } from '../../services/shared/countries.service';
@@ -13,6 +13,7 @@ import { ConfirmService } from '../../services/shared/confirm.service';
 })
 export class UserSettingsComponent implements OnInit {
   @Input() user: User;
+  @Output() close = new EventEmitter<void>();
   @ViewChild('spinnerContainer', { read: ViewContainerRef }) spinnerContainer!: ViewContainerRef;
 
   constructor(
@@ -38,7 +39,7 @@ export class UserSettingsComponent implements OnInit {
   }
 
   closeModal() {
-    this.userSettingsService.clearContainer();
+    this.close.emit();
   }
 
   editUser() {

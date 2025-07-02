@@ -147,6 +147,18 @@ export default function initWebSocketServer(server: Server) {
                 match.player1.send(payload);
                 match.player2.send(payload);
             }
+            else if (data.type === 'friends/BATTLE_REQUEST') {
+                const sockCheck = usersWebSockets.filter(ws => (ws as any).id === data.friendId);
+                console.log(data);
+                if (sockCheck.length === 0) return;
+                console.log('PROSO')
+                const friendSock = sockCheck[0];
+                const payload = JSON.stringify({
+                    type: 'friends/BATTLE_REQUEST',
+                    friendId: data.userId
+                })                
+                friendSock.send(payload);
+            }
 
             // ----------------- BATTLE FUNCTIONS -----------------
 

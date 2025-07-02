@@ -29,7 +29,9 @@ export class LoginComponent {
         this.snackBarService.showSnackBar(resp.message)
       }
       else {
-        this.userService.loadUser(this.usernameOrEmail);
+        sessionStorage.setItem('userId', resp.user.id);
+        sessionStorage.setItem('userUsername', resp.user.username);
+        this.router.navigate(['dashboard/main-page']);
       }
       
     })

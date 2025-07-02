@@ -9,23 +9,23 @@ import { WebsocketService } from '../../../services/quiz/websocket.service';
   styleUrl: './header.component.css'
 })
 export class HeaderComponent {
-
+  @Output() handleIconClick = new EventEmitter<string>();
   constructor(
     private router: Router,
     private userSettingsService: UserSettingsService,
     private wsService: WebsocketService
   ) { }
 
+  handleNotificationClick() {
+    this.handleIconClick.emit('notification');
+  }
+
   handleSettingsClick() {
-    this.userSettingsService.showUserSettings();
+    this.handleIconClick.emit('settings');
   }
 
   handleLogoutClick() {
     this.wsService.close();
     this.router.navigate([''])
-  }
-
-  handleNotificationClick() {
-
   }
 }

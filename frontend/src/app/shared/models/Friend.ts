@@ -4,4 +4,6 @@ export class Friend {
     userIdSent: number;
     accepted: boolean;
     online: boolean;
+    battleRequestSent: boolean = false;
+    battleRequestReceived: boolean = false;
 }

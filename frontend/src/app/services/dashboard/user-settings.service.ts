@@ -8,37 +8,12 @@ import { UrlService } from '../shared/url.service';
   providedIn: 'root'
 })
 export class UserSettingsService {
-
-  private container: ViewContainerRef = null;
-  private user: User = null;
   url: string;
   constructor(
     private http: HttpClient,
     private urlService: UrlService
   ) {
     this.url = `${urlService.url}/users`
-  }
-
-  setContainer(container: ViewContainerRef) {
-    if (!this.container) {
-      this.container = container;
-    }
-  }
-
-  clearContainer() {
-    if (this.container) {
-      this.container.clear();
-    }
-  }
-
-  setUser(user: User) {
-    this.user = user;
-  }
-
-  showUserSettings() {
-    if (!this.container) return;
-    const ref = this.container.createComponent(UserSettingsComponent);
-    ref.setInput('user', this.user);
   }
 
   updateUserSettingsById(userId: number, firstName: string, lastName: string, username: string, email: string, country: string, receive_updates: boolean) {

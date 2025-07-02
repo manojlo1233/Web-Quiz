@@ -13,26 +13,9 @@ export class UserService {
 
   constructor(
     private http: HttpClient,
-    private router: Router,
     private urlService: UrlService,
-    private userSettingsService: UserSettingsService
   ) {
     this.url = `${urlService.url}/users`
-  }
-
-  mainUser: User = null;
-
-  loadUser(usernameOrEmail: string) {
-    this.http.get(`${this.url}/getUserByUsernameOrEmail/${usernameOrEmail}`).subscribe({
-      next: (user: User) => {
-        this.mainUser = user;
-        this.userSettingsService.setUser(this.mainUser);
-        this.router.navigate(['dashboard/main-page']);
-      },
-      error: (error: any) => {
-        // SHOW ERROR PAGE
-      }
-    })
   }
 
   getUserById(id: number) {

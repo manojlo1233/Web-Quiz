@@ -21,6 +21,7 @@ export class WebsocketService {
   public matchFinished$ = new Subject<void>();
   public newQuestion$ = new Subject<any>();
   public answerSummary$ = new Subject<any>();
+  public battleRequest$ = new Subject<any>();
   // BATTLE - CHAT
   public chatMessage$ = new Subject<any>();
   // FRIENDS
@@ -61,18 +62,22 @@ export class WebsocketService {
         case 'battle/ANSWER_SUMMARY':
           this.answerSummary$.next(data);
           break;
-        case 'friends/REFRESH':
-          this.refreshFriends$.next({ userId: data.userId, action: data.action });
-          break;
-        case 'friends/REFRESH_STATUS':
-          this.refreshFriendsStatus$.next();
-          break;
         case 'battle/CHAT_MESSAGE':
           this.chatMessage$.next({ username: data.from, message: data.message, time: data.time });
           break;
         case 'battle/MATCH_FINISHED':
           this.matchFinished$.next(data);
           break;
+        case 'friends/REFRESH':
+          this.refreshFriends$.next({ userId: data.userId, action: data.action });
+          break;
+        case 'friends/REFRESH_STATUS':
+          this.refreshFriendsStatus$.next();
+          break;
+        case 'friends/BATTLE_REQUEST':
+          this.battleRequest$.next(data);
+          break;
+
       }
     };
 
@@ -124,6 +129,10 @@ export class WebsocketService {
 
   sendChatMessage(matchId: string, username: string, message: string, time: string) {
     this.send({ type: 'battle/CHAT_MESSAGE', matchId, username, message, time });
+  }
+
+  sendBattleFriend(userId: number, friendId: number) {
+    this.send({ type: 'friends/BATTLE_REQUEST', userId, friendId });
   }
 
   close(): void {

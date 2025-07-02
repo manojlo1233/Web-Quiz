@@ -128,12 +128,10 @@
 }
 
 .play-btns {
-    margin-top: auto;
-    margin-left: auto;
     display: flex;
     flex-direction: row;
     gap: 10px;
-    align-items: flex-end;
+    align-items: center;
 
     button:hover {
         box-shadow: 0 0 7px 2px white;
@@ -197,7 +195,7 @@
     padding: 10px;
     border: 1px solid var(--theme-darkblue-color-3);
     background-color: var(--theme-darkblue-box-bg);
-    height: 40%;
+    height: 50%;
 
     .lboard-container {
         display: flex;
@@ -221,7 +219,7 @@
     padding: 10px;
     border: 1px solid var(--theme-darkblue-color-3);
     background-color: var(--theme-darkblue-box-bg);
-    height: 40%;
+    height: 50%;
 
     .frnds-container {
         width: 100%;
@@ -238,6 +236,7 @@
             box-sizing: border-box;
             display: flex;
             flex-direction: row;
+            gap: 5px;
             background-color: var(--theme-darkblue-color-6);
             padding: 5px 10px;
         }
@@ -324,6 +323,22 @@
 .icon.small {
     width: 23px;
     height: 23px;
+}
+
+.icon.small.disabled {
+    user-select: none;
+    pointer-events: none;
+    animation: battleGlow 3s ease infinite;
+}
+
+@keyframes battleGlow {
+    0%, 100% {
+        box-shadow: 0 0 1px 0 var(--theme-darkblue-red);
+    }
+
+    50% {
+        box-shadow: 0 0 5px 0 var(--theme-darkblue-red);
+    }
 }
 
 .fr-notif {

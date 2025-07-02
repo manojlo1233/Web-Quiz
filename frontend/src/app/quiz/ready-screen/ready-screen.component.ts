@@ -66,7 +66,17 @@ export class ReadyScreenComponent implements OnInit, OnDestroy {
       console.error('BIG ERROR')
       return;
     }
-    this.user = this.userService.mainUser;
+
+    const userId = parseInt(sessionStorage.getItem('userId'), 10);
+    // --------- GET USER ---------
+    this.userService.getUserById(userId).subscribe({
+      next: (resp: any) => {
+        this.user = resp;
+      },
+      error: (error: any) => {
+        console.error(error)
+      }
+    })
     // --------- GET OPPONENT ---------
     this.userService.getUserByUsername(this.match.opponent).subscribe({
       next: (resp: any) => {

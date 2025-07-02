@@ -26,8 +26,7 @@ import { UserSettingsService } from '../../services/dashboard/user-settings.serv
   templateUrl: './main-page.component.html',
   styleUrl: './main-page.component.css'
 })
-export class MainPageComponent implements OnInit, AfterViewInit, OnDestroy {
-  @ViewChild('appUserSettingsContainer', { read: ViewContainerRef }) appUserSettingsContainer!: ViewContainerRef;
+export class MainPageComponent implements OnInit, OnDestroy {
   @ViewChild('displayQuizQuestionsContainer', { read: ViewContainerRef }) displayQuizQuestionsContainer!: ViewContainerRef;
   @ViewChild('friendRequestIcon') friendRequestIcon!: AppComponent;
 
@@ -71,6 +70,8 @@ export class MainPageComponent implements OnInit, AfterViewInit, OnDestroy {
   friends: Friend[] = [];
   friendsRequest: Friend[] = [];
   friendsTab: number = 0;
+  battleFriendCounter: number = 2;
+  battleFriendInterval = null;
 
   // SEARCH USER
   searchUserText: string = '';
@@ -81,6 +82,9 @@ export class MainPageComponent implements OnInit, AfterViewInit, OnDestroy {
   private errorSub: Subscription;
   private startQuizSub: Subscription;
   private connectionSub: Subscription;
+  private refreshFriendsSub: Subscription;
+  private refreshFriendsStatusSub: Subscription;
+  private battleRequestSub: Subscription;
 
   // MATCHMAKING
   matchmakingLbl: string = 'Battle'
@@ -94,15 +98,29 @@ export class MainPageComponent implements OnInit, AfterViewInit, OnDestroy {
   // SOCKET ERROR
   errorMessage: string | null = null;
 
+  // USER SETTINGS
+  showUserSettings: boolean = false;
+
+  // NOTIFICATIONS
+  showNotifications: boolean = false;
+
   ngOnInit(): void {
-    this.user = this.userService.mainUser;
-    const userId = this.user.id;
+    const userId = Number.parseInt(sessionStorage.getItem('userId'));
     // --------- INITIALIZE WEBSOCKET CONNECTION ---------
-    this.wsService.connect();
-    if (this.connectionSub) this.connectionSub.unsubscribe();
-    this.connectionSub = this.wsService.connectionOpen$.subscribe(() => {
-      this.wsService.sendHello(userId, this.user.username);
+    this.userService.getUserById(userId).subscribe({
+      next: (resp: User) => {
+        this.user = resp;
+        this.wsService.connect();
+        if (this.connectionSub) this.connectionSub.unsubscribe();
+        this.connectionSub = this.wsService.connectionOpen$.subscribe(() => {
+          this.wsService.sendHello(userId, this.user.username);
+        })
+      },
+      error: (error: any) => {
+        // SHOW ERROR PAGE
+      }
     })
+
     // --------- USER STATISTICS---------
     this.userService.getUserStatisticsById(userId).subscribe({
       next: (resp: any) => {
@@ -134,7 +152,7 @@ export class MainPageComponent implements OnInit, AfterViewInit, OnDestroy {
     })
     // --------- USER FRIENDS ---------
     this.getFriends(userId);
-    this.wsService.refreshFriends$.subscribe((resp: any) => {
+    this.refreshFriendsSub = this.wsService.refreshFriends$.subscribe((resp: any) => {
       const userIdFrom = resp.userId;
       const action = resp.action;
       if (action !== 'NONE') {
@@ -156,7 +174,7 @@ export class MainPageComponent implements OnInit, AfterViewInit, OnDestroy {
       }
       this.getFriends(userId);
     })
-    this.wsService.refreshFriendsStatus$.subscribe((resp: any) => {
+    this.refreshFriendsStatusSub = this.wsService.refreshFriendsStatus$.subscribe((resp: any) => {
       this.getFriends(userId);
     })
     // --------- LEADERBOARD ---------
@@ -167,10 +185,12 @@ export class MainPageComponent implements OnInit, AfterViewInit, OnDestroy {
       error: (error: any) => {
       }
     })
-  }
-
-  ngAfterViewInit(): void {
-    this.userSettingsService.setContainer(this.appUserSettingsContainer);
+    // --------- BATTLE REQUESTS ---------
+    this.battleRequestSub = this.wsService.battleRequest$.subscribe((resp: any) => {
+      console.log(resp);
+      const friendId = resp.friendId;
+      this.friends.filter(f => f.friendId === friendId)[0].battleRequestReceived = true;
+    })
   }
 
   getFriends(userId: number) {
@@ -273,6 +293,11 @@ export class MainPageComponent implements OnInit, AfterViewInit, OnDestroy {
     })
   }
 
+  handleClearUsersSearchClick() {
+    this.searchUserText = '';
+    this.suggestedUsers = [];
+  }
+
   handleRemoveFriendClick(friendId: number) {
     this.friendsService.deleteUserFriendById(this.user.id, friendId).subscribe({
       next: (resp: any) => {
@@ -321,9 +346,60 @@ export class MainPageComponent implements OnInit, AfterViewInit, OnDestroy {
     })
   }
 
+  headerIconClick(type: string) {
+    switch (type) {
+      case 'settings':
+        this.showUserSettings = true;
+        break;
+      case 'notification':
+        this.showNotifications = true;
+        break;
+    }
+  }
+
+  closeUserSettings() {
+    this.showUserSettings = false;
+  }
+
+  getBattleIconColor(friend: Friend) {
+    if (!friend.battleRequestReceived) {
+      return 'var(--theme-darkblue-color-3)';
+    }
+    else {
+      return 'var(--theme-darkblue-red)';
+    }
+  }
+
+  updateLeftMargin(friend: Friend) {
+    if (!friend.battleRequestReceived) {
+      return '0';
+    }
+    else {
+      return '5px';
+    }
+  }
+
+  handleBattleFriend(friend: Friend) {
+    if (!this.battleFriendInterval) {
+      friend.battleRequestSent = true;
+      this.wsService.sendBattleFriend(this.user.id, friend.friendId);
+      this.battleFriendInterval = setInterval(() => {
+        this.battleFriendCounter--;
+        if (this.battleFriendCounter === 0) {
+          this.battleFriendCounter = 2;
+          clearInterval(this.battleFriendInterval);
+          this.battleFriendInterval = null;
+        }
+      }, 1000)
+    }
+  }
+
   ngOnDestroy(): void {
     this.errorSub.unsubscribe();
     this.startQuizSub.unsubscribe();
     this.connectionSub.unsubscribe();
+    this.refreshFriendsSub.unsubscribe();
+    this.refreshFriendsStatusSub.unsubscribe();
+    this.battleRequestSub.unsubscribe();
   }
 }

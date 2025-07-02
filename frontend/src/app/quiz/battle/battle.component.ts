@@ -57,6 +57,7 @@ export class BattleComponent implements OnInit {
   battleSummaryData: BattleSummary = null;
 
   ngOnInit(): void {
+    this.user = this.userService.mainUser;
     this.match = this.matchStateService.getCurrentMatch();
     if (!this.match) {
       console.error('BIG ERROR')
@@ -82,18 +83,8 @@ export class BattleComponent implements OnInit {
       this.userScore = resp.yourScore;
       this.opponentScore = resp.opponentScore;
     })
-
-    const userId = parseInt(sessionStorage.getItem('userId'), 10);
-    // --------- GET USER ---------
-    this.userService.getUserById(userId).subscribe({
-      next: (resp: any) => {
-        this.user = resp;
-        this.wsService.sendEnterBattle(this.match.matchId.toString(), this.user.username);
-      },
-      error: (error: any) => {
-        console.error(error)
-      }
-    })
+    // ENTER BATTLE
+    this.wsService.sendEnterBattle(this.match.matchId.toString(), this.user.username);
     // --------- GET OPPONENT ---------
     this.userService.getUserByUsername(this.match.opponent).subscribe({
       next: (resp: any) => {
@@ -116,7 +107,7 @@ export class BattleComponent implements OnInit {
     this.wsService.matchFinished$.subscribe((data: any) => {
       this.showBattleSummary = true;
       this.battleSummaryData = new BattleSummary();
-      this.battleSummaryData = {...data};
+      this.battleSummaryData = { ...data };
     })
   }
 

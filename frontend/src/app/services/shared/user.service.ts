@@ -1,6 +1,9 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { UrlService } from './url.service';
+import { User } from '../../shared/models/User';
+import { Router } from '@angular/router';
+import { UserSettingsService } from '../dashboard/user-settings.service';
 
 @Injectable({
   providedIn: 'root'
@@ -10,9 +13,26 @@ export class UserService {
 
   constructor(
     private http: HttpClient,
-    private urlService: UrlService
+    private router: Router,
+    private urlService: UrlService,
+    private userSettingsService: UserSettingsService
   ) {
     this.url = `${urlService.url}/users`
+  }
+
+  mainUser: User = null;
+
+  loadUser(usernameOrEmail: string) {
+    this.http.get(`${this.url}/getUserByUsernameOrEmail/${usernameOrEmail}`).subscribe({
+      next: (user: User) => {
+        this.mainUser = user;
+        this.userSettingsService.setUser(this.mainUser);
+        this.router.navigate(['dashboard/main-page']);
+      },
+      error: (error: any) => {
+        // SHOW ERROR PAGE
+      }
+    })
   }
 
   getUserById(id: number) {

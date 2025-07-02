@@ -95,22 +95,13 @@ export class MainPageComponent implements OnInit, AfterViewInit, OnDestroy {
   errorMessage: string | null = null;
 
   ngOnInit(): void {
-    const userId = parseInt(sessionStorage.getItem('userId'), 10);
-    // --------- GET USER ---------
-    this.userService.getUserById(userId).subscribe({
-      next: (resp: any) => {
-        this.user = resp;
-        this.userSettingsService.setUser(this.user);
-        // --------- INITIALIZE WEBSOCKET CONNECTION ---------
-        this.wsService.connect();
-        if (this.connectionSub) this.connectionSub.unsubscribe();
-        this.connectionSub = this.wsService.connectionOpen$.subscribe(() => {
-          this.wsService.sendHello(userId, this.user.username);
-        })
-      },
-      error: (error: any) => {
-        console.error(error)
-      }
+    this.user = this.userService.mainUser;
+    const userId = this.user.id;
+    // --------- INITIALIZE WEBSOCKET CONNECTION ---------
+    this.wsService.connect();
+    if (this.connectionSub) this.connectionSub.unsubscribe();
+    this.connectionSub = this.wsService.connectionOpen$.subscribe(() => {
+      this.wsService.sendHello(userId, this.user.username);
     })
     // --------- USER STATISTICS---------
     this.userService.getUserStatisticsById(userId).subscribe({

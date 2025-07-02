@@ -3,6 +3,7 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { AuthService } from '../../services/auth/auth.service';
 import { SnackBarService } from '../../services/shared/snack-bar.service';
 import { Router } from '@angular/router';
+import { UserService } from '../../services/shared/user.service';
 
 @Component({
   selector: 'app-login',
@@ -14,6 +15,7 @@ export class LoginComponent {
   constructor(
     private authService: AuthService,
     private snackBarService: SnackBarService,
+    private userService: UserService,
     private router: Router
   )
   {}
@@ -27,8 +29,7 @@ export class LoginComponent {
         this.snackBarService.showSnackBar(resp.message)
       }
       else {
-        sessionStorage.setItem('userId', resp.user.id);
-        this.router.navigate(['dashboard/main-page'])
+        this.userService.loadUser(this.usernameOrEmail);
       }
       
     })

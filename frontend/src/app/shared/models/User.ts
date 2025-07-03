@@ -7,4 +7,5 @@ export class User {
     country: string;
     role: number;
     receive_updates: number;
+    avatar: string;
 }

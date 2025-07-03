@@ -25,6 +25,8 @@ export class WebsocketService {
   public battleAccept$ = new Subject<any>();
   public battleDecline$ = new Subject<any>();
   public battleWithdraw$ = new Subject<any>();
+  public battleAutoWithdraw$ = new Subject<any>();
+
   // BATTLE - CHAT
   public chatMessage$ = new Subject<any>();
   // FRIENDS
@@ -80,13 +82,16 @@ export class WebsocketService {
           this.battleRequest$.next(data);
           break;
         case 'friends/BATTLE_ACCEPT':
-          
+
           break;
         case 'friends/BATTLE_DECLINE':
           this.battleDecline$.next(data);
           break;
         case 'friends/BATTLE_WITHDRAW':
           this.battleWithdraw$.next(data);
+          break;
+        case 'friends/BATTLE_AUTO_WITHDRAW':
+          this.battleAutoWithdraw$.next(data);
           break;
       }
     };
@@ -113,8 +118,8 @@ export class WebsocketService {
     this.send({ type: 'USER_SUBSCRIBE', id, username });
   }
 
-  joinMatchmaking(username: string): void {
-    this.send({ type: 'battle/JOIN_QUEUE', username });
+  joinMatchmaking(userId: number, username: string): void {
+    this.send({ type: 'battle/JOIN_QUEUE', userId, username });
   }
 
   cancelMatchmaking(username: string): void {

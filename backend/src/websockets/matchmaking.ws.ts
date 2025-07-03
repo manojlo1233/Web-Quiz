@@ -2,9 +2,10 @@ import { WebSocketServer, WebSocket } from 'ws';
 import { Server } from 'http';
 import { Match } from '../models/Match';
 import { QuizQuestion } from '../models/Quiz/QuizQuestion';
-import pool from '../config/db';
+import pool, { updateUserStatistics } from '../config/db';
 import { QuizAnswer } from '../models/Quiz/QuizAnswer';
 import { BattleStatusMapper } from '../mappers/BattleStatusMapper';
+import { clearIntervalFromMap } from '../util/util';
 
 let usersWebSockets: WebSocket[] = [];
 let waitingList: WebSocket[] = [];
@@ -14,6 +15,8 @@ const matchStartTimeout: Map<string, NodeJS.Timeout> = new Map();
 const matchQuestions: Map<string, QuizQuestion[]> = new Map();
 
 const answerSummaryIdleTimeout: Map<string, NodeJS.Timeout> = new Map();
+
+const battleRequestTimeout: Map<string, NodeJS.Timeout> = new Map();
 
 export default function initWebSocketServer(server: Server) {
     const wss = new WebSocketServer({ server });
@@ -36,36 +39,14 @@ export default function initWebSocketServer(server: Server) {
                 if (waitingList.filter(ws => (ws as any).username === data.username).length !== 0) { // Avoid adding same players to waitinList
                     return;
                 }
+                (ws as any).id = data.userId;
                 (ws as any).username = data.username;
                 waitingList.push(ws);
 
                 if (waitingList.length >= 2) {
                     const p1 = waitingList.shift()!;
                     const p2 = waitingList.shift()!;
-
-                    const matchId = (await createMatch()).toString();
-
-                    let match: Match = new Match(matchId, p1, p2, (p1 as any).username, (p2 as any).username);
-                    match.status = 'ready';
-
-                    activeMatches.set(matchId, match);
-
-                    const timeout = setTimeout(() => {
-                        if (match.status == 'ready') {
-                            match.status = 'cancelled';
-                            deleteMatchFromDB(match);
-                            activeMatches.delete(match.matchId);
-                            const payload = JSON.stringify({ type: 'battle/MATCH_CANCELLED' })
-                            match.player1.send(payload);
-                            match.player2.send(payload);
-                        }
-                        matchStartTimeout.delete(match.matchId)
-                    }, 60000)
-
-                    matchStartTimeout.set(match.matchId, timeout);
-
-                    p1.send(JSON.stringify({ type: 'battle/MATCH_FOUND', opponent: (p2 as any).username, matchId, role: 'player1', startTimestamp: match.startTimestamp }));
-                    p2.send(JSON.stringify({ type: 'battle/MATCH_FOUND', opponent: (p1 as any).username, matchId, role: 'player2', startTimestamp: match.startTimestamp }));
+                    createMatch(p1, p2);
                 }
             }
             else if (data.type === 'battle/LEAVE_QUEUE') {
@@ -156,11 +137,35 @@ export default function initWebSocketServer(server: Server) {
                     friendId: data.userId
                 })
                 friendSock.send(payload);
+                battleRequestTimeout.set(
+                    `${data.userId}-${data.friendId}`,
+                    setTimeout(() => { // WITHDRAW BATTLE REQUEST
+                        // SEND WITHDRAW TO RECEIVER
+                        const payloadReceiver = JSON.stringify({
+                            type: 'friends/BATTLE_WITHDRAW',
+                            friendId: data.userId
+                        })
+                        friendSock.send(payloadReceiver);
+                        // SEND AUTOWITHDRAW TO SENDER
+                        const sockCheck = usersWebSockets.filter(ws => (ws as any).id === data.userId);
+                        if (sockCheck.length === 0) return;
+                        const userSock = sockCheck[0];
+                        const payloadSender = JSON.stringify({
+                            type: 'friends/BATTLE_AUTO_WITHDRAW',
+                            friendId: data.friendId
+                        })
+                        userSock.send(payloadSender);
+                    }, 30000)
+                )
             }
             else if (data.type === 'friends/BATTLE_ACCEPT') {
-
+                clearIntervalFromMap(battleRequestTimeout, `${data.friendId}-${data.userId}`);
+                const p1 = usersWebSockets.filter(ws => (ws as any).id === data.userId)[0];
+                const p2 = usersWebSockets.filter(ws => (ws as any).id === data.friendId)[0];
+                createMatch(p1, p2);
             }
             else if (data.type === 'friends/BATTLE_DECLINE') {
+                clearIntervalFromMap(battleRequestTimeout, `${data.friendId}-${data.userId}`);
                 const sockCheck = usersWebSockets.filter(ws => (ws as any).id === data.friendId);
                 if (sockCheck.length === 0) return;
                 const friendSock = sockCheck[0];
@@ -171,6 +176,7 @@ export default function initWebSocketServer(server: Server) {
                 friendSock.send(payload);
             }
             else if (data.type === 'friends/BATTLE_WITHDRAW') {
+                clearIntervalFromMap(battleRequestTimeout, `${data.userId}-${data.friendId}`);
                 const sockCheck = usersWebSockets.filter(ws => (ws as any).id === data.friendId);
                 if (sockCheck.length === 0) return;
                 const friendSock = sockCheck[0];
@@ -183,7 +189,33 @@ export default function initWebSocketServer(server: Server) {
 
             // ----------------- BATTLE FUNCTIONS -----------------
 
-            async function createMatch(): Promise<number> {
+            async function createMatch(p1: WebSocket, p2: WebSocket) {
+                const matchId = (await createMatchInDB()).toString();
+
+                let match: Match = new Match(matchId, p1, p2, (p1 as any).username, (p2 as any).username);
+                match.status = 'ready';
+
+                activeMatches.set(matchId, match);
+
+                const timeout = setTimeout(() => {
+                    if (match.status == 'ready') {
+                        match.status = 'cancelled';
+                        deleteMatchFromDB(match);
+                        activeMatches.delete(match.matchId);
+                        const payload = JSON.stringify({ type: 'battle/MATCH_CANCELLED' })
+                        match.player1.send(payload);
+                        match.player2.send(payload);
+                    }
+                    matchStartTimeout.delete(match.matchId)
+                }, 60000)
+
+                matchStartTimeout.set(match.matchId, timeout);
+
+                p1.send(JSON.stringify({ type: 'battle/MATCH_FOUND', opponent: (p2 as any).username, matchId, role: 'player1', startTimestamp: match.startTimestamp }));
+                p2.send(JSON.stringify({ type: 'battle/MATCH_FOUND', opponent: (p1 as any).username, matchId, role: 'player2', startTimestamp: match.startTimestamp }));
+            }
+
+            async function createMatchInDB(): Promise<number> {
                 const [quizResult] = await pool.query(
                     `INSERT INTO quizzes (category_id, created_at) VALUES (0, NOW())`
                 )
@@ -344,6 +376,9 @@ export default function initWebSocketServer(server: Server) {
                     sendError(match);
                 }
 
+                updateUserStatistics((match.player1 as any).id);
+                updateUserStatistics((match.player2 as any).id);
+
                 const summary = {
                     type: 'battle/MATCH_FINISHED',
                     yourScore: match.scoreP1,
@@ -448,7 +483,7 @@ function initUserOnlineStatusBroadcast() {
         usersWebSockets.forEach(ws => {
             ws.send(JSON.stringify({ type: 'friends/REFRESH_STATUS' }));
         })
-    }, 30000);
+    }, 5000);
 }
 
 export function sendFriendRefreshSignal(userId: number, friendId: number, action: string) {

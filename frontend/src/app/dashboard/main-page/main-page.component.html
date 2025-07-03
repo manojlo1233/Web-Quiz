@@ -5,9 +5,7 @@
     <div class="col-cont">
         <div class="user-info">
             <div class="user">
-                <app-icon
-                    style="width: 30px; height: 30px; border: 1px solid var(--theme-darkblue-color-3); border-radius: 2px; padding: 5px;"
-                    src="assets/svg/icon_user.svg" color="var(--theme-darkblue-color-3)" />
+            <img [src]="'http://localhost:3000/static/avatars/' + user.avatar" alt="User Avatar" class="user-avatar"/>
                 <label>{{user.firstname}} {{user.lastname}}</label>
                 <span>-</span>
                 <label>{{user.username}}</label>
@@ -21,12 +19,12 @@
                 <span class="v-divider" style="background-color: var(--theme-darkblue-color-3);"></span>
                 <div class="col">
                     <label>Average score</label>
-                    <label>{{userStatistic.avg_score | number:'1.2-2'}}</label>
+                    <label>{{userStatistic.avg_score | number:'1.2-2'}}%</label>
                 </div>
                 <span class="v-divider" style="background-color: var(--theme-darkblue-color-3);"></span>
                 <div class="col">
                     <label>Average time</label>
-                    <label>{{userStatistic.avg_time | number:'1.2-2'}}</label>
+                    <label>{{userStatistic.avg_time | number:'1.2-2'}}s</label>
                 </div>
             </div>
         </div>
@@ -116,18 +114,18 @@
                                 style="display: flex; margin-left: auto; flex-direction: row-reverse; gap: 5px; align-items: center;">
                                 <app-icon class="icon small" src="/assets/svg/icon_circle_minus.svg"
                                     color="var(--theme-darkblue-color-3)" title="Remove Friend"
-                                    (click)="handleRemoveFriendClick(f.friendId)" />
-                                <app-icon class="icon small" src="/assets/svg/icon_battle.svg"
+                                    (click)="handleRemoveFriendClick(f.friendId, f.username)" />
+                                <app-icon *ngIf="f.online" class="icon small" src="/assets/svg/icon_battle.svg"
                                     [color]="getBattleIconColor(f)" title="Battle friend"
                                     (click)="handleBattleFriend(f)" [class.disabled]="f.battleRequestReceived || f.battleRequestSent"
                                     [style.marginLeft]="updateLeftMargin(f)" />
-                                <app-icon *ngIf="f.battleRequestSent" class="icon small"
-                                    src="/assets/svg/icon_flag_2.svg" color="white" (click)="handleWithdrawClick(f)"
+                                <app-icon *ngIf="f.online && f.battleRequestSent" class="icon small withdraw"
+                                    src="/assets/svg/icon_flag_2.svg" color="white" (click)="handleBattleWithdraw(f)"
                                     title="Withdraw" />
-                                <app-icon *ngIf="f.battleRequestReceived" class="icon small"
+                                <app-icon *ngIf="f.online && f.battleRequestReceived" class="icon small"
                                     src="/assets/svg/icon_circle_x.svg" color="var(--theme-darkblue-color-3)" (click)="handleBattleDecline(f)"
                                     title="Decline battle" />
-                                <app-icon *ngIf="f.battleRequestReceived" class="icon small"
+                                <app-icon *ngIf="f.online && f.battleRequestReceived" class="icon small"
                                     src="/assets/svg/icon_circle_check.svg" color="var(--theme-darkblue-color-3)" (click)="handleBattleAccept(f)"
                                     title="Accept battle" />
                             </div>

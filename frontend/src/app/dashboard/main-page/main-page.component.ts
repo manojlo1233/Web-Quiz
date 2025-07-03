@@ -19,6 +19,7 @@ import { FriendsService } from '../../services/friends/friends.service';
 import { SnackBarService } from '../../services/shared/snack-bar.service';
 import { NotificationService } from '../../services/shared/notification.service';
 import { UserSettingsService } from '../../services/dashboard/user-settings.service';
+import { ConfirmService } from '../../services/shared/confirm.service';
 
 
 @Component({
@@ -33,14 +34,13 @@ export class MainPageComponent implements OnInit, OnDestroy {
   constructor(
     private router: Router,
     private userService: UserService,
-    private quizService: QuizService,
     private utilService: UtilService,
     private wsService: WebsocketService,
     private matchStateService: MatchStateService,
     private friendsService: FriendsService,
     private snackBarService: SnackBarService,
     private notificationService: NotificationService,
-    private userSettingsService: UserSettingsService
+    private confirmService: ConfirmService
   ) {
     this.errorSub = this.wsService.error$.subscribe((msg) => {
       this.errorMessage = msg;
@@ -83,6 +83,7 @@ export class MainPageComponent implements OnInit, OnDestroy {
   private battleAcceptSub: Subscription;
   private battleDeclineSub: Subscription;
   private battleWithdrawSub: Subscription;
+  private battleAutoWithdrawSub: Subscription;
 
   // MATCHMAKING
   matchmakingLbl: string = 'Battle'
@@ -218,20 +219,50 @@ export class MainPageComponent implements OnInit, OnDestroy {
       this.notificationService.showNotification(`${friend.username} has declined a battle request.`)
     })
 
+    this.battleAutoWithdrawSub = this.wsService.battleAutoWithdraw$.subscribe((resp: any) => {
+      this.searchDisabled = false;
+      this.friends.filter(f => f.friendId === resp.friendId)[0].battleRequestSent = false;
+    })
+
   }
 
   getFriends(userId: number) {
     this.friendsService.getUserFriendsById(userId).subscribe({
       next: (resp: any[]) => {
-        const tmpFriends = resp.filter(f => f.accepted);
+        const tmpFriends: Friend[] = resp.filter(f => f.accepted);
         const onlineFriends = tmpFriends.filter(f => f.online);
         const offlineFriends = tmpFriends.filter(f => !f.online);
-        this.friends = [...onlineFriends, ...offlineFriends];
+        const friendsNew: Friend[] = [...onlineFriends, ...offlineFriends];
+        friendsNew.forEach(newFriend => {
+          const oldFriend = this.friends.filter(f => f.friendId === newFriend.friendId);
+          if (oldFriend.length === 0) { // ADD IF NEW USER
+            if (newFriend.online) {
+              this.friends.unshift(newFriend);
+            }
+            else {
+              this.friends.push(newFriend);
+            }
+          }
+          else { // MOVE IF OLD USER AND ONLINE IS CHANGED
+            if (oldFriend[0].online !== newFriend.online) {
+              oldFriend[0].online = newFriend.online;
+              const index = this.friends.findIndex(el => el.friendId === newFriend.friendId);
+              this.friends.splice(index, 1);
+              if (oldFriend[0].online) {
+                this.friends.unshift(oldFriend[0]);
+              }
+              else {
+                this.friends.push(oldFriend[0]);
+              }
+            }
+          }
+        })
         this.friendsRequest = resp.filter(f => !f.accepted && f.userIdSent !== userId);
       },
       error: (error: any) => {
         this.friends = [];
         this.friendsRequest = [];
+        // GO TO ERROR PAGE
       }
     })
   }
@@ -267,7 +298,7 @@ export class MainPageComponent implements OnInit, OnDestroy {
         this.secondsElapsed++;
         this.updateFormattedTime();
       }, 1000)
-      this.wsService.joinMatchmaking(this.user.username);
+      this.wsService.joinMatchmaking(this.user.id, this.user.username);
     }
     else {
       this.matchmakingLbl = 'Battle'
@@ -325,16 +356,21 @@ export class MainPageComponent implements OnInit, OnDestroy {
     this.suggestedUsers = [];
   }
 
-  handleRemoveFriendClick(friendId: number) {
-    this.friendsService.deleteUserFriendById(this.user.id, friendId).subscribe({
-      next: (resp: any) => {
-        this.snackBarService.showSnackBar(resp.message)
-        this.friends = this.friends.filter(f => f.friendId !== friendId);
-      },
-      error: (error) => {
+  handleRemoveFriendClick(friendId: number, username: string) {
+    this.confirmService.showCustomConfirm(`Are you sure you want to remove ${username} from friends?`,
+      () => {
+        this.friendsService.deleteUserFriendById(this.user.id, friendId).subscribe({
+          next: (resp: any) => {
+            this.snackBarService.showSnackBar(resp.message)
+            this.friends = this.friends.filter(f => f.friendId !== friendId);
+          },
+          error: (error) => {
 
+          }
+        })
       }
-    })
+    )
+
   }
 
   handleSendFriendRequest(id: number) {
@@ -422,7 +458,7 @@ export class MainPageComponent implements OnInit, OnDestroy {
     }
   }
 
-  handleWithdrawClick(friend: Friend) {
+  handleBattleWithdraw(friend: Friend) {
     this.searchDisabled = false;
     friend.battleRequestSent = false;
     this.wsService.sendBattleWithdraw(this.user.id, friend.friendId);
@@ -442,14 +478,15 @@ export class MainPageComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    if(this.errorSub) this.errorSub.unsubscribe();
-    if(this.startQuizSub) this.startQuizSub.unsubscribe();
-    if(this.connectionSub) this.connectionSub.unsubscribe();
-    if(this.refreshFriendsSub) this.refreshFriendsSub.unsubscribe();
-    if(this.refreshFriendsStatusSub) this.refreshFriendsStatusSub.unsubscribe();
-    if(this.battleRequestSub) this.battleRequestSub.unsubscribe();
-    if(this.battleAcceptSub) this.battleAcceptSub.unsubscribe();
-    if(this.battleDeclineSub) this.battleDeclineSub.unsubscribe();
-    if(this.battleWithdrawSub) this.battleWithdrawSub.unsubscribe();
+    if (this.errorSub) this.errorSub.unsubscribe();
+    if (this.startQuizSub) this.startQuizSub.unsubscribe();
+    if (this.connectionSub) this.connectionSub.unsubscribe();
+    if (this.refreshFriendsSub) this.refreshFriendsSub.unsubscribe();
+    if (this.refreshFriendsStatusSub) this.refreshFriendsStatusSub.unsubscribe();
+    if (this.battleRequestSub) this.battleRequestSub.unsubscribe();
+    if (this.battleAcceptSub) this.battleAcceptSub.unsubscribe();
+    if (this.battleDeclineSub) this.battleDeclineSub.unsubscribe();
+    if (this.battleWithdrawSub) this.battleWithdrawSub.unsubscribe();
+    if (this.battleAutoWithdrawSub) this.battleAutoWithdrawSub.unsubscribe();
   }
 }

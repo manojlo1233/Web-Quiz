@@ -7,7 +7,7 @@ export class ConfirmService {
 
   constructor() { }
 
-  showCustomConfirm(message: string, yesCallback, noCallback) {
+  showCustomConfirm(message: string, yesCallback, noCallback = () => {}) {
 
 		const background = document.getElementById("confirm-bg");
 		const yesButton = document.getElementById("confirm-yes");

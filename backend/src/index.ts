@@ -7,6 +7,7 @@ import friendsRouter from './routes/friend.routes';
 import { createServer } from 'http';
 import initWebSocketServer from './websockets/matchmaking.ws';
 import quizRouter from './routes/quiz.rouites';
+import path from 'path';
 
 
 dotenv.config();        // Omogućava da koristimo npr. process.env.DB_HOST
@@ -27,6 +28,8 @@ router.use('/friends', friendsRouter)
 router.use('/quiz', quizRouter)
 
 app.use('/api', router);
+
+app.use('/static', express.static(path.join(__dirname, 'public')));
 
 const server = createServer(app);
 initWebSocketServer(server);

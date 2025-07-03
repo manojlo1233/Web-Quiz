@@ -10,5 +10,6 @@ export class User {
     created_at: Date;
     reset_token: string;
     reset_token_expires: Date;
-    receive_updates: boolean
+    receive_updates: boolean;
+    avatar: string;
 }

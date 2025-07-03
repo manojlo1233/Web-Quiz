@@ -172,7 +172,8 @@ export const getUserById = async (req: Request, res: Response) => {
             email: user.email,
             country: user.country,
             role: user.role,
-            receive_updates: user.receive_updates
+            receive_updates: user.receive_updates,
+            avatar: user.avatar
         });
     } catch (error: any) {
         console.log('Get user by id error', error);
@@ -248,7 +249,6 @@ export const getUserPlayHistoryById = async (req: Request, res: Response) => {
             `SELECT qa.user_id,
                 q.id AS quiz_id,
                 c.name AS category,
-                q.difficulty,
                 qa.started_at AS start,
                 qa.completed_at AS end
             FROM

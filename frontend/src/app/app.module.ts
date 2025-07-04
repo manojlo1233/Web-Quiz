@@ -23,6 +23,7 @@ import { NotificationContainerComponent } from './shared/ui-indicators/notificat
 import { UserSettingsComponent } from './dashboard/user-settings/user-settings.component';
 import { SpinnerComponent } from './shared/ui-indicators/spinner/spinner.component';
 import { BattleSummaryComponent } from './quiz/battle-summary/battle-summary.component';
+import { ShowAvatarsComponent } from './dashboard/show-avatars/show-avatars.component';
 
 
 @NgModule({
@@ -44,7 +45,8 @@ import { BattleSummaryComponent } from './quiz/battle-summary/battle-summary.com
     NotificationContainerComponent,
     UserSettingsComponent,
     SpinnerComponent,
-    BattleSummaryComponent
+    BattleSummaryComponent,
+    ShowAvatarsComponent
   ],
   imports: [
     BrowserModule,

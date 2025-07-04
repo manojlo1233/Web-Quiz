@@ -49,4 +49,12 @@ export class UserService {
   getLeaderBoard() {
     return this.http.get(`${this.url}/getLeaderBoard`)
   }
+
+  updateUserAvatar(userId: number, avatar: string) {
+    const body = {
+      userId,
+      avatar
+    }
+    return this.http.patch(`${this.url}/updateUserAvatar`, body);
+  }
 }

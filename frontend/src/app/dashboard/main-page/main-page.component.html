@@ -1,11 +1,19 @@
 <app-header (handleIconClick)="headerIconClick($event)"></app-header>
 <app-notification-container class="fr-notif" />
 <app-user-settings *ngIf="showUserSettings" [user]="this.user" (close)="closeUserSettings()" />
+<app-show-avatars *ngIf="showAvailableAvatars" [userId]="this.user.id" [userAvatar]="this.user.avatar"
+    (closeAvatars)="handleCloseEditAvatar($event)" />
 <div class="main-container">
     <div class="col-cont">
         <div class="user-info">
             <div class="user">
-            <img [src]="'http://localhost:3000/static/avatars/' + user.avatar" alt="User Avatar" class="user-avatar"/>
+                <div style="position: relative;">
+                    <img [src]="'http://localhost:3000/static/avatars/' + user.avatar" alt="User Avatar"
+                        class="user-avatar" />
+                    <app-icon class="avatar_icon" src="/assets/svg/icon_edit.svg" color="var(--theme-darkblue-color-3)"
+                        title="Edit avatar" (click)="showAvailableAvatars = true;" />
+                </div>
+
                 <label>{{user.firstname}} {{user.lastname}}</label>
                 <span>-</span>
                 <label>{{user.username}}</label>
@@ -19,12 +27,14 @@
                 <span class="v-divider" style="background-color: var(--theme-darkblue-color-3);"></span>
                 <div class="col">
                     <label>Average score</label>
-                    <label>{{userStatistic.avg_score | number:'1.2-2'}}%</label>
+                    <label *ngIf="userStatistic.avg_score !== 0">{{userStatistic.avg_score | number:'1.2-2'}}%</label>
+                    <label *ngIf="userStatistic.avg_score === 0">TBD</label>
                 </div>
                 <span class="v-divider" style="background-color: var(--theme-darkblue-color-3);"></span>
                 <div class="col">
                     <label>Average time</label>
-                    <label>{{userStatistic.avg_time | number:'1.2-2'}}s</label>
+                    <label *ngIf="userStatistic.avg_time !== 0">{{userStatistic.avg_time | number:'1.2-2'}}s</label>
+                    <label *ngIf="userStatistic.avg_time === 0">TBD</label>
                 </div>
             </div>
         </div>
@@ -62,7 +72,7 @@
                 <label *ngIf="isSearching">Searching {{ formattedTime }}</label>
                 <button class="btn-light" style="width: 150px; height: fit-content;" [ngClass]="{
                 'btn-glow': isSearching
-            }" (click)="onBattleClick()" [disabled]="searchDisabled" >{{matchmakingLbl}}</button>
+            }" (click)="onBattleClick()" [disabled]="searchDisabled">{{matchmakingLbl}}</button>
             </div>
 
         </div>
@@ -117,17 +127,18 @@
                                     (click)="handleRemoveFriendClick(f.friendId, f.username)" />
                                 <app-icon *ngIf="f.online" class="icon small" src="/assets/svg/icon_battle.svg"
                                     [color]="getBattleIconColor(f)" title="Battle friend"
-                                    (click)="handleBattleFriend(f)" [class.disabled]="f.battleRequestReceived || f.battleRequestSent"
+                                    (click)="handleBattleFriend(f)"
+                                    [class.disabled]="f.battleRequestReceived || f.battleRequestSent"
                                     [style.marginLeft]="updateLeftMargin(f)" />
                                 <app-icon *ngIf="f.online && f.battleRequestSent" class="icon small withdraw"
                                     src="/assets/svg/icon_flag_2.svg" color="white" (click)="handleBattleWithdraw(f)"
                                     title="Withdraw" />
                                 <app-icon *ngIf="f.online && f.battleRequestReceived" class="icon small"
-                                    src="/assets/svg/icon_circle_x.svg" color="var(--theme-darkblue-color-3)" (click)="handleBattleDecline(f)"
-                                    title="Decline battle" />
+                                    src="/assets/svg/icon_circle_x.svg" color="var(--theme-darkblue-color-3)"
+                                    (click)="handleBattleDecline(f)" title="Decline battle" />
                                 <app-icon *ngIf="f.online && f.battleRequestReceived" class="icon small"
-                                    src="/assets/svg/icon_circle_check.svg" color="var(--theme-darkblue-color-3)" (click)="handleBattleAccept(f)"
-                                    title="Accept battle" />
+                                    src="/assets/svg/icon_circle_check.svg" color="var(--theme-darkblue-color-3)"
+                                    (click)="handleBattleAccept(f)" title="Accept battle" />
                             </div>
                         </div>
                     </div>
@@ -185,5 +196,4 @@
 </div>
 <app-footer></app-footer>
 <ng-container #displayQuizQuestionsContainer>
-
 </ng-container>

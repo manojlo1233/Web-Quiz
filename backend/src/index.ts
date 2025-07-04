@@ -8,6 +8,7 @@ import { createServer } from 'http';
 import initWebSocketServer from './websockets/matchmaking.ws';
 import quizRouter from './routes/quiz.rouites';
 import path from 'path';
+import utilRouter from './routes/util.routes';
 
 
 dotenv.config();        // Omogućava da koristimo npr. process.env.DB_HOST
@@ -22,10 +23,11 @@ app.use(express.json());        // Omogućava da se šalje JSON u telu zahteva
 
 createConnection();         // Povezivanje sa bazom
 
-const router = express.Router()
-router.use('/users', userRouter)
-router.use('/friends', friendsRouter)
-router.use('/quiz', quizRouter)
+const router = express.Router();
+router.use('/users', userRouter);
+router.use('/friends', friendsRouter);
+router.use('/quiz', quizRouter);
+router.use('/util', utilRouter);
 
 app.use('/api', router);
 

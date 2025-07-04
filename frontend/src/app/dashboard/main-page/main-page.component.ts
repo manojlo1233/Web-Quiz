@@ -104,6 +104,9 @@ export class MainPageComponent implements OnInit, OnDestroy {
   // NOTIFICATIONS
   showNotifications: boolean = false;
 
+  // AVATARS
+  showAvailableAvatars: boolean = false;
+
   ngOnInit(): void {
     const userId = Number.parseInt(sessionStorage.getItem('userId'));
     // --------- INITIALIZE WEBSOCKET CONNECTION ---------
@@ -125,6 +128,7 @@ export class MainPageComponent implements OnInit, OnDestroy {
     this.userService.getUserStatisticsById(userId).subscribe({
       next: (resp: any) => {
         this.userStatistic = resp;
+        console.log(this.userStatistic)
       },
       error: (error: any) => {
         console.error(error)
@@ -475,6 +479,15 @@ export class MainPageComponent implements OnInit, OnDestroy {
   handleBattleDecline(friend: Friend) {
     friend.battleRequestReceived = false;
     this.wsService.sendBattleDecline(this.user.id, friend.friendId);
+  }
+
+  handleEditAvatar() {
+    this.showAvailableAvatars = true;
+  }
+
+  handleCloseEditAvatar(selectedAvatar: string) {
+    if (selectedAvatar !== '') this.user.avatar = selectedAvatar;
+    this.showAvailableAvatars = false;
   }
 
   ngOnDestroy(): void {

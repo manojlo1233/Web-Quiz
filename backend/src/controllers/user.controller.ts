@@ -60,12 +60,25 @@ export const registerUser = async (req: Request, res: Response) => {
 
         const hashedPassword = await bcrypt.hash(password, 10);
 
-        const [result] = await pool.execute(
+        const [resultUser] = await pool.execute(
             `INSERT INTO users (firstname, lastname, username, email, password_hash, country, role, created_at, receive_updates)` +
             `VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
             [firstName, lastName, userName, email, hashedPassword, country, 0, dateTime, notification]
         );
+        if ((resultUser as any).affectedRows <= 0) {
+            res.status(500).json({ message: 'Register user failed' })
+            return;
+        }
 
+        const userId = (resultUser as any).insertId;
+        const [resultStatistics] = await pool.execute(
+            `INSERT INTO statistics (user_id, total_quizzes, avg_score, avg_time) VALUES (?, 0, 0, 0)`,
+            [userId]
+        )
+        if ((resultStatistics as any).affectedRows <= 0) {
+            res.status(500).json({ message: 'Register user failed' })
+            return;
+        }
         res.status(201).json({ message: 'User registered successfully' })
     } catch (error: any) {
         console.log('Registration error', error);
@@ -368,5 +381,28 @@ export const updateUserSettingsById = async (req: Request, res: Response) => {
     } catch (error: any) {
         console.log('Update user error', error);
         res.status(500).json({ message: 'User settings update failed', error: error.message })
+    }
+}
+
+export const updateUserAvatar = async (req: Request, res: Response) => {
+    try {
+        const userId = req.body.userId;
+        const avatar = req.body.avatar;
+        const [result] = await pool.execute(
+            `UPDATE users u
+            SET
+                u.avatar=?
+            WHERE
+                u.id=?
+            `
+            , [avatar, userId])
+        if ((result as any).affectedRows <= 0) {
+            res.status(404).json({ message: 'Update user avatar failed.' })
+            return;
+        }
+        res.status(200).json({ message: 'User avatar successfully updated.' });
+    } catch (error: any) {
+        console.log('Update user avatar error', error);
+        res.status(500).json({ message: 'Update user avatar failed', error: error.message })
     }
 }

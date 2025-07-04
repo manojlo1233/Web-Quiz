@@ -349,6 +349,27 @@
     animation: battleGlow 3s ease infinite;
 }
 
+.avatar_icon {
+    position: absolute;
+    margin-top: 2px;
+    margin-right: 2px;
+    top: 0;
+    right: 0;
+    width: 16px;
+    height: 16px;
+    display: flex;
+    background-color: var(--theme-darkblue-color-6);
+    cursor: pointer;
+}
+
+.avatar_icon:hover {
+    box-shadow: 0 0 3px 1px var(--theme-darkblue-color-3);
+}
+
+.avatar_icon:active {
+    box-shadow: 0 0 5px 2px var(--theme-darkblue-color-3);
+}
+
 @keyframes battleGlow {
 
     0%,

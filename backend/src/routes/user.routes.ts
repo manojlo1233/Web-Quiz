@@ -11,6 +11,7 @@ import {
     registerUser,
     requestPasswordReset,
     resetPassword,
+    updateUserAvatar,
     updateUserSettingsById
 } from '../controllers/user.controller';
 
@@ -29,5 +30,5 @@ userRouter.get('/getUserPlayHistoryById/:id', getUserPlayHistoryById);
 userRouter.get('/getUserQuizQuestionsById/:userId/:quizId', getUserQuizQuestionsById)
 userRouter.get('/getLeaderBoard', getLeaderBoard);
 userRouter.post('/updateUserSettingsById', updateUserSettingsById);
-
+userRouter.patch('/updateUserAvatar', updateUserAvatar);
 export default userRouter;

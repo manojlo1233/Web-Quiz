@@ -133,6 +133,8 @@
                                 <app-icon *ngIf="f.online && f.battleRequestSent" class="icon small withdraw"
                                     src="/assets/svg/icon_flag_2.svg" color="white" (click)="handleBattleWithdraw(f)"
                                     title="Withdraw" />
+                                <app-dot-loader *ngIf="f.online && f.battleRequestSent" color="white" [size]="3" style="margin: auto 3px 5px 3px;" />
+                                <label *ngIf="f.online && f.battleRequestSent">Pending request</label>
                                 <app-icon *ngIf="f.online && f.battleRequestReceived" class="icon small"
                                     src="/assets/svg/icon_circle_x.svg" color="var(--theme-darkblue-color-3)"
                                     (click)="handleBattleDecline(f)" title="Decline battle" />

@@ -42,8 +42,8 @@ export class UserService {
     return this.http.get(`${this.url}/getUserPlayHistoryById/${id}`);
   }
 
-  getUserQuizQuestionsById(userId: number, quizId: number) {
-    return this.http.get(`${this.url}/getUserQuizQuestionsById/${userId}/${quizId}`)
+  getUserQuizDetails(quizId: number) {
+    return this.http.get(`${this.url}/getUserQuizDetails/${quizId}`)
   }
 
   getLeaderBoard() {

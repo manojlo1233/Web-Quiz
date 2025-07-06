@@ -5,4 +5,5 @@ export class QuizDetailsQuestion {
     correct_answer_text: string;
     question_description: string;
     is_expanded: boolean;
+    user_id: number;
 }

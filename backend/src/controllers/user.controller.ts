@@ -259,21 +259,29 @@ export const getUserPlayHistoryById = async (req: Request, res: Response) => {
     try {
         const userId = parseInt(req.params.id, 10);
         const [userHistory] = await pool.execute(
-            `SELECT qa.user_id,
+            `SELECT 
+                qa.user_id,
                 q.id AS quiz_id,
                 c.name AS category,
                 qa.started_at AS start,
-                qa.completed_at AS end
+                qa.completed_at AS end,
+                opponent_attempt.user_id AS opponent_id,
+                u.username AS opponent_username
             FROM
                 quiz_attempts qa
             JOIN
                 quizzes q ON qa.quiz_id = q.id
             JOIN
                 categories c ON q.category_id = c.id
+            LEFT JOIN
+                quiz_attempts opponent_attempt ON opponent_attempt.quiz_id = qa.quiz_id
+                    AND opponent_attempt.user_id != qa.user_id
+            LEFT JOIN 
+                users u ON u.id = opponent_attempt.user_id
             WHERE 
                 qa.user_id = ?`,
             [userId]
-        )
+        );
         if ((userHistory as any[]).length === 0) {
             res.status(404).json({ message: 'User history not found' })
             return;
@@ -286,9 +294,8 @@ export const getUserPlayHistoryById = async (req: Request, res: Response) => {
     }
 }
 
-export const getUserQuizQuestionsById = async (req: Request, res: Response) => {
+export const getUserQuizDetails = async (req: Request, res: Response) => {
     try {
-        const userId = parseInt(req.params.userId, 10);
         const quizId = parseInt(req.params.quizId, 10);
         const [quizDetails] = await pool.execute(
             `SELECT 
@@ -296,7 +303,8 @@ export const getUserQuizQuestionsById = async (req: Request, res: Response) => {
                 ua_ans.text AS user_answer_text,
                 ua_ans.is_correct AS is_correct,
                 ca.text AS correct_answer_text,
-                q.description AS question_description
+                q.description AS question_description,
+                a.user_id AS user_id
             FROM 
                 quiz_attempts a
             JOIN 
@@ -308,20 +316,20 @@ export const getUserQuizQuestionsById = async (req: Request, res: Response) => {
             LEFT JOIN 
                 answers ca ON ca.question_id = q.id AND ca.is_correct = true
             WHERE 
-                a.quiz_id = ? AND a.user_id = ?
+                a.quiz_id = ?
             ORDER BY 
                 q.id;`,
-            [quizId, userId]
+            [quizId]
         )
         if ((quizDetails as any[]).length === 0) {
-            res.status(404).json({ message: 'Quiz questions not found' })
+            res.status(404).json({ message: 'Quiz details not found' })
             return;
         }
         const quizQuestions: QuizDetailsQuestion[] = (quizDetails as any[]);
         res.status(200).json(quizQuestions);
     } catch (error: any) {
-        console.log('Get quiz question by id error', error);
-        res.status(500).json({ message: 'Get quiz question by id failed', error: error.message })
+        console.log('Quiz details error', error);
+        res.status(500).json({ message: 'Quiz details failed', error: error.message })
     }
 }
 

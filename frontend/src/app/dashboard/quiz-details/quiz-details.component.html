@@ -4,18 +4,21 @@
 
         <div class="quiz-details">
             <div class="det">
-                <label>Correct answers: {{ correctAns }}/{{ totalNumOfAns }} - {{ ansPercent }}%</label>
+                <label>Correct answers: {{ userCorrectAns }}/{{ userTotalNumOfAns }} - {{ userAnsPercent }}%</label>
             </div>
             <div class="det">
-                <app-icon class="icon" title="Category" src="/assets/svg/icon_category.svg" color="var(--theme-darkblue-color-3)" />
+                <app-icon class="icon" title="Category" src="/assets/svg/icon_category.svg"
+                    color="var(--theme-darkblue-color-3)" />
                 <label>{{ selectedQuizPlayed.category }}</label>
             </div>
             <div class="det">
-                <app-icon class="icon" title="Start date" src="/assets/svg/icon_flag.svg" color="var(--theme-darkblue-color-3)" />
+                <app-icon class="icon" title="Start date" src="/assets/svg/icon_flag.svg"
+                    color="var(--theme-darkblue-color-3)" />
                 <label>{{ selectedQuizPlayed.start | date:'dd.MM.yy HH:mm:ss' }}</label>
             </div>
             <div class="det">
-                <app-icon class="icon" title="Duration" src="/assets/svg/icon_time.svg" color="var(--theme-darkblue-color-3)" />
+                <app-icon class="icon" title="Duration" src="/assets/svg/icon_time.svg"
+                    color="var(--theme-darkblue-color-3)" />
                 <label>{{ formatDuration(selectedQuizPlayed.duration) }}</label>
             </div>
         </div>
@@ -23,7 +26,7 @@
         <div class="question-container" [ngClass]="{
                 'correct': q.correct_answer_text === q.user_answer_text,
                 'wrong': q.correct_answer_text !== q.user_answer_text
-            }" *ngFor="let q of selectedQuizQuestions">
+            }" *ngFor="let q of userQuestions">
             <div class="question">
                 <label>Q: {{ q.question_text }}</label>
                 <label>Your answer: {{ q.user_answer_text }}</label>
@@ -40,7 +43,35 @@
                 : 'collapsed'">
                 <label>{{ q.question_description }}</label>
             </div>
-
+        </div>
+        <span class="h-divider" style="background-color: var(--theme-darkblue-color-3);"></span>
+        <div class="quiz-details" style="justify-content: flex-start;">
+            <label>Opponent: {{selectedQuizPlayed.opponent_username}}</label>
+            <div class="det">
+                <label>Correct answers: {{ opponentCorrectAns }}/{{ opponentTotalNumOfAns }} - {{ opponentAnsPercent }}%</label>
+            </div>
+        </div>
+        <span class="h-divider" style="background-color: var(--theme-darkblue-color-3);"></span>
+        <div class="question-container" [ngClass]="{
+                'correct': q.correct_answer_text === q.user_answer_text,
+                'wrong': q.correct_answer_text !== q.user_answer_text
+            }" *ngFor="let q of opponentQuestions">
+            <div class="question">
+                <label>Q: {{ q.question_text }}</label>
+                <label>Your answer: {{ q.user_answer_text }}</label>
+                <label *ngIf="!q.user_correct">
+                    Correct answer: {{ q.correct_answer_text }}
+                </label>
+                <label (click)="q.is_expanded = !q.is_expanded" class="description">Description <app-icon
+                        style="width: 20px; height: 20px;" [src]="descArrowSrc"
+                        color="var(--theme-color-neutral-1)" /></label>
+            </div>
+            <div class="question-expand" [ngClass]="{
+                'qu-ex-cor': q.correct_answer_text === q.user_answer_text,
+                'qu-ex-wr': q.correct_answer_text !== q.user_answer_text }" [@expandCollapse]=" q.is_expanded ? 'expanded'
+                : 'collapsed'">
+                <label>{{ q.question_description }}</label>
+            </div>
         </div>
 
         <button class=" btn-light-small" style="margin-top: 10px;" (click)="close()">Close</button>

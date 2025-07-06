@@ -24,6 +24,7 @@ import { UserSettingsComponent } from './dashboard/user-settings/user-settings.c
 import { SpinnerComponent } from './shared/ui-indicators/spinner/spinner.component';
 import { BattleSummaryComponent } from './quiz/battle-summary/battle-summary.component';
 import { ShowAvatarsComponent } from './dashboard/show-avatars/show-avatars.component';
+import { DotLoaderComponent } from './shared/ui-indicators/dot-loader/dot-loader.component';
 
 
 @NgModule({
@@ -46,7 +47,8 @@ import { ShowAvatarsComponent } from './dashboard/show-avatars/show-avatars.comp
     UserSettingsComponent,
     SpinnerComponent,
     BattleSummaryComponent,
-    ShowAvatarsComponent
+    ShowAvatarsComponent,
+    DotLoaderComponent
   ],
   imports: [
     BrowserModule,

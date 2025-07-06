@@ -36,11 +36,13 @@ export class QuizDetailsComponent implements OnChanges {
   @Input() selectedQuizPlayed: QuizPlayed;
   @Input() selectedQuizQuestions: QuizDetailsQuestion[];
 
+  userQuestions: QuizDetailsQuestion[];
+  opponentQuestions: QuizDetailsQuestion[];
+
   @Output() closed = new EventEmitter<void>();
 
   constructor(
     private renderer: Renderer2,
-    private quizService: QuizService,
     private utilService: UtilService
   ) {
 
@@ -54,18 +56,29 @@ export class QuizDetailsComponent implements OnChanges {
 
   descArrowSrc = this.ARROW_DIRECTION.DOWN
 
-  correctAns: number = 0;
-  totalNumOfAns: number = 0;
-  ansPercent: string = '';
+  userCorrectAns: number = 0;
+  userTotalNumOfAns: number = 0;
+  userAnsPercent: string = '';
+
+  opponentCorrectAns: number = 0;
+  opponentTotalNumOfAns: number = 0;
+  opponentAnsPercent: string = '';
 
   ngOnChanges(changes: SimpleChanges): void {
     this.selectedQuizQuestions = this.selectedQuizQuestions.map(q => ({
       ...q,
       isExpanded: false
     }));
-    this.totalNumOfAns = this.selectedQuizQuestions.length;
-    this.correctAns = this.selectedQuizQuestions.filter(q => q.correct_answer_text === q.user_answer_text).length;
-    this.ansPercent = this.utilService.formatPercentTwoFixed(this.correctAns, this.totalNumOfAns);
+    this.userQuestions = this.selectedQuizQuestions.filter(q => q.user_id === this.selectedQuizPlayed.user_id);
+    this.opponentQuestions = this.selectedQuizQuestions.filter(q => q.user_id !== this.selectedQuizPlayed.user_id);
+
+    this.userTotalNumOfAns = this.userQuestions.length;
+    this.userCorrectAns = this.userQuestions.filter(q => q.correct_answer_text === q.user_answer_text).length;
+    this.userAnsPercent = this.utilService.formatPercentTwoFixed(this.userCorrectAns, this.userTotalNumOfAns);
+
+    this.opponentTotalNumOfAns = this.opponentQuestions.length;
+    this.opponentCorrectAns = this.opponentQuestions.filter(q => q.correct_answer_text === q.user_answer_text).length;
+    this.opponentAnsPercent = this.utilService.formatPercentTwoFixed(this.opponentCorrectAns, this.opponentTotalNumOfAns);
   }
 
   formatDuration(seconds: number): string {

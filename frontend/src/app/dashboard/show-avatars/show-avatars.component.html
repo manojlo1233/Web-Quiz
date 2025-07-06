@@ -5,7 +5,7 @@
     </div>
     <div class="bottom">
         <label>Selected avatar:</label>
-        <img style="box-shadow: 0 0 1px 3px var(--theme-darkblue-color-6);" [src]="'http://localhost:3000/static/avatars/' + selectedAvatar" />
+        <img style="box-shadow: 0 0 1px 3px var(--theme-darkblue-color-6); cursor: default;" [src]="'http://localhost:3000/static/avatars/' + selectedAvatar" />
         <div class="btns">
             <button class="btn-light-small" (click)="save()">Save</button>
             <button class="btn-light-small" (click)="close('')">Close</button>

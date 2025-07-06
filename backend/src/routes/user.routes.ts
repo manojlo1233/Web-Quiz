@@ -4,7 +4,7 @@ import {
     getUserById,
     getUserByUsername,
     getUserPlayHistoryById,
-    getUserQuizQuestionsById,
+    getUserQuizDetails,
     getUsersByUsername,
     getUserStatisticsById,
     loginUser,
@@ -27,7 +27,7 @@ userRouter.get('/getUserByUsername/:username', getUserByUsername);
 userRouter.post('/getUsersByUsername', getUsersByUsername);
 userRouter.get('/getUserStatisticsById/:id', getUserStatisticsById);
 userRouter.get('/getUserPlayHistoryById/:id', getUserPlayHistoryById);
-userRouter.get('/getUserQuizQuestionsById/:userId/:quizId', getUserQuizQuestionsById)
+userRouter.get('/getUserQuizDetails/:quizId', getUserQuizDetails)
 userRouter.get('/getLeaderBoard', getLeaderBoard);
 userRouter.post('/updateUserSettingsById', updateUserSettingsById);
 userRouter.patch('/updateUserAvatar', updateUserAvatar);

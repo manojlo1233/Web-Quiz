@@ -4,4 +4,5 @@ export class QuizDetailsQuestion {
     user_correct: boolean;
     correct_answer_text: string;
     question_description: string;
+    user_id: number;
 }

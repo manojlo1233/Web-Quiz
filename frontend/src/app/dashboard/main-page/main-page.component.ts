@@ -276,7 +276,7 @@ export class MainPageComponent implements OnInit, OnDestroy {
   }
 
   showDetails(item: QuizPlayed) {
-    this.userService.getUserQuizQuestionsById(item.user_id, item.quiz_id).subscribe({
+    this.userService.getUserQuizDetails(item.quiz_id).subscribe({
       next: (resp: any) => {
         this.displayQuizQuestionsContainer.clear();
         const componentRef = this.displayQuizQuestionsContainer.createComponent(QuizDetailsComponent);

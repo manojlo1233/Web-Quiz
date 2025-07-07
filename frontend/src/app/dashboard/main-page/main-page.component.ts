@@ -128,7 +128,6 @@ export class MainPageComponent implements OnInit, OnDestroy {
     this.userService.getUserStatisticsById(userId).subscribe({
       next: (resp: any) => {
         this.userStatistic = resp;
-        console.log(this.userStatistic)
       },
       error: (error: any) => {
         console.error(error)
@@ -182,13 +181,15 @@ export class MainPageComponent implements OnInit, OnDestroy {
       this.getFriends(userId);
     })
     // --------- LEADERBOARD ---------
-    this.userService.getLeaderBoard().subscribe({
+    this.getLeaderboard();
+    this.wsService.refreshLeaderboard$.subscribe({
       next: (resp: any) => {
-        this.leaderbaord = resp;
+        this.getLeaderboard();
       },
       error: (error: any) => {
+        // SHOW ERROR PAGE
       }
-    })
+    });
     // --------- START QUIZ ---------
     this.startQuizSub = this.wsService.startQuiz$.subscribe((resp: WSMatchFoundMsg) => {
       this.isSearching = false;
@@ -267,6 +268,16 @@ export class MainPageComponent implements OnInit, OnDestroy {
         this.friends = [];
         this.friendsRequest = [];
         // GO TO ERROR PAGE
+      }
+    })
+  }
+
+  getLeaderboard() {
+    this.userService.getLeaderBoard().subscribe({
+      next: (resp: any) => {
+        this.leaderbaord = resp;
+      },
+      error: (error: any) => {
       }
     })
   }
@@ -490,6 +501,15 @@ export class MainPageComponent implements OnInit, OnDestroy {
     this.showAvailableAvatars = false;
   }
 
+  getBattleOutcome(item: QuizPlayed) {
+    if (item.player_left_id === item.user_id) {
+      return 'LEFT';
+    }
+    else {
+      return item.user_id === item.winner_id? 'WIN': 'LOSE';
+    }
+  }
+
   ngOnDestroy(): void {
     if (this.errorSub) this.errorSub.unsubscribe();
     if (this.startQuizSub) this.startQuizSub.unsubscribe();
@@ -501,5 +521,5 @@ export class MainPageComponent implements OnInit, OnDestroy {
     if (this.battleDeclineSub) this.battleDeclineSub.unsubscribe();
     if (this.battleWithdrawSub) this.battleWithdrawSub.unsubscribe();
     if (this.battleAutoWithdrawSub) this.battleAutoWithdrawSub.unsubscribe();
-  }
+  }  
 }

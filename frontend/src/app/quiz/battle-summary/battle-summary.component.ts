@@ -11,7 +11,7 @@ export class BattleSummaryComponent implements OnInit {
   @Output() closeEvent = new EventEmitter<void>();
   constructor() { }
 
-  timeRemaining: number = 60;
+  timeRemaining: number = 30;
 
   ngOnInit(): void {
     // SET TIME INTERVAL

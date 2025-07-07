@@ -23,7 +23,7 @@ export const createConnection = async () => {
   }
 };
 
-export async function updateUserStatistics(userId: number) {
+export async function updateUserStatisticsAndRanking(userId: number, winnerId: number) {
   // TOTAL QUIZES
   const [totalResult] = await pool.query(
     `SELECT COUNT(*) AS total FROM quiz_attempts WHERE user_id = ? AND completed_at IS NOT NULL`,
@@ -69,6 +69,41 @@ export async function updateUserStatistics(userId: number) {
         `,
     [userId, totalQuizzes, avgScore, avgTime]
   );
+
+  // UPDATE USER RANKING
+
+  const rankChange = userId === winnerId ? 20 : -10;
+
+  const [currentRankingResult] = await pool.query(
+    `
+      SELECT ranking 
+      FROM users u
+      WHERE u.id=?
+    `,
+    [userId]
+  )
+
+  if ((currentRankingResult as any[]).length === 0) {
+    console.log('Error fetching user ranking.');
+    return;
+  }
+
+  let newRanking = currentRankingResult[0].ranking + rankChange;
+  newRanking = newRanking < 0 ? 0 : newRanking;
+
+  const [rankingUpdateResult] = await pool.query(
+    `
+      UPDATE users
+      SET ranking=?
+      WHERE users.id=?
+    `,
+    [newRanking, userId]
+  )
+
+  if ((rankingUpdateResult as any).affectedRows <= 0) {
+     console.log('Error updating user ranking.');
+    return;
+  }
 }
 
 export default pool;

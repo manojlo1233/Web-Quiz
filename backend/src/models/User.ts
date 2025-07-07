@@ -12,4 +12,5 @@ export class User {
     reset_token_expires: Date;
     receive_updates: boolean;
     avatar: string;
+    ranking: number;
 }

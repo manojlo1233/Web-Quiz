@@ -7,4 +7,6 @@ export class UserPlayHistory {
     difficulty: number;
     start: Date;
     end: Date;
+    winner_id: number;
+    player_left_id: number;
 }

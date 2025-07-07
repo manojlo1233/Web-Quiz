@@ -55,6 +55,8 @@ export class BattleComponent implements OnInit {
   // BATTLE SUMMARY
   showBattleSummary: boolean = false;
   battleSummaryData: BattleSummary = null;
+  // LEAVE
+  reallyLeave: boolean = false;
 
   ngOnInit(): void {
     this.match = this.matchStateService.getCurrentMatch();
@@ -115,7 +117,7 @@ export class BattleComponent implements OnInit {
     this.wsService.matchFinished$.subscribe((data: any) => {
       this.showBattleSummary = true;
       this.battleSummaryData = new BattleSummary();
-      this.battleSummaryData = {...data};
+      this.battleSummaryData = { ...data };
     })
   }
 
@@ -190,5 +192,18 @@ export class BattleComponent implements OnInit {
 
   goToMainPage() {
     this.router.navigate(['dashboard/main-page']);
+  }
+
+  handleLeaveClick() {
+    if (!this.reallyLeave) {
+      this.reallyLeave = true;
+      setTimeout(() => {
+        this.reallyLeave = false;
+      }, 5000)
+      return;
+    }
+    else {
+      this.wsService.sendLeaveBattle(this.match.matchId, this.user.id);
+    }
   }
 }

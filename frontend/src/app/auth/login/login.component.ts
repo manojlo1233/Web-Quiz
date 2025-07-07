@@ -17,23 +17,22 @@ export class LoginComponent {
     private snackBarService: SnackBarService,
     private userService: UserService,
     private router: Router
-  )
-  {}
+  ) { }
 
   usernameOrEmail: string = '';
   password: string = '';
 
   onSubmit() {
-    this.authService.loginUser(this.usernameOrEmail, this.password).subscribe((resp: any) => {
-      if (resp.message !== 'success') {
-        this.snackBarService.showSnackBar(resp.message)
-      }
-      else {
+    this.authService.loginUser(this.usernameOrEmail, this.password).subscribe({
+      next: (resp: any) => {
+        console.log(resp);
         sessionStorage.setItem('userId', resp.user.id);
         sessionStorage.setItem('userUsername', resp.user.username);
         this.router.navigate(['dashboard/main-page']);
+      },
+      error: (error: any) => {
+        this.snackBarService.showSnackBar(error.error.message)
       }
-      
     })
   }
 }

@@ -1,10 +1,9 @@
-<app-battle-summary *ngIf="showBattleSummary" [data]="battleSummaryData" (closeEvent)="goToMainPage()"/>
+<app-battle-summary *ngIf="showBattleSummary" [data]="battleSummaryData" (closeEvent)="goToMainPage()" />
 <div style="display: flex; flex-direction: column; width: 100%;">
     <div class="user">
-        <img [src]="'http://localhost:3000/static/avatars/' + user.avatar" alt="User Avatar"
-                        class="avatar" />
+        <img [src]="'http://localhost:3000/static/avatars/' + user.avatar" alt="User Avatar" class="avatar" />
         <label>{{user.username}}</label>
-        <label>Score: {{userScore}}</label>
+        <label class="score">Score: {{userScore}}</label>
     </div>
     <div class="actions-container">
         <label>User Actions</label>
@@ -13,7 +12,8 @@
 <div class="battle">
     <app-icon src="assets/svg/quiz_logo_icon.svg" color="var(--theme-darkblue-color-3)" style="width: 300px;
         height: 200px; margin-top: 10%;" />
-    <div style="display: flex; flex-direction: column; height: 70%; margin-top: auto; width: 100%; align-items: center; padding: 2px 5px; box-sizing: border-box;">
+    <div
+        style="display: flex; flex-direction: column; margin-top: auto; width: 100%; align-items: center; padding: 2px 5px; box-sizing: border-box;">
         <div class="time">
             <label>{{remainingTime}}</label>
             <div class="timer-bar">
@@ -38,13 +38,15 @@
 
         </div>
     </div>
+    <button class="btn-light-small btn-red" [ngClass]="{
+                    'btn-leave-red': reallyLeave
+                }" (click)="handleLeaveClick()">{{reallyLeave? 'Really ': ''}}Leave</button>
 </div>
 <div style="display: flex; flex-direction: column; width: 100%;">
     <div class="user">
-        <img [src]="'http://localhost:3000/static/avatars/' + opponent.avatar" alt="User Avatar"
-                        class="avatar" />
+        <img [src]="'http://localhost:3000/static/avatars/' + opponent.avatar" alt="User Avatar" class="avatar" />
         <label>{{opponent.username}}</label>
-         <label>Score: {{opponentScore}}</label>
+        <label class="score">Score: {{opponentScore}}</label>
     </div>
     <div class="chat-container">
         <div class="chat-box">

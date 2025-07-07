@@ -3,4 +3,6 @@ export class BattleSummary {
     opponentScore: number;
     winnerId: number;
     winnerUsername: string;
+    playerLeftId: number;
+    playerLeftUsername: string;
 }

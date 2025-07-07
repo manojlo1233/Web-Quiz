@@ -100,4 +100,13 @@ export class QuizDetailsComponent implements OnChanges {
     }
   }
 
+  getBattleOutcome() {
+    if (this.selectedQuizPlayed.player_left_id === this.selectedQuizPlayed.user_id) {
+      return 'LEFT';
+    }
+    else {
+      return this.selectedQuizPlayed.user_id === this.selectedQuizPlayed.winner_id? 'WIN': 'LOSE';
+    }
+  }
+
 }

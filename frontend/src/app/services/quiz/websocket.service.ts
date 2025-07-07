@@ -31,7 +31,9 @@ export class WebsocketService {
   public chatMessage$ = new Subject<any>();
   // FRIENDS
   public refreshFriends$ = new Subject<any>();
+  // BROADCAST
   public refreshFriendsStatus$ = new Subject<void>();
+  public refreshLeaderboard$ = new Subject<void>();
 
   connect(): void {
     this.socket = new WebSocket('ws://localhost:3000');
@@ -75,9 +77,6 @@ export class WebsocketService {
         case 'friends/REFRESH':
           this.refreshFriends$.next({ userId: data.userId, action: data.action });
           break;
-        case 'friends/REFRESH_STATUS':
-          this.refreshFriendsStatus$.next();
-          break;
         case 'friends/BATTLE_REQUEST':
           this.battleRequest$.next(data);
           break;
@@ -92,6 +91,12 @@ export class WebsocketService {
           break;
         case 'friends/BATTLE_AUTO_WITHDRAW':
           this.battleAutoWithdraw$.next(data);
+          break;
+        case 'broadcast/REFRESH_FRIENDS':
+          this.refreshFriendsStatus$.next();
+          break;
+        case 'broadcast/REFRESH_LEADERBOARD':
+          this.refreshLeaderboard$.next();
           break;
       }
     };
@@ -160,6 +165,10 @@ export class WebsocketService {
 
   sendBattleDecline(userId: number, friendId: number) {
     this.send({ type: 'friends/BATTLE_DECLINE', userId, friendId });
+  }
+
+  sendLeaveBattle(matchId: number, playerLeftId: number) {
+    this.send({ type: 'battle/LEAVE_BATTLE', matchId, playerLeftId });
   }
 
   close(): void {

@@ -7,6 +7,7 @@ import nodemailer from 'nodemailer'
 import { User } from "../models/User";
 import { UserPlayHistory } from "../models/UserPlayHistory";
 import { QuizDetailsQuestion } from "../models/QuizDetailsQuestion";
+import { checkIfUserSessionExists } from "../websockets/matchmaking.ws";
 
 export const loginUser = async (req: Request, res: Response) => {
     const { userNameOrEmail, password } = req.body;
@@ -17,20 +18,28 @@ export const loginUser = async (req: Request, res: Response) => {
             [userNameOrEmail, userNameOrEmail]
         )
         if ((rows as any[]).length == 0) {
-            res.status(200).json({ message: 'Invalid username or password' })
+            res.status(404).json({ message: 'Invalid username or password' });
             return;
         }
         const user: User = rows[0];
         const isMatch = await bcrypt.compare(password, user.password_hash);
         if (!isMatch) {
-            res.status(200).json({ message: 'Invalid username or password' })
+            res.status(404).json({ message: 'Invalid username or password' });
             return
+        }
+
+        const userSessionExists = checkIfUserSessionExists(user.id);
+        console.log(userSessionExists)
+        if (userSessionExists) {
+            console.log('ALOO')
+            res.status(403).json({ message: 'You are already logged in on different device. Please log out from that device to continue.' });
+            return;
         }
 
         res.status(200).json({ message: 'success', user: { id: user.id, username: user.username } });
     } catch (error: any) {
         console.log('Login error', error);
-        res.status(500).json({ message: 'Login failed', error: error.message })
+        res.status(500).json({ message: 'Login failed', error: error.message });
     }
 }
 
@@ -266,7 +275,9 @@ export const getUserPlayHistoryById = async (req: Request, res: Response) => {
                 qa.started_at AS start,
                 qa.completed_at AS end,
                 opponent_attempt.user_id AS opponent_id,
-                u.username AS opponent_username
+                u.username AS opponent_username,
+                winner_id AS winner_id,
+                player_left_id AS player_left_id
             FROM
                 quiz_attempts qa
             JOIN
@@ -274,12 +285,17 @@ export const getUserPlayHistoryById = async (req: Request, res: Response) => {
             JOIN
                 categories c ON q.category_id = c.id
             LEFT JOIN
+                battles b ON b.quiz_id = qa.quiz_id
+            LEFT JOIN
                 quiz_attempts opponent_attempt ON opponent_attempt.quiz_id = qa.quiz_id
                     AND opponent_attempt.user_id != qa.user_id
             LEFT JOIN 
                 users u ON u.id = opponent_attempt.user_id
             WHERE 
-                qa.user_id = ?`,
+                qa.user_id = ?
+            ORDER BY
+                qa.started_at DESC
+            `,
             [userId]
         );
         if ((userHistory as any[]).length === 0) {
@@ -321,10 +337,6 @@ export const getUserQuizDetails = async (req: Request, res: Response) => {
                 q.id;`,
             [quizId]
         )
-        if ((quizDetails as any[]).length === 0) {
-            res.status(404).json({ message: 'Quiz details not found' })
-            return;
-        }
         const quizQuestions: QuizDetailsQuestion[] = (quizDetails as any[]);
         res.status(200).json(quizQuestions);
     } catch (error: any) {
@@ -339,13 +351,11 @@ export const getLeaderBoard = async (req: Request, res: Response) => {
             `SELECT 
                 u.id as userId,
                 u.username as username,
-                s.avg_score as score       
+                u.ranking as ranking
             FROM 
                 users u
-            JOIN 
-                statistics s ON u.id = s.user_id
             ORDER BY
-                s.avg_score DESC
+                u.ranking DESC
             `
         )
         if ((leaderBoard as any[]).length === 0) {

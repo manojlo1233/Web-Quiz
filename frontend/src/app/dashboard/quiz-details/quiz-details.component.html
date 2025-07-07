@@ -1,6 +1,12 @@
 <div class="modal-backdrop">
     <div class="modal-window">
-        <label style="width: 100%; text-align: center; font-size: 24px;">Quiz Details</label>
+        <div class="hdr">
+            <label style="position: absolute; left: 0;"
+                [style.color]="selectedQuizPlayed.user_id === selectedQuizPlayed.winner_id ? 'var(--theme-darkblue-green)' : 'var(--theme-darkblue-red)'">
+                {{getBattleOutcome()}}</label>
+            <label>Quiz Details</label>
+        </div>
+
 
         <div class="quiz-details">
             <div class="det">
@@ -22,7 +28,7 @@
                 <label>{{ formatDuration(selectedQuizPlayed.duration) }}</label>
             </div>
         </div>
-        <span class="h-divider" style="background-color: var(--theme-darkblue-color-3);"></span>
+        <span class="h-divider" style="background-color: var(--theme-darkblue-color-3);">this is hidden</span>
         <div class="question-container" [ngClass]="{
                 'correct': q.correct_answer_text === q.user_answer_text,
                 'wrong': q.correct_answer_text !== q.user_answer_text
@@ -44,14 +50,15 @@
                 <label>{{ q.question_description }}</label>
             </div>
         </div>
-        <span class="h-divider" style="background-color: var(--theme-darkblue-color-3);"></span>
+        <span class="h-divider" style="background-color: var(--theme-darkblue-color-3);">this is hidden</span>
         <div class="quiz-details" style="justify-content: flex-start;">
-            <label>Opponent: {{selectedQuizPlayed.opponent_username}}</label>
+            <label>Opponent: {{selectedQuizPlayed.opponent_username}} <span *ngIf="selectedQuizPlayed.opponent_id === selectedQuizPlayed.player_left_id">- <span style="color: var(--theme-darkblue-red);">LEFT</span></span></label>
             <div class="det">
-                <label>Correct answers: {{ opponentCorrectAns }}/{{ opponentTotalNumOfAns }} - {{ opponentAnsPercent }}%</label>
+                <label>Correct answers: {{ opponentCorrectAns }}/{{ opponentTotalNumOfAns }} - {{ opponentAnsPercent
+                    }}%</label>
             </div>
         </div>
-        <span class="h-divider" style="background-color: var(--theme-darkblue-color-3);"></span>
+        <span class="h-divider" style="background-color: var(--theme-darkblue-color-3);">this is hidden</span>
         <div class="question-container" [ngClass]="{
                 'correct': q.correct_answer_text === q.user_answer_text,
                 'wrong': q.correct_answer_text !== q.user_answer_text

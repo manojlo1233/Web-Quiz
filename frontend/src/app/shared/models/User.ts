@@ -8,4 +8,5 @@ export class User {
     role: number;
     receive_updates: number;
     avatar: string;
+    ranking: number;
 }

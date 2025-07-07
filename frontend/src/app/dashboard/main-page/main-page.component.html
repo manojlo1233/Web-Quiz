@@ -48,24 +48,31 @@
                             <th>Category</th>
                             <th>Start</th>
                             <th>Duration</th>
+                            <th>Outcome</th>
                             <th></th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody *ngIf="userPlayHistory.length !== 0">
                         <tr *ngFor="let item of userPlayHistory">
                             <td>{{ item.category }}</td>
                             <td>{{ item.start | date: 'dd.MM.yy HH:mm:ss' }}</td>
                             <td>{{ formatDuration(item.duration) }}</td>
+                            <td
+                                [style.color]="item.user_id === item.winner_id ? 'var(--theme-darkblue-green)' : 'var(--theme-darkblue-red)'">
+                                {{getBattleOutcome(item)}}</td>
                             <td>
                                 <button class="btn-light-small" style="margin: 0;"
                                     (click)="showDetails(item)">Details</button>
                             </td>
                     </tbody>
+                    <tbody *ngIf="userPlayHistory.length === 0">
+                        <td class="neutral-italic" colspan="5">--- Play history does not exist ---</td>
+                    </tbody>    
                 </table>
             </div>
         </div>
     </div>
-    <div class="col-cont">
+    <div class="col-cont" style="width: 80%;">
         <div class="play-btns">
             <div class="search">
                 <label *ngIf="!isSearching"> &nbsp;</label>
@@ -77,7 +84,7 @@
 
         </div>
     </div>
-    <div class="col-cont">
+    <div class="col-cont" style="width: 80%;">
         <div class="lboard">
             <div class="hdr">
                 <label>Leaderboard </label>
@@ -86,7 +93,7 @@
             <div class="lboard-container">
                 <div class="lboard-user" *ngFor="let user of leaderbaord, let i = index">
                     <label>{{user.username}}</label>
-                    <label>{{user.score | number:'1.2-2'}} </label>
+                    <label>{{user.ranking | number:'1.0'}} </label>
                 </div>
             </div>
         </div>
@@ -133,7 +140,8 @@
                                 <app-icon *ngIf="f.online && f.battleRequestSent" class="icon small withdraw"
                                     src="/assets/svg/icon_flag_2.svg" color="white" (click)="handleBattleWithdraw(f)"
                                     title="Withdraw" />
-                                <app-dot-loader *ngIf="f.online && f.battleRequestSent" color="white" [size]="3" style="margin: auto 3px 5px 3px;" />
+                                <app-dot-loader *ngIf="f.online && f.battleRequestSent" color="white" [size]="3"
+                                    style="margin: auto 3px 5px 3px;" />
                                 <label *ngIf="f.online && f.battleRequestSent">Pending request</label>
                                 <app-icon *ngIf="f.online && f.battleRequestReceived" class="icon small"
                                     src="/assets/svg/icon_circle_x.svg" color="var(--theme-darkblue-color-3)"

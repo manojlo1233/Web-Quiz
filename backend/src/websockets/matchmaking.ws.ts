@@ -2,7 +2,7 @@ import { WebSocketServer, WebSocket } from 'ws';
 import { Server } from 'http';
 import { Match } from '../models/Match';
 import { QuizQuestion } from '../models/Quiz/QuizQuestion';
-import pool, { updateUserStatistics } from '../config/db';
+import pool, { updateUserStatisticsAndRanking } from '../config/db';
 import { QuizAnswer } from '../models/Quiz/QuizAnswer';
 import { BattleStatusMapper } from '../mappers/BattleStatusMapper';
 import { clearIntervalFromMap } from '../util/util';
@@ -22,6 +22,7 @@ export default function initWebSocketServer(server: Server) {
     const wss = new WebSocketServer({ server });
     // INIT
     initUserOnlineStatusBroadcast();
+    initLeaderboardBroadcast();
 
     wss.on('connection', (ws) => {
         ws.on('message', async (message) => {
@@ -186,6 +187,13 @@ export default function initWebSocketServer(server: Server) {
                 })
                 friendSock.send(payload);
             }
+            else if (data.type === 'battle/LEAVE_BATTLE') {
+                const matchId = data.matchId;
+                const playerLeftId = data.playerLeftId;
+                const match = activeMatches.get(matchId);
+                if (!match) return; // SOME KIND OF ERROR
+                finishMatch(match, playerLeftId);
+            }
 
             // ----------------- BATTLE FUNCTIONS -----------------
 
@@ -348,21 +356,38 @@ export default function initWebSocketServer(server: Server) {
                 }
             }
 
-            async function finishMatch(match: Match) {
+            async function finishMatch(match: Match, playerLeftId: number = null) {
+                console.log(playerLeftId);
                 match.status = 'finished';
                 let winnerId: number | null = null;
                 let winnerUsername: string = null;
-                if (match.scoreP1 >= match.scoreP2) {
-                    winnerId = (match.player1 as any).id;
-                    winnerUsername = (match.player1 as any).username;
+                let playerLeftUsername = null;
+                if (playerLeftId === null) {
+                    if (match.scoreP1 >= match.scoreP2) {
+                        winnerId = (match.player1 as any).id;
+                        winnerUsername = (match.player1 as any).username;
+                    }
+                    else if (match.scoreP1 < match.scoreP2) {
+                        winnerId = (match.player2 as any).id;
+                        winnerUsername = (match.player2 as any).username;
+                    }
                 }
-                else if (match.scoreP1 < match.scoreP2) {
-                    winnerId = (match.player2 as any).id;
-                    winnerUsername = (match.player2 as any).username;
+                else {
+                    if (playerLeftId === (match.player1 as any).id) {
+                        winnerId = (match.player2 as any).id;
+                        winnerUsername = (match.player2 as any).username;
+                        playerLeftUsername = (match.player1 as any).username;
+                    }
+                    else {
+                        winnerId = (match.player1 as any).id;
+                        winnerUsername = (match.player1 as any).username;
+                        playerLeftUsername = (match.player2 as any).username;
+                    }
                 }
+
                 const [resultBattle] = await pool.query(
-                    `UPDATE battles SET winner_id=?, status=?, player1_score=?, player2_score=? WHERE quiz_id=?`,
-                    [winnerId, BattleStatusMapper.getBattleStatus('finished'), match.scoreP1, match.scoreP2, Number.parseInt(match.matchId)]
+                    `UPDATE battles SET winner_id=?, status=?, player1_score=?, player2_score=?, player_left_id=? WHERE quiz_id=?`,
+                    [winnerId, BattleStatusMapper.getBattleStatus('finished'), match.scoreP1, match.scoreP2, playerLeftId, Number.parseInt(match.matchId)]
                 )
                 if ((resultBattle as any).affectedRows <= 0) {
                     sendError(match);
@@ -376,15 +401,17 @@ export default function initWebSocketServer(server: Server) {
                     sendError(match);
                 }
 
-                updateUserStatistics((match.player1 as any).id);
-                updateUserStatistics((match.player2 as any).id);
+                updateUserStatisticsAndRanking((match.player1 as any).id, winnerId);
+                updateUserStatisticsAndRanking((match.player2 as any).id, winnerId);
 
                 const summary = {
                     type: 'battle/MATCH_FINISHED',
                     yourScore: match.scoreP1,
                     opponentScore: match.scoreP2,
                     winnerId,
-                    winnerUsername
+                    winnerUsername,
+                    playerLeftId,
+                    playerLeftUsername
                 }
 
                 match.player1.send(JSON.stringify(summary));
@@ -481,9 +508,17 @@ export default function initWebSocketServer(server: Server) {
 function initUserOnlineStatusBroadcast() {
     setInterval(() => {
         usersWebSockets.forEach(ws => {
-            ws.send(JSON.stringify({ type: 'friends/REFRESH_STATUS' }));
+            ws.send(JSON.stringify({ type: 'broadcast/REFRESH_FRIENDS' }));
         })
     }, 5000);
+}
+
+function initLeaderboardBroadcast() {
+    setInterval(() => {
+        usersWebSockets.forEach(ws => {
+            ws.send(JSON.stringify({ type: 'broadcast/REFRESH_LEADERBOARD' }));
+        })
+    }, 30000);
 }
 
 export function sendFriendRefreshSignal(userId: number, friendId: number, action: string) {
@@ -504,4 +539,14 @@ export function checkUserFriendsOnlineStatus(userFriends: any[]): any[] {
         }
     });
     return userFriends;
+}
+
+export function checkIfUserSessionExists(userId: number): boolean {
+    let ret = false;
+    usersWebSockets.forEach(ws => {
+        if ((ws as any).id === userId) {
+            ret = true;
+        }
+    });
+    return ret;
 }

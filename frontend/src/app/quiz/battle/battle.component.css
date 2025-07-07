@@ -30,6 +30,10 @@
     }
 }
 
+.score {
+    font-size: 20px;
+}
+
 .battle {
     width: 100%;
     display: flex;
@@ -287,3 +291,27 @@
     justify-content: center;
     height: 100%;
 }
+
+.btn-red {
+    margin: auto 0 auto 0;
+    background-color: var(--theme-darkblue-color-6);
+    border: 1px solid var(--theme-darkblue-red);
+    color: var(--theme-darkblue-red);
+    font-size: 24px;
+}
+
+.btn-red:hover {
+    border: 1px solid var(--theme-darkblue-red-hover);
+    color: var(--theme-darkblue-red-hover);
+}
+
+.btn-red:active {
+    border: 1px solid var(--theme-darkblue-red-active);
+    color: var(--theme-darkblue-red-active);
+}
+
+.btn-leave-red {
+    box-shadow: 0 0 7px 4px var(--theme-darkblue-red);
+}
+
+

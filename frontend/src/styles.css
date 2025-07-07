@@ -149,12 +149,16 @@ html {
     cursor: default;
 }
 
-.v-divider{
+.v-divider {
+    display: block;
     height: 100%;
     width: 1px;
+    color: transparent;
 }
 
-.h-divider{
+.h-divider {
+    display: block;
     height: 1px;
-    width: 100%;   
+    width: 100%;
+    color: transparent;
 }

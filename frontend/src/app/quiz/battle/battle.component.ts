@@ -36,6 +36,7 @@ export class BattleComponent implements OnInit {
   totalTime: number = 15;
   remainingTime: number = 15;
   timerInterval;
+  timerStartTime;
   // QUESTION
   question: QuizQuestion = new QuizQuestion();
   // ASNWERS
@@ -79,6 +80,7 @@ export class BattleComponent implements OnInit {
 
     // SUBSCRIBE TO ANSWER SUMMARY
     this.wsService.answerSummary$.subscribe((resp: AnswerSummary) => {
+      console.log(resp);
       this.answerSummaryPhase = true;
       this.selectedAnswer = null;
       this.initTimerIncrease();
@@ -146,6 +148,7 @@ export class BattleComponent implements OnInit {
     if (this.timerInterval) clearInterval(this.timerInterval);
     this.totalTime = 10;
     this.remainingTime = 10;
+    this.timerStartTime = performance.now();
     this.timerInterval = setInterval(() => {
       this.remainingTime--;
       if (this.remainingTime === 0) {
@@ -179,7 +182,9 @@ export class BattleComponent implements OnInit {
   handleAnswerClick(answer: QuizAnswer) {
     if (this.selectedAnswer) return;
     this.selectedAnswer = answer;
-    this.wsService.sendBattleAnswer(this.match.matchId.toString(), this.user.username, answer.text);
+    const currentTime = performance.now();
+    const elapsed = (currentTime - this.timerStartTime) / 1000;
+    this.wsService.sendBattleAnswer(this.match.matchId.toString(), this.user.username, answer.text, parseFloat(elapsed.toFixed(2)));
   }
 
   sendMessage() {

@@ -143,8 +143,8 @@ export class WebsocketService {
     this.send({ type: 'battle/PLAYER_ENTERED_BATTLE', matchId, username });
   }
 
-  sendBattleAnswer(matchId: string, username: string, answer: string) {
-    this.send({ type: 'battle/ANSWER', matchId, username, answer });
+  sendBattleAnswer(matchId: string, username: string, answer: string, responseTime: number) {
+    this.send({ type: 'battle/ANSWER', matchId, username, answer, responseTime });
   }
 
   sendChatMessage(matchId: string, username: string, message: string, time: string) {

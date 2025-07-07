@@ -16,6 +16,8 @@ export class Match {
     currentQuestionIndex: number;
     answerP1: string;
     answerP2: string;
+    elapsedTimeP1: number;
+    elapsedTimeP2: number;
     scoreP1: number;
     scoreP2: number;
     status: 'waiting' | 'ready' | 'started' | 'cancelled' | 'overtime' | 'finished' = 'waiting';

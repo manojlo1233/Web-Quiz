@@ -96,62 +96,21 @@ export default function initWebSocketServer(server: Server) {
             else if (data.type === 'battle/ANSWER') {
                 const match = activeMatches.get(data.matchId);
                 if (!match) return;
-                if (match.status !== 'overtime') {
-                    if ((match.player1 as any).username === data.username) {
-                        match.answerP1 = data.answer;
-                    }
-                    if ((match.player2 as any).username === data.username) {
-                        match.answerP2 = data.answer;
-                    }
-                    if (match.answerP1 !== null && match.answerP2 !== null) {
-                        if (answerSummaryIdleTimeout.has(match.matchId)) {
-                            clearTimeout(answerSummaryIdleTimeout.get(match.matchId));
-                        }
-                        // CLEAR SEND SUMMARY ON IDLE USERS
-                        sendAnswerSummary(match)
-                    }
+                if ((match.player1 as any).username === data.username) {
+                    match.answerP1 = data.answer;
+                    match.elapsedTimeP1 = data.responseTime;
                 }
-                else {
-                    const questions = matchQuestions.get(match.matchId);
-                    if (!questions || match.currentQuestionIndex > questions.length) {
-                        return;
-                    }
-                    const currentQ = questions[match.currentQuestionIndex - 1];
-                    const correctAns = currentQ.answers.find(a => a.isCorrect);
-
-                    const correctText = correctAns?.text || null;
-
-                    if ((match.player1 as any).username === data.username) {
-                        match.answerP1 = data.answer;
-                    }
-                    if ((match.player2 as any).username === data.username) {
-                        match.answerP2 = data.answer;
-                    }
-
-                    if (match.answerP1 !== null && match.answerP1 === correctText && match.answerP2 === null) {  // SEND WIN TO P1
-                        if (answerSummaryIdleTimeout.has(match.matchId)) {
-                            clearTimeout(answerSummaryIdleTimeout.get(match.matchId));
-                        }
-                        finishMatch(match, null, (match.player1 as any).id);
-                        return;
-                    }
-
-                    if (match.answerP2 !== null && match.answerP2 === correctText && match.answerP1 === null) {  // SEND WIN TO P2
-                        if (answerSummaryIdleTimeout.has(match.matchId)) {
-                            clearTimeout(answerSummaryIdleTimeout.get(match.matchId));
-                        }
-                        finishMatch(match, null, (match.player1 as any).id);
-                    }
-
-                    if (match.answerP1 !== null && match.answerP2 !== null) {
-                        if (answerSummaryIdleTimeout.has(match.matchId)) {
-                            clearTimeout(answerSummaryIdleTimeout.get(match.matchId));
-                        }
-                        // CLEAR SEND SUMMARY ON IDLE USERS
-                        sendAnswerSummary(match)
-                    }
+                if ((match.player2 as any).username === data.username) {
+                    match.answerP2 = data.answer;
+                    match.elapsedTimeP2 = data.responseTime;
                 }
-
+                if (match.answerP1 !== null && match.answerP2 !== null) {
+                    if (answerSummaryIdleTimeout.has(match.matchId)) {
+                        clearTimeout(answerSummaryIdleTimeout.get(match.matchId));
+                    }
+                    // CLEAR SEND SUMMARY ON IDLE USERS
+                    sendAnswerSummary(match)
+                }
             }
             else if (data.type === 'battle/CHAT_MESSAGE') {
                 const match = activeMatches.get(data.matchId);
@@ -349,6 +308,8 @@ export default function initWebSocketServer(server: Server) {
                 const payload = JSON.stringify({ type: 'battle/NEW_QUESTION', question: q })
                 match.answerP1 = null;
                 match.answerP2 = null;
+                match.elapsedTimeP1 = null;
+                match.elapsedTimeP2 = null;
                 match.player1.send(payload);
                 match.player2.send(payload);
                 answerSummaryIdleTimeout.set(match.matchId, setTimeout(() => {
@@ -370,26 +331,33 @@ export default function initWebSocketServer(server: Server) {
 
                 const correctText = correctAns?.text || null;
 
-                if (match.answerP1 === correctText) {
-                    match.scoreP1 += 10;
-                }
-                else {
-                    match.scoreP1 -= 5;
+                if (match.answerP1) {
+                    if (match.answerP1 === correctText) {
+                        match.scoreP1 += 10;
+                    }
+                    else {
+                        match.scoreP1 -= 5;
+                    }
+
                 }
 
-                if (match.answerP2 === correctText) {
-                    match.scoreP2 += 10;
+                if (match.answerP2) {
+                    if (match.answerP2 === correctText) {
+                        match.scoreP2 += 10;
+                    }
+                    else {
+                        match.scoreP2 -= 5;
+                    }
                 }
-                else {
-                    match.scoreP2 -= 5;
-                }
-
+                
                 const summary = {
                     type: 'battle/ANSWER_SUMMARY',
                     yourAnswer: match.answerP1,
                     yourScore: match.scoreP1,
+                    yourTime: match.elapsedTimeP1,
                     opponentAnswer: match.answerP2,
                     opponentScore: match.scoreP2,
+                    opponentTime: match.elapsedTimeP2,
                     correctAnswer: correctAns.text || null
                 }
 
@@ -398,8 +366,10 @@ export default function initWebSocketServer(server: Server) {
                     ...summary,
                     yourAnswer: match.answerP2,
                     yourScore: match.scoreP2,
+                    yourTime: match.elapsedTimeP2,
                     opponentAnswer: match.answerP1,
-                    opponentScore: match.scoreP1
+                    opponentScore: match.scoreP1,
+                    opponentTime: match.elapsedTimeP1
                 }));
 
                 const attemptP1 = (match.player1 as any).quizAttemptId;
@@ -408,6 +378,25 @@ export default function initWebSocketServer(server: Server) {
                 const answerP2Id = match.answerP2 === null ? null : currentQ.answers.find(a => a.text === match.answerP2).id;
                 insertQuizAttempt(attemptP1, currentQ.id, answerP1Id, match.answerP1 === correctText, match);
                 insertQuizAttempt(attemptP2, currentQ.id, answerP2Id, match.answerP2 === correctText, match);
+
+                if (match.status === 'overtime') {
+                    const correctP1 = match.answerP1 === correctText;
+                    const correctP2 = match.answerP2 === correctText;
+                    if (correctP1 && correctP2) {
+                        if (match.elapsedTimeP1 > match.elapsedTimeP2) {
+                            finishMatch(match, null, (match.player1 as any).id);
+                        }
+                        else if (match.elapsedTimeP1 < match.elapsedTimeP2) {
+                            finishMatch(match, null, (match.player2 as any).id);
+                        }
+                    }
+                    else if (correctP1) {
+                        finishMatch(match, null, (match.player1 as any).id);
+                    }
+                    else if (correctP2) {
+                        finishMatch(match, null, (match.player2 as any).id);
+                    }
+                }
 
                 if (match.currentQuestionIndex === questions.length) {
                     setTimeout(async () => {
@@ -495,7 +484,9 @@ export default function initWebSocketServer(server: Server) {
                 const summary = {
                     type: 'battle/MATCH_FINISHED',
                     yourScore: match.scoreP1,
+                    yourTime: match.elapsedTimeP1,
                     opponentScore: match.scoreP2,
+                    opponentTime: match.elapsedTimeP2,
                     winnerId,
                     winnerUsername,
                     playerLeftId,
@@ -506,7 +497,9 @@ export default function initWebSocketServer(server: Server) {
                 match.player2.send(JSON.stringify({
                     ...summary,
                     yourScore: match.scoreP2,
-                    opponentScore: match.scoreP2
+                    yourTime: match.elapsedTimeP2,
+                    opponentScore: match.scoreP1,
+                    opponentTime: match.elapsedTimeP1,
                 }));
 
                 // CLEAN UP

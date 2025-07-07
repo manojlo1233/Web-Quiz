@@ -1,39 +1,28 @@
 import WebSocket from "ws";
+import { Player } from "./Player";
 
 export class Match {
     matchId: string;
-    player1: WebSocket;
-    player2: WebSocket;
-    username1: string;
-    username2: string;
     startTimestamp: number;
-    readyP1: boolean = false;
-    readyP2: boolean = false;
-    overtimeReadyP1: boolean = false;
-    overtimeReadyP2: boolean = false;
-    enterP1: boolean = false;
-    enterP2: boolean = false;
     currentQuestionIndex: number;
-    answerP1: string;
-    answerP2: string;
-    elapsedTimeP1: number;
-    elapsedTimeP2: number;
-    scoreP1: number;
-    scoreP2: number;
+    player1: Player;
+    player2: Player;
     status: 'waiting' | 'ready' | 'started' | 'cancelled' | 'overtime' | 'finished' = 'waiting';
 
-
-    constructor(matchId: string, player1: WebSocket, player2: WebSocket,
-        username1: string, username2: string) {
+    constructor(
+        matchId: string,
+        sock1: WebSocket,
+        sock2: WebSocket,
+        id1: number,
+        id2: number,
+        username1: string,
+        username2: string
+    ) {
         this.matchId = matchId;
-        this.player1 = player1;
-        this.player2 = player2;
-        this.username1 = username1;
-        this.username2 = username2;
+        this.player1 = new Player(sock1, id1, username1);
+        this.player2 = new Player(sock2, id2, username2);
         this.startTimestamp = Date.now() + 60000;
         this.currentQuestionIndex = -1;
-        this.scoreP1 = 0;
-        this.scoreP2 = 0;
     }
 
     setReady(playerRole: 'player1' | 'player2') {
@@ -41,10 +30,10 @@ export class Match {
     }
 
     isBothReady() {
-        return this.readyP1 && this.readyP2;
+        return this.player1.ready && this.player2.ready;
     }
 
     getOpponentSocket(role: 'player1' | 'player2'): WebSocket {
-        return role === 'player1' ? this.player2 : this.player1;
+        return role === 'player1' ? this.player2.sock : this.player1.sock;
     }
 }

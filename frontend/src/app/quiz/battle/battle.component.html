@@ -78,3 +78,10 @@
         </div>
     </div>
 </div>
+<div *ngIf="showOvertimeMessage" class="overtime-background">
+    <div class="overtime-container">
+        <label>Both players have same score</label>
+        <label>Proceeding to overtime phase in {{overtimeSecondsRemaining}}s...</label>
+        <label>Note: First player to answer question correctly wins.</label>
+    </div>
+</div>

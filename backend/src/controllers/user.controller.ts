@@ -29,7 +29,6 @@ export const loginUser = async (req: Request, res: Response) => {
         }
 
         const userSessionExists = checkIfUserSessionExists(user.id);
-        console.log(userSessionExists)
         if (userSessionExists) {
             console.log('ALOO')
             res.status(403).json({ message: 'You are already logged in on different device. Please log out from that device to continue.' });

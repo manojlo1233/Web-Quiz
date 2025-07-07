@@ -96,19 +96,62 @@ export default function initWebSocketServer(server: Server) {
             else if (data.type === 'battle/ANSWER') {
                 const match = activeMatches.get(data.matchId);
                 if (!match) return;
-                if ((match.player1 as any).username === data.username) {
-                    match.answerP1 = data.answer;
-                }
-                if ((match.player2 as any).username === data.username) {
-                    match.answerP2 = data.answer;
-                }
-                if (match.answerP1 !== null && match.answerP2 !== null) {
-                    if (answerSummaryIdleTimeout.has(match.matchId)) {
-                        clearTimeout(answerSummaryIdleTimeout.get(match.matchId));
+                if (match.status !== 'overtime') {
+                    if ((match.player1 as any).username === data.username) {
+                        match.answerP1 = data.answer;
                     }
-                    // CLEAR SEND SUMMARY ON IDLE USERS
-                    sendAnswerSummary(match)
+                    if ((match.player2 as any).username === data.username) {
+                        match.answerP2 = data.answer;
+                    }
+                    if (match.answerP1 !== null && match.answerP2 !== null) {
+                        if (answerSummaryIdleTimeout.has(match.matchId)) {
+                            clearTimeout(answerSummaryIdleTimeout.get(match.matchId));
+                        }
+                        // CLEAR SEND SUMMARY ON IDLE USERS
+                        sendAnswerSummary(match)
+                    }
                 }
+                else {
+                    const questions = matchQuestions.get(match.matchId);
+                    if (!questions || match.currentQuestionIndex > questions.length) {
+                        return;
+                    }
+                    const currentQ = questions[match.currentQuestionIndex - 1];
+                    const correctAns = currentQ.answers.find(a => a.isCorrect);
+
+                    const correctText = correctAns?.text || null;
+
+                    if ((match.player1 as any).username === data.username) {
+                        match.answerP1 = data.answer;
+                    }
+                    if ((match.player2 as any).username === data.username) {
+                        match.answerP2 = data.answer;
+                    }
+
+                    if (match.answerP1 !== null && match.answerP1 === correctText && match.answerP2 === null) {  // SEND WIN TO P1
+                        if (answerSummaryIdleTimeout.has(match.matchId)) {
+                            clearTimeout(answerSummaryIdleTimeout.get(match.matchId));
+                        }
+                        finishMatch(match, null, (match.player1 as any).id);
+                        return;
+                    }
+
+                    if (match.answerP2 !== null && match.answerP2 === correctText && match.answerP1 === null) {  // SEND WIN TO P2
+                        if (answerSummaryIdleTimeout.has(match.matchId)) {
+                            clearTimeout(answerSummaryIdleTimeout.get(match.matchId));
+                        }
+                        finishMatch(match, null, (match.player1 as any).id);
+                    }
+
+                    if (match.answerP1 !== null && match.answerP2 !== null) {
+                        if (answerSummaryIdleTimeout.has(match.matchId)) {
+                            clearTimeout(answerSummaryIdleTimeout.get(match.matchId));
+                        }
+                        // CLEAR SEND SUMMARY ON IDLE USERS
+                        sendAnswerSummary(match)
+                    }
+                }
+
             }
             else if (data.type === 'battle/CHAT_MESSAGE') {
                 const match = activeMatches.get(data.matchId);
@@ -194,8 +237,23 @@ export default function initWebSocketServer(server: Server) {
                 if (!match) return; // SOME KIND OF ERROR
                 finishMatch(match, playerLeftId);
             }
+            else if (data.type === 'battle/START_OVERTIME') {
+                const match = activeMatches.get(data.matchId);
+                if (!match) return;
+                if ((match.player1 as any).username === data.username) {
+                    match.overtimeReadyP1 = true;
+                }
+                if ((match.player2 as any).username === data.username) {
+                    match.overtimeReadyP2 = true;
+                }
+                if (match.overtimeReadyP1 && match.overtimeReadyP2) {
+                    sendNextQuestion(match);
+                }
+            }
 
-            // ----------------- BATTLE FUNCTIONS -----------------
+            // ------------------------------------------------------------------------------------------------------------------------
+            // --------------------------------------------------- BATTLE FUNCTIONS ---------------------------------------------------
+            // ------------------------------------------------------------------------------------------------------------------------
 
             async function createMatch(p1: WebSocket, p2: WebSocket) {
                 const matchId = (await createMatchInDB()).toString();
@@ -313,11 +371,17 @@ export default function initWebSocketServer(server: Server) {
                 const correctText = correctAns?.text || null;
 
                 if (match.answerP1 === correctText) {
-                    match.scoreP1 += 5;
+                    match.scoreP1 += 10;
+                }
+                else {
+                    match.scoreP1 -= 5;
                 }
 
                 if (match.answerP2 === correctText) {
-                    match.scoreP2 += 5;
+                    match.scoreP2 += 10;
+                }
+                else {
+                    match.scoreP2 -= 5;
                 }
 
                 const summary = {
@@ -346,8 +410,23 @@ export default function initWebSocketServer(server: Server) {
                 insertQuizAttempt(attemptP2, currentQ.id, answerP2Id, match.answerP2 === correctText, match);
 
                 if (match.currentQuestionIndex === questions.length) {
-                    setTimeout(() => {
-                        finishMatch(match);
+                    setTimeout(async () => {
+                        if (match.status === 'overtime' || match.scoreP1 !== match.scoreP2) {
+                            finishMatch(match);
+                        }
+                        else {
+                            const newQuestions = await getOvertimeQuestions(match, questions, 50);
+                            matchQuestions.set(match.matchId, newQuestions);
+                            insertIntoQuizQuestions(match, newQuestions);
+                            match.status = 'overtime';
+                            match.currentQuestionIndex = 0;
+                            const payload = {
+                                type: 'battle/OVERTIME'
+                            }
+                            match.player1.send(JSON.stringify(payload));
+                            match.player2.send(JSON.stringify(payload));
+                        }
+
                     }, 5000);
                 } else {
                     setTimeout(() => {
@@ -356,23 +435,21 @@ export default function initWebSocketServer(server: Server) {
                 }
             }
 
-            async function finishMatch(match: Match, playerLeftId: number = null) {
-                console.log(playerLeftId);
+            async function finishMatch(match: Match, playerLeftId: number = null, overtimeWinnerId: number = null) {
                 match.status = 'finished';
                 let winnerId: number | null = null;
                 let winnerUsername: string = null;
                 let playerLeftUsername = null;
-                if (playerLeftId === null) {
-                    if (match.scoreP1 >= match.scoreP2) {
-                        winnerId = (match.player1 as any).id;
+                if (overtimeWinnerId) {
+                    winnerId = overtimeWinnerId;
+                    if ((match.player1 as any).id === overtimeWinnerId) {
                         winnerUsername = (match.player1 as any).username;
                     }
-                    else if (match.scoreP1 < match.scoreP2) {
-                        winnerId = (match.player2 as any).id;
+                    else {
                         winnerUsername = (match.player2 as any).username;
                     }
                 }
-                else {
+                else if (playerLeftId) {
                     if (playerLeftId === (match.player1 as any).id) {
                         winnerId = (match.player2 as any).id;
                         winnerUsername = (match.player2 as any).username;
@@ -383,6 +460,17 @@ export default function initWebSocketServer(server: Server) {
                         winnerUsername = (match.player1 as any).username;
                         playerLeftUsername = (match.player2 as any).username;
                     }
+                }
+                else {
+                    if (match.scoreP1 >= match.scoreP2) {
+                        winnerId = (match.player1 as any).id;
+                        winnerUsername = (match.player1 as any).username;
+                    }
+                    else if (match.scoreP1 < match.scoreP2) {
+                        winnerId = (match.player2 as any).id;
+                        winnerUsername = (match.player2 as any).username;
+                    }
+
                 }
 
                 const [resultBattle] = await pool.query(
@@ -492,6 +580,39 @@ export default function initWebSocketServer(server: Server) {
                 })
                 match.player1.send(payload);
                 match.player2.send(payload);
+            }
+
+            async function getOvertimeQuestions(match: Match, oldQuestions: QuizQuestion[], limit: number = 50) {
+                const usedIds = oldQuestions.map(q => q.id);
+                const questionsResult = await pool.query(
+                    `
+                        SELECT id, text, difficulty 
+                        FROM questions 
+                        WHERE id NOT IN (${usedIds.join(',') || 'NULL'}) 
+                        ORDER BY RAND() LIMIT ?
+                    `
+                    , [limit]);
+                const questions: QuizQuestion[] = (questionsResult[0] as any[]);
+                const questionIds = questions.map((q: any) => q.id);
+                const answersResult = await pool.query(
+                    `SELECT id, question_id, text, is_correct FROM answers WHERE question_id IN (?) ORDER BY RAND()`,
+                    [questionIds]);
+
+                const answers: QuizAnswer[] = (answersResult[0] as any[]);
+                const groupedAnswers: { [key: number]: any[] } = {};
+                answers.forEach((a: any) => {
+                    if (!groupedAnswers[a.question_id]) {
+                        groupedAnswers[a.question_id] = [];
+                    }
+                    groupedAnswers[a.question_id].push(new QuizAnswer(a.id, a.text, a.is_correct));
+                });
+
+                return questions.map((q: any) => ({
+                    id: q.id,
+                    text: q.text,
+                    difficulty: q.difficulty,
+                    answers: groupedAnswers[q.id] || []
+                }));
             }
             // ----------------- END BATTLE FUNCTIONS END -----------------
 

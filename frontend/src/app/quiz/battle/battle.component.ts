@@ -57,6 +57,9 @@ export class BattleComponent implements OnInit {
   battleSummaryData: BattleSummary = null;
   // LEAVE
   reallyLeave: boolean = false;
+  // OVERTIME
+  showOvertimeMessage: boolean = false;
+  overtimeSecondsRemaining: number = 10;
 
   ngOnInit(): void {
     this.match = this.matchStateService.getCurrentMatch();
@@ -118,6 +121,18 @@ export class BattleComponent implements OnInit {
       this.showBattleSummary = true;
       this.battleSummaryData = new BattleSummary();
       this.battleSummaryData = { ...data };
+    })
+
+    // --------- GET READY FOR OVERTIME ---------
+    this.wsService.battleReadyOvertime$.subscribe(() => {
+      this.showOvertimeMessage = true;
+      setInterval(() => {
+        this.overtimeSecondsRemaining--;
+        if (this.overtimeSecondsRemaining === 0) {
+          this.wsService.sendStartOvertime(this.match.matchId, this.user.username);
+          this.showOvertimeMessage = false;
+        }
+      }, 1000)
     })
   }
 

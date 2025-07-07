@@ -9,6 +9,8 @@ export class Match {
     startTimestamp: number;
     readyP1: boolean = false;
     readyP2: boolean = false;
+    overtimeReadyP1: boolean = false;
+    overtimeReadyP2: boolean = false;
     enterP1: boolean = false;
     enterP2: boolean = false;
     currentQuestionIndex: number;
@@ -16,21 +18,21 @@ export class Match {
     answerP2: string;
     scoreP1: number;
     scoreP2: number;
-    status: 'waiting' | 'ready' | 'started' | 'cancelled' | 'finished'= 'waiting';
+    status: 'waiting' | 'ready' | 'started' | 'cancelled' | 'overtime' | 'finished' = 'waiting';
 
 
     constructor(matchId: string, player1: WebSocket, player2: WebSocket,
         username1: string, username2: string) {
-            this.matchId = matchId;
-            this.player1 = player1;
-            this.player2 = player2;
-            this.username1 = username1;
-            this.username2 = username2;
-            this.startTimestamp = Date.now() + 60000;
-            this.currentQuestionIndex = -1;
-            this.scoreP1 = 0;
-            this.scoreP2 = 0;
-        }
+        this.matchId = matchId;
+        this.player1 = player1;
+        this.player2 = player2;
+        this.username1 = username1;
+        this.username2 = username2;
+        this.startTimestamp = Date.now() + 60000;
+        this.currentQuestionIndex = -1;
+        this.scoreP1 = 0;
+        this.scoreP2 = 0;
+    }
 
     setReady(playerRole: 'player1' | 'player2') {
         this[playerRole === 'player1' ? 'readyP1' : 'readyP2'] = true;

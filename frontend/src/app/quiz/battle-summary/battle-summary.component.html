@@ -3,7 +3,9 @@
         <label style="font-size: 32px;">Winner</label>
         <label style="font-size: 28px;">{{data.winnerUsername}}</label>
     </div>
-    <label>Player <span style="color: var(--theme-darkblue-red);">{{data.playerLeftUsername}}</span> has <span style="color: var(--theme-darkblue-red);">LEFT</span> the battle</label>
+    <label *ngIf="data.playerLeftId !== null">Player <span
+            style="color: var(--theme-darkblue-red);">{{data.playerLeftUsername}}</span> has <span
+            style="color: var(--theme-darkblue-red);">LEFT</span> the battle</label>
     <div class="return-container">
         <label>Returning to main page in {{timeRemaining}}s...</label>
         <button class="btn-light-small" (click)="goToMainPage()">Return</button>

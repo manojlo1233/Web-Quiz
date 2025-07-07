@@ -22,10 +22,10 @@ export class WebsocketService {
   public newQuestion$ = new Subject<any>();
   public answerSummary$ = new Subject<any>();
   public battleRequest$ = new Subject<any>();
-  public battleAccept$ = new Subject<any>();
   public battleDecline$ = new Subject<any>();
   public battleWithdraw$ = new Subject<any>();
   public battleAutoWithdraw$ = new Subject<any>();
+  public battleReadyOvertime$ = new Subject<void>();
 
   // BATTLE - CHAT
   public chatMessage$ = new Subject<any>();
@@ -80,9 +80,6 @@ export class WebsocketService {
         case 'friends/BATTLE_REQUEST':
           this.battleRequest$.next(data);
           break;
-        case 'friends/BATTLE_ACCEPT':
-
-          break;
         case 'friends/BATTLE_DECLINE':
           this.battleDecline$.next(data);
           break;
@@ -97,6 +94,9 @@ export class WebsocketService {
           break;
         case 'broadcast/REFRESH_LEADERBOARD':
           this.refreshLeaderboard$.next();
+          break;
+        case 'battle/OVERTIME':
+          this.battleReadyOvertime$.next();
           break;
       }
     };
@@ -169,6 +169,10 @@ export class WebsocketService {
 
   sendLeaveBattle(matchId: number, playerLeftId: number) {
     this.send({ type: 'battle/LEAVE_BATTLE', matchId, playerLeftId });
+  }
+
+  sendStartOvertime(matchId: number, username: string) {
+    this.send({ type: 'battle/START_OVERTIME', matchId, username });
   }
 
   close(): void {

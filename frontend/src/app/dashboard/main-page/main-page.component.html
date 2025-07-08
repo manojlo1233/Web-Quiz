@@ -67,21 +67,30 @@
                     </tbody>
                     <tbody *ngIf="userPlayHistory.length === 0">
                         <td class="neutral-italic" colspan="5">--- Play history does not exist ---</td>
-                    </tbody>    
+                    </tbody>
                 </table>
             </div>
         </div>
     </div>
     <div class="col-cont" style="width: 80%;">
-        <div class="play-btns">
-            <div class="search">
-                <label *ngIf="!isSearching"> &nbsp;</label>
-                <label *ngIf="isSearching">Searching {{ formattedTime }}</label>
-                <button class="btn-light" style="width: 150px; height: fit-content;" [ngClass]="{
-                'btn-glow': isSearching
-            }" (click)="onBattleClick()" [disabled]="searchDisabled">{{matchmakingLbl}}</button>
+        <div class="matchmaking">
+            <div class="category">
+                <label>Category</label>
+                <select class="select-light" [(ngModel)]="searchCategory" id="category" name="category" [disabled]="isSearching">
+                    <option style="cursor: pointer;" *ngFor="let cat of allCategories" [value]="cat">{{cat}}</option>
+                </select>
             </div>
 
+            <div class="play-btns">
+                <div class="search">
+                    <label *ngIf="!isSearching"> &nbsp;</label>
+                    <label *ngIf="isSearching">Searching {{ formattedTime }}</label>
+                    <button class="btn-light" style="width: 150px; height: fit-content;" [ngClass]="{
+                'btn-glow': isSearching
+            }" (click)="onBattleClick()" [disabled]="searchDisabled">{{matchmakingLbl}}</button>
+                </div>
+
+            </div>
         </div>
     </div>
     <div class="col-cont" style="width: 80%;">
@@ -139,7 +148,7 @@
                                     [style.marginLeft]="updateLeftMargin(f)" />
                                 <app-icon *ngIf="f.online && f.battleRequestSent" class="icon small withdraw"
                                     src="/assets/svg/icon_flag_2.svg" color="white" (click)="handleBattleWithdraw(f)"
-                                    title="Withdraw" />                               
+                                    title="Withdraw" />
                                 <app-icon *ngIf="f.online && f.battleRequestReceived" class="icon small"
                                     src="/assets/svg/icon_circle_x.svg" color="var(--theme-darkblue-color-3)"
                                     (click)="handleBattleDecline(f)" title="Decline battle" />

@@ -1,6 +1,8 @@
 import path from "path";
 import fs from 'fs'
 
+export const availableCategories = ['General', 'History', 'Science'];
+
 export function clearIntervalFromMap(map: Map<string, NodeJS.Timeout>, key: string) {
     if (map.has(key)) {
         clearInterval(map.get(key));

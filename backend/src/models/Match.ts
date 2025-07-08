@@ -8,6 +8,7 @@ export class Match {
     player1: Player;
     player2: Player;
     status: 'waiting' | 'ready' | 'started' | 'cancelled' | 'overtime' | 'finished' = 'waiting';
+    category: string;
 
     constructor(
         matchId: string,
@@ -16,13 +17,15 @@ export class Match {
         id1: number,
         id2: number,
         username1: string,
-        username2: string
+        username2: string,
+        category: string,
     ) {
         this.matchId = matchId;
         this.player1 = new Player(sock1, id1, username1);
         this.player2 = new Player(sock2, id2, username2);
         this.startTimestamp = Date.now() + 60000;
         this.currentQuestionIndex = -1;
+        this.category = category;
     }
 
     setReady(playerRole: 'player1' | 'player2') {

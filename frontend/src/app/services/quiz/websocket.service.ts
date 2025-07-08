@@ -119,16 +119,16 @@ export class WebsocketService {
     }
   }
 
-  sendHello(id: number, username: string) {
+  sendHello(id: number, username: string): void {
     this.send({ type: 'USER_SUBSCRIBE', id, username });
   }
 
-  joinMatchmaking(userId: number, username: string): void {
-    this.send({ type: 'battle/JOIN_QUEUE', userId, username });
+  joinMatchmaking(userId: number, username: string, category: string): void {
+    this.send({ type: 'battle/JOIN_QUEUE', userId, username, category });
   }
 
-  cancelMatchmaking(username: string): void {
-    this.send({ type: 'battle/LEAVE_QUEUE', username });
+  cancelMatchmaking(username: string, category: string): void {
+    this.send({ type: 'battle/LEAVE_QUEUE', username, category });
   }
 
   sendReady(matchId: string, username: string): void {

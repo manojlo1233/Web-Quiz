@@ -1,24 +1,22 @@
-import { AfterViewInit, Component, OnDestroy, OnInit, ViewChild, ViewContainerRef } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild, ViewContainerRef } from '@angular/core';
 import { Router } from '@angular/router';
-import { catchError, Subscription } from 'rxjs';
+import { Subscription } from 'rxjs';
 
 import { User } from '../../shared/models/User';
 import { UserService } from '../../services/shared/user.service';
 import { Statistic } from '../../shared/models/Statistic';
 import { QuizPlayed } from '../../shared/models/QuizPlayed';
-import { QuizService } from '../../services/shared/quiz.service';
 import { UtilService } from '../../services/shared/util.service';
 import { QuizDetailsComponent } from '../quiz-details/quiz-details.component';
 import { WebsocketService } from '../../services/quiz/websocket.service';
 import { WSMatchFoundMsg } from '../../shared/models/WSMatchFoundMsg';
 import { MatchStateService } from '../../services/quiz/match-state.service';
 import { Friend } from '../../shared/models/Friend';
-import { UserLeaderBoard } from '../../shared/models/UserLeaderboard';
+import { Leaderboard } from '../../shared/models/Leaderboard';
 import { AppComponent } from '../../app.component';
 import { FriendsService } from '../../services/friends/friends.service';
 import { SnackBarService } from '../../services/shared/snack-bar.service';
 import { NotificationService } from '../../services/shared/notification.service';
-import { UserSettingsService } from '../../services/dashboard/user-settings.service';
 import { ConfirmService } from '../../services/shared/confirm.service';
 
 
@@ -53,7 +51,7 @@ export class MainPageComponent implements OnInit, OnDestroy {
   userStatistic: Statistic = new Statistic();
   userPlayHistory: QuizPlayed[] = [];
   // LEADRBOARD
-  leaderbaord: UserLeaderBoard[] = [];
+  leaderbaord: Leaderboard[] = [];
 
   // FIRENDS
   FRIENDS_TAB = {
@@ -89,21 +87,18 @@ export class MainPageComponent implements OnInit, OnDestroy {
   matchmakingLbl: string = 'Battle'
   isSearching: boolean = false;
   searchDisabled: boolean = false;
-
+  allCategories: string[] = ['General', 'History', 'Science'];
+  searchCategory: string = 'General';
   // MATCHMAKING TIMER
   secondsElapsed = 0;
   timerInterval: any;
   formattedTime = '00:00';
-
   // SOCKET ERROR
   errorMessage: string | null = null;
-
   // USER SETTINGS
   showUserSettings: boolean = false;
-
   // NOTIFICATIONS
   showNotifications: boolean = false;
-
   // AVATARS
   showAvailableAvatars: boolean = false;
 
@@ -273,7 +268,7 @@ export class MainPageComponent implements OnInit, OnDestroy {
   }
 
   getLeaderboard() {
-    this.userService.getLeaderBoard().subscribe({
+    this.userService.getLeaderBoard(this.searchCategory).subscribe({
       next: (resp: any) => {
         this.leaderbaord = resp;
       },
@@ -313,13 +308,13 @@ export class MainPageComponent implements OnInit, OnDestroy {
         this.secondsElapsed++;
         this.updateFormattedTime();
       }, 1000)
-      this.wsService.joinMatchmaking(this.user.id, this.user.username);
+      this.wsService.joinMatchmaking(this.user.id, this.user.username, this.searchCategory);
     }
     else {
       this.matchmakingLbl = 'Battle'
       this.isSearching = false;
       clearInterval(this.timerInterval);
-      this.wsService.cancelMatchmaking(this.user.username);
+      this.wsService.cancelMatchmaking(this.user.username, this.searchCategory);
     }
   }
 
@@ -483,7 +478,7 @@ export class MainPageComponent implements OnInit, OnDestroy {
     this.matchmakingLbl = 'Battle'
     this.isSearching = false;
     clearInterval(this.timerInterval);
-    this.wsService.cancelMatchmaking(this.user.username);
+    this.wsService.cancelMatchmaking(this.user.username, this.searchCategory);
     this.wsService.sendBattleAccept(this.user.id, friend.friendId);
   }
 

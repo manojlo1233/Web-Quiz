@@ -46,8 +46,8 @@ export class BattleComponent implements OnInit {
   userAnswerIndex: number = -1;
   opponentAnswerIndex: number = -1;
   correctAnswerIndex: number = -1;
-  userScore: number = 0;
-  opponentScore: number = 0;
+  userPoints: number = 0;
+  opponentPoints: number = 0;
   //CHAT
   messageText: string = "";
   chatMessages: ChatMessage[] = [];
@@ -85,8 +85,8 @@ export class BattleComponent implements OnInit {
       this.selectedAnswer = null;
       this.initTimerIncrease();
       this.getAnswerIndices(resp);
-      this.userScore = resp.yourScore;
-      this.opponentScore = resp.opponentScore;
+      this.userPoints = resp.yourPoints;
+      this.opponentPoints = resp.opponentPoints;
     })
 
     const userId = parseInt(sessionStorage.getItem('userId'), 10);

@@ -8,7 +8,7 @@ export class Player {
     enter: boolean = false;
     answer: string;
     elapsedTime: number;
-    score: number;
+    points: number;
 
     constructor(sock: WebSocket, id: number, username: string) {
         this.sock = sock;
@@ -16,6 +16,6 @@ export class Player {
         this.username = username;
         this.answer = null;
         this.elapsedTime = null;
-        this.score = 0;
+        this.points = 0;
     }
 }

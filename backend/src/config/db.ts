@@ -23,7 +23,7 @@ export const createConnection = async () => {
   }
 };
 
-export async function updateUserStatisticsAndRanking(userId: number, winnerId: number) {
+export async function updateUserStatisticsAndRanking(userId: number, winnerId: number, category: string) {
   // TOTAL QUIZES
   const [totalResult] = await pool.query(
     `SELECT COUNT(*) AS total FROM quiz_attempts WHERE user_id = ? AND completed_at IS NOT NULL`,
@@ -71,16 +71,15 @@ export async function updateUserStatisticsAndRanking(userId: number, winnerId: n
   );
 
   // UPDATE USER RANKING
-
   const rankChange = userId === winnerId ? 20 : -10;
 
   const [currentRankingResult] = await pool.query(
     `
-      SELECT ranking 
-      FROM users u
-      WHERE u.id=?
+      SELECT score
+      FROM rankings r
+      WHERE r.user_id=? AND r.category=?
     `,
-    [userId]
+    [userId, category]
   )
 
   if ((currentRankingResult as any[]).length === 0) {
@@ -88,16 +87,16 @@ export async function updateUserStatisticsAndRanking(userId: number, winnerId: n
     return;
   }
 
-  let newRanking = currentRankingResult[0].ranking + rankChange;
+  let newRanking = currentRankingResult[0].score + rankChange;
   newRanking = newRanking < 0 ? 0 : newRanking;
 
   const [rankingUpdateResult] = await pool.query(
     `
-      UPDATE users
-      SET ranking=?
-      WHERE users.id=?
+      UPDATE rankings r
+      SET score=?
+      WHERE r.user_id=? AND r.category=?
     `,
-    [newRanking, userId]
+    [newRanking, userId, category]
   )
 
   if ((rankingUpdateResult as any).affectedRows <= 0) {

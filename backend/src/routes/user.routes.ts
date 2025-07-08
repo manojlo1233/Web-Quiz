@@ -28,7 +28,7 @@ userRouter.post('/getUsersByUsername', getUsersByUsername);
 userRouter.get('/getUserStatisticsById/:id', getUserStatisticsById);
 userRouter.get('/getUserPlayHistoryById/:id', getUserPlayHistoryById);
 userRouter.get('/getUserQuizDetails/:quizId', getUserQuizDetails)
-userRouter.get('/getLeaderBoard', getLeaderBoard);
+userRouter.get('/getLeaderBoard/:category', getLeaderBoard);
 userRouter.post('/updateUserSettingsById', updateUserSettingsById);
 userRouter.patch('/updateUserAvatar', updateUserAvatar);
 export default userRouter;

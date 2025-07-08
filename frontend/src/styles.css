@@ -121,6 +121,31 @@ html {
     cursor: default;
 }
 
+.select-light {
+    padding: 10px;
+    background-color: white;
+    color: var(--theme-darkblue-color-4);
+    font-size: 20px;
+    border: none;
+    border-radius: 2px;
+    cursor: pointer;
+    transition: all 0.1s ease;
+}
+
+.select-light:hover {
+    background-color: var(--theme-darkblue-button-light-hover);
+}
+
+.select-light:active {
+    background-color: var(--theme-darkblue-button-light-active);
+}
+
+.select-light:disabled {
+    background-color: darkgray;
+    user-select: none;
+    cursor: default;
+}
+
 .btn-light-small {
     width: fit-content;
     height: fit-content;

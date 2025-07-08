@@ -8,6 +8,7 @@ import { User } from "../models/User";
 import { UserPlayHistory } from "../models/UserPlayHistory";
 import { QuizDetailsQuestion } from "../models/QuizDetailsQuestion";
 import { checkIfUserSessionExists } from "../websockets/matchmaking.ws";
+import { availableCategories } from "../util/util";
 
 export const loginUser = async (req: Request, res: Response) => {
     const { userNameOrEmail, password } = req.body;
@@ -87,6 +88,19 @@ export const registerUser = async (req: Request, res: Response) => {
             res.status(500).json({ message: 'Register user failed' })
             return;
         }
+
+        availableCategories.forEach(async c => {
+            const [resultRanking] = await pool.execute(
+                `INSERT INTO rankings (user_id, category) VALUES (?, ?)`,
+                [userId, c]
+            )
+            if ((resultRanking as any).affectedRows <= 0) {
+                res.status(500).json({ message: 'Register user failed' })
+                return;
+            }
+        })
+
+
         res.status(201).json({ message: 'User registered successfully' })
     } catch (error: any) {
         console.log('Registration error', error);
@@ -344,19 +358,24 @@ export const getUserQuizDetails = async (req: Request, res: Response) => {
     }
 }
 
-export const getLeaderBoard = async (req: Request, res: Response) => {
+export const getLeaderBoard = async (req: Request, res) => {
     try {
+        const category: string = req.params.category as string
+
+        if (!availableCategories.includes(category)) {
+            return res.status(400).json({ message: 'Invalid category' });
+        }
+
         const [leaderBoard] = await pool.execute(
-            `SELECT 
-                u.id as userId,
-                u.username as username,
-                u.ranking as ranking
-            FROM 
-                users u
-            ORDER BY
-                u.ranking DESC
-            `
-        )
+            `   SELECT u.id as userId, u.username, r.score as ranking
+                FROM rankings r
+                JOIN users u ON u.id = r.user_id
+                WHERE r.category = ?
+                ORDER BY r.score DESC
+                LIMIT 50
+            `,
+            [category]
+        );
         if ((leaderBoard as any[]).length === 0) {
             res.status(404).json({ message: 'Get leaderboard not found' })
             return;

@@ -7,10 +7,15 @@ import { QuizAnswer } from '../models/Quiz/QuizAnswer';
 import { BattleStatusMapper } from '../mappers/BattleStatusMapper';
 import { clearIntervalFromMap } from '../util/util';
 
-let usersWebSockets: WebSocket[] = [];
-let waitingList: WebSocket[] = [];
+const categoryWaitingLists: Map<string, WebSocket[]> = new Map([
+    ['General', []],
+    ['History', []],
+    ['Science', []]
+]
+);
 
-const activeMatches: Map<string, Match> = new Map();
+let usersWebSockets: WebSocket[] = []; // ALL ACTIVE USERS
+const activeMatches: Map<string, Match> = new Map(); // ALL ACTIVE MATCHES
 const matchStartTimeout: Map<string, NodeJS.Timeout> = new Map();
 const matchQuestions: Map<string, QuizQuestion[]> = new Map();
 
@@ -37,6 +42,7 @@ export default function initWebSocketServer(server: Server) {
             }
             // ----------------- BATTLE -----------------
             if (data.type === 'battle/JOIN_QUEUE') {
+                const waitingList = categoryWaitingLists.get(data.category);
                 if (waitingList.filter(ws => (ws as any).username === data.username).length !== 0) { // Avoid adding same players to waitinList
                     return;
                 }
@@ -47,10 +53,11 @@ export default function initWebSocketServer(server: Server) {
                 if (waitingList.length >= 2) {
                     const p1 = waitingList.shift()!;
                     const p2 = waitingList.shift()!;
-                    createMatch(p1, p2);
+                    createMatch(p1, p2, data.category);
                 }
             }
             else if (data.type === 'battle/LEAVE_QUEUE') {
+                let waitingList = categoryWaitingLists.get(data.category);
                 waitingList = waitingList.filter(ws => (ws as any).username !== data.username)
             }
             else if (data.type === 'battle/READY') {
@@ -77,6 +84,12 @@ export default function initWebSocketServer(server: Server) {
                 clearTimeout(matchStartTimeout.get(match.matchId));
                 matchStartTimeout.delete(match.matchId)
                 const payload = JSON.stringify({ type: 'battle/MATCH_DECLINED', username: data.username })
+
+                // MAKE SURE USERS ARE NOT IN QUEUE
+                let waitingList = categoryWaitingLists.get(match.category);
+                waitingList = waitingList.filter(ws => (ws as any).username !== match.player1.username || (ws as any).username !== match.player2.username);
+                categoryWaitingLists.set(match.category, waitingList);
+
                 match.player1.sock.send(payload);
                 match.player2.sock.send(payload);
             }
@@ -165,7 +178,7 @@ export default function initWebSocketServer(server: Server) {
                 clearIntervalFromMap(battleRequestTimeout, `${data.friendId}-${data.userId}`);
                 const p1 = usersWebSockets.filter(ws => (ws as any).id === data.userId)[0];
                 const p2 = usersWebSockets.filter(ws => (ws as any).id === data.friendId)[0];
-                createMatch(p1, p2);
+                createMatch(p1, p2, 'General');
             }
             else if (data.type === 'friends/BATTLE_DECLINE') {
                 clearIntervalFromMap(battleRequestTimeout, `${data.friendId}-${data.userId}`);
@@ -214,10 +227,10 @@ export default function initWebSocketServer(server: Server) {
             // --------------------------------------------------- BATTLE FUNCTIONS ---------------------------------------------------
             // ------------------------------------------------------------------------------------------------------------------------
 
-            async function createMatch(p1: WebSocket, p2: WebSocket) {
-                const matchId = (await createMatchInDB()).toString();
+            async function createMatch(p1: WebSocket, p2: WebSocket, category: string) {
+                const matchId = (await createMatchInDB(category)).toString();
 
-                let match: Match = new Match(matchId, p1, p2, (p1 as any).id, (p2 as any).id, (p1 as any).username, (p2 as any).username);
+                let match: Match = new Match(matchId, p1, p2, (p1 as any).id, (p2 as any).id, (p1 as any).username, (p2 as any).username, category);
                 match.status = 'ready';
 
                 activeMatches.set(matchId, match);
@@ -240,16 +253,27 @@ export default function initWebSocketServer(server: Server) {
                 p2.send(JSON.stringify({ type: 'battle/MATCH_FOUND', opponent: match.player1.username, matchId, role: 'player2', startTimestamp: match.startTimestamp }));
             }
 
-            async function createMatchInDB(): Promise<number> {
+            async function createMatchInDB(category: string): Promise<number> {
+                console.log(category);
+                const [categoryResult] = await pool.query(
+                    `
+                    SELECT *
+                    FROM categories c
+                    WHERE c.name = ?
+                    `,
+                    [category]
+                )
+                const categoryId = (categoryResult as any)[0].id; 
                 const [quizResult] = await pool.query(
-                    `INSERT INTO quizzes (category_id, created_at) VALUES (0, NOW())`
+                    `INSERT INTO quizzes (category_id, created_at) VALUES (?, NOW())`,
+                    [categoryId]
                 )
                 return (quizResult as any).insertId;
             }
 
             async function startMatch(match: Match) {
                 match.status = 'started';
-                const questions = await getRandomQuestions(5);
+                const questions = await getRandomQuestions(5, match.category);
                 matchQuestions.set(match.matchId, questions);
                 insertIntoQuizQuestions(match, questions);
                 createQuizAttempts(match)
@@ -260,10 +284,16 @@ export default function initWebSocketServer(server: Server) {
                 match.player2.sock.send(payload);
             }
 
-            async function getRandomQuestions(limit = 10): Promise<QuizQuestion[]> {
+            async function getRandomQuestions(limit = 10, category: string): Promise<QuizQuestion[]> {
                 const questionsResult = await pool.query(
-                    `SELECT id, text, difficulty FROM questions ORDER BY RAND() LIMIT ?`
-                    , [limit]);
+                    `   SELECT q.id, q.text, q.difficulty, q.description 
+                        FROM questions q
+                        JOIN categories c ON c.id = q.category_id
+                        WHERE c.name = ?
+                        ORDER BY RAND() 
+                        LIMIT ?
+                    `
+                    , [category, limit]);
                 const questions: QuizQuestion[] = (questionsResult[0] as any[]);
                 const questionIds = questions.map((q: any) => q.id);
                 const answersResult = await pool.query(
@@ -333,30 +363,30 @@ export default function initWebSocketServer(server: Server) {
 
                 if (match.player1.answer) {
                     if (match.player1.answer === correctText) {
-                        match.player1.score += 10;
+                        match.player1.points += 10;
                     }
                     else {
-                        match.player1.score -= 5;
+                        match.player1.points -= 5;
                     }
 
                 }
 
                 if (match.player2.answer) {
                     if (match.player2.answer === correctText) {
-                        match.player2.score += 10;
+                        match.player2.points += 10;
                     }
                     else {
-                        match.player2.score -= 5;
+                        match.player2.points -= 5;
                     }
                 }
 
                 const summary = {
                     type: 'battle/ANSWER_SUMMARY',
                     yourAnswer: match.player1.answer,
-                    yourScore: match.player1.score,
+                    yourPoints: match.player1.points,
                     yourTime: match.player1.elapsedTime,
                     opponentAnswer: match.player2.answer,
-                    opponentScore: match.player2.score,
+                    opponentPoints: match.player2.points,
                     opponentTime: match.player2.elapsedTime,
                     correctAnswer: correctAns.text || null
                 }
@@ -365,10 +395,10 @@ export default function initWebSocketServer(server: Server) {
                 match.player2.sock.send(JSON.stringify({
                     ...summary,
                     yourAnswer: match.player2.answer,
-                    yourScore: match.player2.score,
+                    yourPoints: match.player2.points,
                     yourTime: match.player2.elapsedTime,
                     opponentAnswer: match.player1.answer,
-                    opponentScore: match.player1.score,
+                    opponentPoints: match.player1.points,
                     opponentTime: match.player1.elapsedTime
                 }));
 
@@ -400,11 +430,11 @@ export default function initWebSocketServer(server: Server) {
 
                 if (match.currentQuestionIndex === questions.length) {
                     setTimeout(async () => {
-                        if (match.status === 'overtime' || match.player1.score !== match.player2.score) {
+                        if (match.status === 'overtime' || match.player1.points !== match.player2.points) {
                             finishMatch(match);
                         }
                         else {
-                            const newQuestions = await getOvertimeQuestions(match, questions, 50);
+                            const newQuestions = await getOvertimeQuestions(questions, 50, match.category);
                             matchQuestions.set(match.matchId, newQuestions);
                             insertIntoQuizQuestions(match, newQuestions);
                             match.status = 'overtime';
@@ -451,11 +481,11 @@ export default function initWebSocketServer(server: Server) {
                     }
                 }
                 else {
-                    if (match.player1.score > match.player2.score) {
+                    if (match.player1.points > match.player2.points) {
                         winnerId = match.player1.id;
                         winnerUsername = match.player1.username;
                     }
-                    else if (match.player1.score < match.player2.score) {
+                    else if (match.player1.points < match.player2.points) {
                         winnerId = match.player2.id;
                         winnerUsername = match.player2.username;
                     }
@@ -463,8 +493,8 @@ export default function initWebSocketServer(server: Server) {
                 }
 
                 const [resultBattle] = await pool.query(
-                    `UPDATE battles SET winner_id=?, status=?, player1_score=?, player2_score=?, player_left_id=? WHERE quiz_id=?`,
-                    [winnerId, BattleStatusMapper.getBattleStatus('finished'), match.player1.score, match.player2.score, playerLeftId, Number.parseInt(match.matchId)]
+                    `UPDATE battles SET winner_id=?, status=?, player1_points=?, player2_points=?, player_left_id=? WHERE quiz_id=?`,
+                    [winnerId, BattleStatusMapper.getBattleStatus('finished'), match.player1.points, match.player2.points, playerLeftId, Number.parseInt(match.matchId)]
                 )
                 if ((resultBattle as any).affectedRows <= 0) {
                     sendError(match);
@@ -478,14 +508,14 @@ export default function initWebSocketServer(server: Server) {
                     sendError(match);
                 }
 
-                updateUserStatisticsAndRanking(match.player1.id, winnerId);
-                updateUserStatisticsAndRanking(match.player2.id, winnerId);
+                updateUserStatisticsAndRanking(match.player1.id, winnerId, match.category);
+                updateUserStatisticsAndRanking(match.player2.id, winnerId, match.category);
 
                 const summary = {
                     type: 'battle/MATCH_FINISHED',
-                    yourScore: match.player1.score,
+                    yourPoints: match.player1.points,
                     yourTime: match.player1.elapsedTime,
-                    opponentScore: match.player2.score,
+                    opponentPoints: match.player2.points,
                     opponentTime: match.player2.elapsedTime,
                     winnerId,
                     winnerUsername,
@@ -496,9 +526,9 @@ export default function initWebSocketServer(server: Server) {
                 match.player1.sock.send(JSON.stringify(summary));
                 match.player2.sock.send(JSON.stringify({
                     ...summary,
-                    yourScore: match.player2.score,
+                    yourPoints: match.player2.points,
                     yourTime: match.player2.elapsedTime,
-                    opponentScore: match.player1.score,
+                    opponentPoints: match.player1.points,
                     opponentTime: match.player1.elapsedTime,
                 }));
 
@@ -548,7 +578,7 @@ export default function initWebSocketServer(server: Server) {
                 const player1Id = match.player1.id
                 const player2Id = match.player2.id
                 const [result] = await pool.query(
-                    `INSERT INTO battles (quiz_id, player1_id, player2_id, created_at, status, player1_score, player2_score) 
+                    `INSERT INTO battles (quiz_id, player1_id, player2_id, created_at, status, player1_points, player2_points) 
                     VALUES (?, ?, ?, NOW(), ?, 0, 0)`,
                     [Number.parseInt(match.matchId), player1Id, player2Id, BattleStatusMapper.getBattleStatus('started')]
                 )
@@ -575,16 +605,17 @@ export default function initWebSocketServer(server: Server) {
                 match.player2.sock.send(payload);
             }
 
-            async function getOvertimeQuestions(match: Match, oldQuestions: QuizQuestion[], limit: number = 50) {
+            async function getOvertimeQuestions(oldQuestions: QuizQuestion[], limit: number = 50, category: string) {
                 const usedIds = oldQuestions.map(q => q.id);
                 const questionsResult = await pool.query(
                     `
-                        SELECT id, text, difficulty 
-                        FROM questions 
-                        WHERE id NOT IN (${usedIds.join(',') || 'NULL'}) 
+                        SELECT q.id, q.text, q.difficulty 
+                        FROM questions q
+                        JOIN category c ON q.category_id = c.id
+                        WHERE id NOT IN (${usedIds.join(',') || 'NULL'}) AND c.name=?
                         ORDER BY RAND() LIMIT ?
                     `
-                    , [limit]);
+                    , [limit, category]);
                 const questions: QuizQuestion[] = (questionsResult[0] as any[]);
                 const questionIds = questions.map((q: any) => q.id);
                 const answersResult = await pool.query(
@@ -612,9 +643,10 @@ export default function initWebSocketServer(server: Server) {
         });
 
         ws.on('close', () => {
-            waitingList = waitingList.filter(sock => sock !== ws);
-            const sock: WebSocket = usersWebSockets.filter(sock => sock === ws)[0];
-            usersWebSockets = usersWebSockets.filter(sock => sock !== ws);
+            categoryWaitingLists.forEach(waitingList => {
+                waitingList = waitingList.filter(sock => sock !== ws);
+                usersWebSockets = usersWebSockets.filter(sock => sock !== ws);
+            })
         });
     });
 }

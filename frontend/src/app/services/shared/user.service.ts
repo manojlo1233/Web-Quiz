@@ -46,8 +46,8 @@ export class UserService {
     return this.http.get(`${this.url}/getUserQuizDetails/${quizId}`)
   }
 
-  getLeaderBoard() {
-    return this.http.get(`${this.url}/getLeaderBoard`)
+  getLeaderBoard(category: string) {
+    return this.http.get(`${this.url}/getLeaderBoard/${category}`)
   }
 
   updateUserAvatar(userId: number, avatar: string) {

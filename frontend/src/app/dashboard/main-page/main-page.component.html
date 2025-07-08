@@ -76,7 +76,8 @@
         <div class="matchmaking">
             <div class="category">
                 <label>Category</label>
-                <select class="select-light" [(ngModel)]="searchCategory" id="category" name="category" [disabled]="isSearching">
+                <select class="select-light" [(ngModel)]="searchCategory" id="category" name="category"
+                    [disabled]="isSearching">
                     <option style="cursor: pointer;" *ngFor="let cat of allCategories" [value]="cat">{{cat}}</option>
                 </select>
             </div>
@@ -98,7 +99,15 @@
             <div class="hdr">
                 <label>Leaderboard </label>
             </div>
-            <span class="h-divider" style="background-color: var(--theme-darkblue-color-3);"></span>
+            <div style="display: flex; flex-direction: column; width: 100%;">
+                <div class="lboard-categories">
+                    <label class="lboard-cat" *ngFor="let cat of allCategories"
+                        [class.selected]="leaderBoardCategory === cat"
+                        (click)="handleLeaderboardCategoryClick(cat)">{{cat}}</label>
+                </div>
+                <span class="h-divider" style="background-color: var(--theme-darkblue-color-3);"></span>
+            </div>
+
             <div class="lboard-container">
                 <div class="lboard-user" *ngFor="let user of leaderbaord, let i = index">
                     <label>{{user.username}}</label>

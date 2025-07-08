@@ -52,6 +52,7 @@ export class MainPageComponent implements OnInit, OnDestroy {
   userPlayHistory: QuizPlayed[] = [];
   // LEADRBOARD
   leaderbaord: Leaderboard[] = [];
+  leaderBoardCategory: string = 'General';
 
   // FIRENDS
   FRIENDS_TAB = {
@@ -503,6 +504,10 @@ export class MainPageComponent implements OnInit, OnDestroy {
     else {
       return item.user_id === item.winner_id? 'WIN': 'LOSE';
     }
+  }
+
+  handleLeaderboardCategoryClick(cat: string) {
+    this.leaderBoardCategory = cat;
   }
 
   ngOnDestroy(): void {

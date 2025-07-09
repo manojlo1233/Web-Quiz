@@ -8,16 +8,22 @@ import { ResetPasswordComponent } from './auth/reset-password/reset-password.com
 import { MainPageComponent } from './dashboard/main-page/main-page.component';
 import { BattleComponent } from './quiz/battle/battle.component';
 import { ReadyScreenComponent } from './quiz/ready-screen/ready-screen.component';
+import { AdminSettingsComponent } from './admin/admin-settings/admin-settings.component';
 
 const routes: Routes = [
   { path: "", component: LoginComponent },
+  // ----------------- AUTH -----------------
   { path: "auth/register", component: RegisterComponent },
   { path: "auth/terms", component: TermsComponent },
-  { path: "auth/forgot-password", component: ForgotPasswordComponent},
-  { path: "auth/reset-password/:token", component: ResetPasswordComponent},
-  { path: "dashboard/main-page", component: MainPageComponent},
-  { path: "quiz/loading-screen", component: ReadyScreenComponent},
-  { path: "quiz/battle", component: BattleComponent}
+  { path: "auth/forgot-password", component: ForgotPasswordComponent },
+  { path: "auth/reset-password/:token", component: ResetPasswordComponent },
+  // ----------------- DASHBOARD -----------------
+  { path: "dashboard/main-page", component: MainPageComponent },
+  // ----------------- QUIZ -----------------
+  { path: "quiz/loading-screen", component: ReadyScreenComponent },
+  { path: "quiz/battle", component: BattleComponent },
+  // ----------------- ADMIN -----------------
+  { path: "admin/admin-settings", component: AdminSettingsComponent }
 ];
 
 @NgModule({

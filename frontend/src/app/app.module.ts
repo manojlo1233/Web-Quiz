@@ -25,6 +25,7 @@ import { SpinnerComponent } from './shared/ui-indicators/spinner/spinner.compone
 import { BattleSummaryComponent } from './quiz/battle-summary/battle-summary.component';
 import { ShowAvatarsComponent } from './dashboard/show-avatars/show-avatars.component';
 import { DotLoaderComponent } from './shared/ui-indicators/dot-loader/dot-loader.component';
+import { AdminSettingsComponent } from './admin/admin-settings/admin-settings.component';
 
 
 @NgModule({
@@ -48,7 +49,8 @@ import { DotLoaderComponent } from './shared/ui-indicators/dot-loader/dot-loader
     SpinnerComponent,
     BattleSummaryComponent,
     ShowAvatarsComponent,
-    DotLoaderComponent
+    DotLoaderComponent,
+    AdminSettingsComponent
   ],
   imports: [
     BrowserModule,

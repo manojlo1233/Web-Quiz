@@ -5,7 +5,7 @@ import { QuizQuestion } from '../models/Quiz/QuizQuestion';
 import pool, { updateUserStatisticsAndRanking } from '../config/db';
 import { QuizAnswer } from '../models/Quiz/QuizAnswer';
 import { BattleStatusMapper } from '../mappers/BattleStatusMapper';
-import { clearIntervalFromMap } from '../util/util';
+import { availableCategories, clearIntervalFromMap, initCategories } from '../util/util';
 
 const categoryWaitingLists: Map<string, WebSocket[]> = new Map([
     ['General', []],
@@ -27,7 +27,7 @@ export default function initWebSocketServer(server: Server) {
     const wss = new WebSocketServer({ server });
     // INIT
     initUserOnlineStatusBroadcast();
-    initLeaderboardBroadcast();
+    initCategories();
 
     wss.on('connection', (ws) => {
         ws.on('message', async (message) => {
@@ -254,16 +254,8 @@ export default function initWebSocketServer(server: Server) {
             }
 
             async function createMatchInDB(category: string): Promise<number> {
-                console.log(category);
-                const [categoryResult] = await pool.query(
-                    `
-                    SELECT *
-                    FROM categories c
-                    WHERE c.name = ?
-                    `,
-                    [category]
-                )
-                const categoryId = (categoryResult as any)[0].id; 
+                const cat = availableCategories.filter(c => c.name === category)[0];
+                const categoryId = cat.id; 
                 const [quizResult] = await pool.query(
                     `INSERT INTO quizzes (category_id, created_at) VALUES (?, NOW())`,
                     [categoryId]
@@ -289,11 +281,11 @@ export default function initWebSocketServer(server: Server) {
                     `   SELECT q.id, q.text, q.difficulty, q.description 
                         FROM questions q
                         JOIN categories c ON c.id = q.category_id
-                        WHERE c.name = ?
+                        WHERE (? = 'General' OR c.name = ?)
                         ORDER BY RAND() 
                         LIMIT ?
                     `
-                    , [category, limit]);
+                    , [category, category, limit]);
                 const questions: QuizQuestion[] = (questionsResult[0] as any[]);
                 const questionIds = questions.map((q: any) => q.id);
                 const answersResult = await pool.query(
@@ -612,10 +604,10 @@ export default function initWebSocketServer(server: Server) {
                         SELECT q.id, q.text, q.difficulty 
                         FROM questions q
                         JOIN category c ON q.category_id = c.id
-                        WHERE id NOT IN (${usedIds.join(',') || 'NULL'}) AND c.name=?
+                        WHERE id NOT IN (${usedIds.join(',') || 'NULL'}) AND (? = 'General' OR c.name=?)
                         ORDER BY RAND() LIMIT ?
                     `
-                    , [limit, category]);
+                    , [limit, category, category]);
                 const questions: QuizQuestion[] = (questionsResult[0] as any[]);
                 const questionIds = questions.map((q: any) => q.id);
                 const answersResult = await pool.query(
@@ -657,14 +649,6 @@ function initUserOnlineStatusBroadcast() {
             ws.send(JSON.stringify({ type: 'broadcast/REFRESH_FRIENDS' }));
         })
     }, 5000);
-}
-
-function initLeaderboardBroadcast() {
-    setInterval(() => {
-        usersWebSockets.forEach(ws => {
-            ws.send(JSON.stringify({ type: 'broadcast/REFRESH_LEADERBOARD' }));
-        })
-    }, 30000);
 }
 
 export function sendFriendRefreshSignal(userId: number, friendId: number, action: string) {

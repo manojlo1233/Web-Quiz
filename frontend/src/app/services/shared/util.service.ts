@@ -10,11 +10,13 @@ export class UtilService {
   constructor(
     private http: HttpClient,
     private urlService: UrlService
-  ) { 
+  ) {
     this.url = `${urlService.url}/util`
   }
 
   url: string = null;
+
+  allCategories: string[] = ['General', 'History', 'Science'];
 
   formatDurationToMinSecFromSec(seconds: number): string {
     const mins = Math.floor(seconds / 60);
@@ -28,5 +30,9 @@ export class UtilService {
 
   getAvailableAvatars() {
     return this.http.get(`${this.url}/getAvailableAvatars`);
+  }
+
+  getAllCategories() {
+    return this.http.get(`${this.url}/getAllCategories`);
   }
 }

@@ -13,7 +13,6 @@ import { availableCategories } from "../util/util";
 export const loginUser = async (req: Request, res: Response) => {
     const { userNameOrEmail, password } = req.body;
     try {
-        const hashedPassword = await bcrypt.hash(password, 10);
         const [rows] = await pool.execute(
             `SELECT * FROM users WHERE username=? OR email=?`,
             [userNameOrEmail, userNameOrEmail]
@@ -31,9 +30,18 @@ export const loginUser = async (req: Request, res: Response) => {
 
         const userSessionExists = checkIfUserSessionExists(user.id);
         if (userSessionExists) {
-            console.log('ALOO')
             res.status(403).json({ message: 'You are already logged in on different device. Please log out from that device to continue.' });
             return;
+        }
+
+        const [loginResult] = await pool.execute(
+            `UPDATE users u
+            SET u.last_login = NOW()
+            WHERE u.id=?`,
+            [user.id]
+        )
+        if ((loginResult as any).affectedRows <= 0) {
+            res.status(404).json({ message: 'Login error' });
         }
 
         res.status(200).json({ message: 'success', user: { id: user.id, username: user.username } });
@@ -91,8 +99,8 @@ export const registerUser = async (req: Request, res: Response) => {
 
         availableCategories.forEach(async c => {
             const [resultRanking] = await pool.execute(
-                `INSERT INTO rankings (user_id, category) VALUES (?, ?)`,
-                [userId, c]
+                `INSERT INTO rankings (user_id, category_id) VALUES (?, ?)`,
+                [userId, c.id]
             )
             if ((resultRanking as any).affectedRows <= 0) {
                 res.status(500).json({ message: 'Register user failed' })
@@ -361,8 +369,7 @@ export const getUserQuizDetails = async (req: Request, res: Response) => {
 export const getLeaderBoard = async (req: Request, res) => {
     try {
         const category: string = req.params.category as string
-
-        if (!availableCategories.includes(category)) {
+        if (availableCategories.filter(c => c.name === category).length === 0) {
             return res.status(400).json({ message: 'Invalid category' });
         }
 
@@ -370,7 +377,8 @@ export const getLeaderBoard = async (req: Request, res) => {
             `   SELECT u.id as userId, u.username, r.score as ranking
                 FROM rankings r
                 JOIN users u ON u.id = r.user_id
-                WHERE r.category = ?
+                JOIN categories c ON r.category_id = c.id 
+                WHERE c.name = ?
                 ORDER BY r.score DESC
                 LIMIT 50
             `,

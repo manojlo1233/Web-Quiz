@@ -1,10 +1,10 @@
-<app-header (handleIconClick)="headerIconClick($event)"></app-header>
+<app-header [userRole]="user.role" (handleIconClick)="headerIconClick($event)"></app-header>
 <app-notification-container class="fr-notif" />
 <app-user-settings *ngIf="showUserSettings" [user]="this.user" (close)="closeUserSettings()" />
 <app-show-avatars *ngIf="showAvailableAvatars" [userId]="this.user.id" [userAvatar]="this.user.avatar"
     (closeAvatars)="handleCloseEditAvatar($event)" />
 <div class="main-container">
-    <div class="col-cont">
+    <div class="col-cont" style="max-width: 40%;">
         <div class="user-info">
             <div class="user">
                 <div style="position: relative;">
@@ -72,7 +72,7 @@
             </div>
         </div>
     </div>
-    <div class="col-cont" style="width: 80%;">
+    <div class="col-cont" style="max-width: 30%;">
         <div class="matchmaking">
             <div class="category">
                 <label>Category</label>
@@ -94,10 +94,13 @@
             </div>
         </div>
     </div>
-    <div class="col-cont" style="width: 80%;">
+    <div class="col-cont" style="max-width: 30%;">
         <div class="lboard">
             <div class="hdr">
                 <label>Leaderboard </label>
+                <app-icon class="icon" style="margin-left: auto;"
+                    src="/assets/svg/icon_refresh.svg" color="var(--theme-darkblue-color-3)" title="Refresh" [class.disabled]="leaderBoardRefreshDisabled"
+                    (click)="handleRefreshLeaderboardClick()" />
             </div>
             <div style="display: flex; flex-direction: column; width: 100%;">
                 <div class="lboard-categories">
@@ -108,11 +111,14 @@
                 <span class="h-divider" style="background-color: var(--theme-darkblue-color-3);"></span>
             </div>
 
-            <div class="lboard-container">
+            <div *ngIf="!leaderBoardLoading" class="lboard-container">
                 <div class="lboard-user" *ngFor="let user of leaderbaord, let i = index">
                     <label>{{user.username}}</label>
                     <label>{{user.ranking | number:'1.0'}} </label>
                 </div>
+            </div>
+            <div *ngIf="leaderBoardLoading" class="lboard-loading">
+                <app-spinner size="20px" border-width="2px" color="var(--theme-color-neutral-1)" />
             </div>
         </div>
         <div class="friends">

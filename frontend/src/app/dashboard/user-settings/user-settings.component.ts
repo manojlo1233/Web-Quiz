@@ -5,6 +5,7 @@ import { CountriesService } from '../../services/shared/countries.service';
 import { SnackBarService } from '../../services/shared/snack-bar.service';
 import { SpinnerComponent } from '../../shared/ui-indicators/spinner/spinner.component';
 import { ConfirmService } from '../../services/shared/confirm.service';
+import { NgForm } from '@angular/forms';
 
 @Component({
   selector: 'app-user-settings',
@@ -12,6 +13,7 @@ import { ConfirmService } from '../../services/shared/confirm.service';
   styleUrl: './user-settings.component.css'
 })
 export class UserSettingsComponent implements OnInit {
+  @ViewChild('userSettingsForm') userSettingsForm!: NgForm;
   @Input() user: User;
   @Output() close = new EventEmitter<void>();
   @ViewChild('spinnerContainer', { read: ViewContainerRef }) spinnerContainer!: ViewContainerRef;
@@ -87,5 +89,10 @@ export class UserSettingsComponent implements OnInit {
     this.user.email = this.emailEdit;
     this.user.country = this.countryEdit;
     this.user.receive_updates = this.updateEdit ? 1 : 0;
+  }
+
+  handleResetPassword() {
+    const url = '/auth/forgot-password';
+    window.open(url, '_blank');
   }
 }

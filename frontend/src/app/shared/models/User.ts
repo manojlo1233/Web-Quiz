@@ -9,4 +9,5 @@ export class User {
     receive_updates: number;
     avatar: string;
     ranking: number;
+    last_login: Date;
 }

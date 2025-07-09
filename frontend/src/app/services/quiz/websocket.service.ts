@@ -33,7 +33,6 @@ export class WebsocketService {
   public refreshFriends$ = new Subject<any>();
   // BROADCAST
   public refreshFriendsStatus$ = new Subject<void>();
-  public refreshLeaderboard$ = new Subject<void>();
 
   connect(): void {
     this.socket = new WebSocket('ws://localhost:3000');
@@ -91,9 +90,6 @@ export class WebsocketService {
           break;
         case 'broadcast/REFRESH_FRIENDS':
           this.refreshFriendsStatus$.next();
-          break;
-        case 'broadcast/REFRESH_LEADERBOARD':
-          this.refreshLeaderboard$.next();
           break;
         case 'battle/OVERTIME':
           this.battleReadyOvertime$.next();

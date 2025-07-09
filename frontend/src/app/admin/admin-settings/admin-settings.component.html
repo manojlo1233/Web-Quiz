@@ -1,0 +1,52 @@
+<div class="row-cont">
+    <label>All users</label>
+    <div class="users-container">
+        <div *ngFor="let user of allUsers">
+            <label>{{user.username}}</label>
+            <label>{{user.last_login | date:'dd.MM.yy HH:mm:ss'}}</label>
+        </div>
+    </div>
+</div>
+
+<div class="row-cont">
+    <form>
+        <label>Insert questions</label>
+        <div class="question">
+            <label>Question</label>
+            <textarea id="question" name="question" type="text" [(ngModel)]="questionText"></textarea>
+            <label>Description</label>
+            <textarea id="description" name="description" type="text" [(ngModel)]="questionDescription"></textarea>
+            <select [(ngModel)]="selectedCategory" id="category" name="category">
+                <option style="cursor: pointer;" *ngFor="let cat of allCategories" [value]="cat.name">{{cat.name}}</option>
+            </select>
+        </div>
+        <label>Answers</label>
+        <div class="answer">
+            <label for="ans1">True</label>
+            <input type="radio" id="ans1" name="trueAnswer" [value]="1" [(ngModel)]="correctAnswer">
+            <label for>Answer 1</label>
+            <textarea id="answer1" name="answer1" type="text" [(ngModel)]="answer1"></textarea>
+        </div>
+        <div class="answer">
+            <label for="ans2">True</label>
+            <input type="radio" id="ans2" name="trueAnswer" [value]="2" [(ngModel)]="correctAnswer">
+            <label>Answer 2</label>
+            <textarea id="answer2" name="answer2" type="text" [(ngModel)]="answer2"></textarea>
+        </div>
+        <div class="answer">
+            <label for="ans3">True</label>
+            <input type="radio" id="ans3" name="trueAnswer" [value]="3" [(ngModel)]="correctAnswer">
+            <label>Answer 3</label>
+            <textarea id="answer3" name="answer3" type="text" [(ngModel)]="answer3"></textarea>
+        </div>
+        <div class="answer">
+            <label for="ans4">True</label>
+            <input type="radio" id="ans4" name="trueAnswer" [value]="4" [(ngModel)]="correctAnswer">
+            <label>Answer 4</label>
+            <textarea id="answer4" name="answer4" type="text" [(ngModel)]="answer4"></textarea>
+        </div>
+        <button (click)="handleAddQuestion()">Add</button>
+
+    </form>
+
+</div>

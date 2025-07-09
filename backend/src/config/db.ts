@@ -75,9 +75,12 @@ export async function updateUserStatisticsAndRanking(userId: number, winnerId: n
 
   const [currentRankingResult] = await pool.query(
     `
-      SELECT score
+      SELECT 
+        r.score as score,
+        c.id as category_id
       FROM rankings r
-      WHERE r.user_id=? AND r.category=?
+      JOIN categories c ON r.category_id = c.id
+      WHERE r.user_id=? AND c.name=?
     `,
     [userId, category]
   )
@@ -90,19 +93,32 @@ export async function updateUserStatisticsAndRanking(userId: number, winnerId: n
   let newRanking = currentRankingResult[0].score + rankChange;
   newRanking = newRanking < 0 ? 0 : newRanking;
 
+  const cat_id = currentRankingResult[0].category_id;
+
   const [rankingUpdateResult] = await pool.query(
     `
       UPDATE rankings r
       SET score=?
-      WHERE r.user_id=? AND r.category=?
+      WHERE r.user_id=? AND r.category_id=?
     `,
-    [newRanking, userId, category]
+    [newRanking, userId, cat_id]
   )
 
   if ((rankingUpdateResult as any).affectedRows <= 0) {
-     console.log('Error updating user ranking.');
+    console.log('Error updating user ranking.');
     return;
   }
+}
+
+export async function getAllCategoriesFromDB(): Promise<any[]> {
+  const [catResult] = await pool.execute(
+    ` SELECT * 
+      FROM categories c
+    `);
+    if ((catResult as any[]).length === 0) {
+      console.log('Get categories error');
+    }
+    return catResult as any[];
 }
 
 export default pool;

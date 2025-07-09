@@ -9,6 +9,7 @@ import initWebSocketServer from './websockets/matchmaking.ws';
 import quizRouter from './routes/quiz.rouites';
 import path from 'path';
 import utilRouter from './routes/util.routes';
+import adminRouter from './routes/admin.routes';
 
 
 dotenv.config();        // Omogućava da koristimo npr. process.env.DB_HOST
@@ -28,6 +29,7 @@ router.use('/users', userRouter);
 router.use('/friends', friendsRouter);
 router.use('/quiz', quizRouter);
 router.use('/util', utilRouter);
+router.use('/admin', adminRouter);
 
 app.use('/api', router);
 

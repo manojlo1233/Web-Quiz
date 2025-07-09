@@ -1,8 +1,9 @@
 import express from 'express'
-import { getAvailableAvatars } from '../controllers/util.controller';
+import { getAllCategories, getAvailableAvatars } from '../controllers/util.controller';
 
 const utilRouter = express.Router();
 
 utilRouter.get('/getAvailableAvatars', getAvailableAvatars);
+utilRouter.get('/getAllCategories', getAllCategories);
 
 export default utilRouter;

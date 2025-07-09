@@ -1,63 +1,93 @@
 <div class="modal-window">
     <label class="hdr">User settings</label>
     <span class="h-divider" style="background-color: var(--theme-darkblue-color-3);"></span>
-    <div class="user-info-pre">
-        <label class="prop-name">Name</label>
-        <label *ngIf="!editing" class="prop-value">{{this.user.firstname}} {{this.user.lastname}}</label>
-        <div *ngIf="editing" style="display: flex; flex-direction: row; gap: 10px; align-items: center;">
-            <input id="firstname" name="firstname" type="text" size="10" [(ngModel)]="firstnameEdit" required />
-            <input id="lastname" name="lastname" type="text" size="10" [(ngModel)]="lastnameEdit" required />
-        </div>
-    </div>
-    <span class="h-divider" style="background-color: var(--theme-darkblue-color-3);"></span>
-    <div class="user-info-pre">
-        <label class="prop-name">Username</label>
-        <label *ngIf="!editing" class="prop-value">{{this.user.username}}</label>
-        <input *ngIf="editing" id="username" name="username" type="text" [(ngModel)]="usernameEdit" required />
-    </div>
-    <span class="h-divider" style="background-color: var(--theme-darkblue-color-3);"></span>
-    <div class="user-info-pre">
-        <label class="prop-name">Email</label>
-        <label *ngIf="!editing" class="prop-value">{{this.user.email}}</label>
-        <input *ngIf="editing" id="username" name="username" type="text" email [(ngModel)]="emailEdit" required />
-    </div>
-    <span class="h-divider" style="background-color: var(--theme-darkblue-color-3);"></span>
-    <div class="user-info-pre">
-        <label class="prop-name">Country</label>
-        <label *ngIf="!editing" class="prop-value">{{this.user.country}}</label>
-        <select *ngIf="editing" [(ngModel)]="countryEdit" id="country" name="country" required>
-            <option *ngFor="let cntr of countries" [value]="cntr">{{cntr}}</option>
-        </select>
-    </div>
-    <span class="h-divider" style="background-color: var(--theme-darkblue-color-3);"></span>
-    <div class="user-info-pre">
-        <label class="prop-name">Receive updates</label>
-        <label *ngIf="!editing" class="prop-value">{{this.user.receive_updates == 1? 'Yes': 'No'}}</label>
-        <div *ngIf="editing" style="display: flex; flex-direction: row; gap: 15px; align-items: center;">
-            <div style="display: flex; flex-direction: row; gap: 3px; align-items: center;">
-                <input type="radio" id="yes" name="updates" [value]="true" style="box-shadow: none; cursor: pointer;"
-                    [(ngModel)]="updateEdit">
-                <label for="yes" style="cursor: pointer;">Yes</label>
-            </div>
-            <div style="display: flex; flex-direction: row; gap: 3px; align-items: center;">
-                <input type="radio" id="no" name="updates" [value]="false" style="box-shadow: none; cursor: pointer;"
-                    [(ngModel)]="updateEdit">
-                <label for="no" style="cursor: pointer;">No</label>
+    <form #userSettingsForm="ngForm">
+        <div class="user-info-pre">
+            <label class="prop-name">Name</label>
+            <label *ngIf="!editing" class="prop-value">{{this.user.firstname}} {{this.user.lastname}}</label>
+            <div *ngIf="editing" style="display: flex; flex-direction: row; gap: 10px; align-items: center;">
+                <div class="prop-editing">
+                    <input id="firstName" name="firstName" #firstNameRef="ngModel" type="text"
+                        [ngClass]="{'invalid': firstNameRef.invalid && firstNameRef.touched}" size="10"
+                        [(ngModel)]="firstnameEdit" required placeholder="First Name" />
+                    <label *ngIf="firstNameRef.invalid && firstNameRef.touched" class="error">
+                        Username cannot be blank
+                    </label>
+                </div>
+                <input id="lastname" name="lastname" type="text" size="10" [(ngModel)]="lastnameEdit" required />
             </div>
         </div>
+        <span class="h-divider" style="background-color: var(--theme-darkblue-color-3);"></span>
+        <div class="user-info-pre">
+            <label class="prop-name">Username</label>
+            <label *ngIf="!editing" class="prop-value">{{this.user.username}}</label>
+            <div *ngIf="editing" class="prop-editing">
+                <input id="username" name="username" #usernameRef="ngModel" type="text" [(ngModel)]="usernameEdit"
+                    size="20" pattern="^[a-zA-Z0-9]*$"
+                    [ngClass]="{'invalid': usernameRef.invalid && usernameRef.touched}" required
+                    placeholder="Username" />
+                <label *ngIf="usernameRef.invalid && usernameRef.touched" class="error">
+                    Username is required and must be alphanumeric.
+                </label>
+            </div>
 
-    </div>
-    <span class="h-divider" style="background-color: var(--theme-darkblue-color-3);"></span>
-    <div style="width: 100%; display: flex; flex-direction: row-reverse; gap: 10px; align-items: center;">
-        <button class="btn-light-small" style="margin-bottom: 0; border: 1px solid transparent;"
-            (click)="closeModal()">Close</button>
-        <button *ngIf="!editing" class="btn-light-small" style="margin-bottom: 0; border: 1px solid transparent"
-            (click)="editUser()">Edit</button>
-        <button *ngIf="editing" class="btn-light-small btn-red" style="margin-bottom: 0;"
-            (click)="cancelEditing()">Cancel</button>
-        <button *ngIf="editing" class="btn-light-small btn-green" style="margin-bottom: 0;"
-            (click)="saveEditing()">Save</button>
-        <app-spinner *ngIf="showSpinner" size="15px" border-width="2px" color="var(--theme-darkblue-color-3)"
-            style="margin: 0 7px 0 0;"></app-spinner>
-    </div>
+        </div>
+        <span class="h-divider" style="background-color: var(--theme-darkblue-color-3);"></span>
+        <div class="user-info-pre">
+            <label class="prop-name">Email</label>
+            <label *ngIf="!editing" class="prop-value">{{this.user.email}}</label>
+            <div *ngIf="editing" class="prop-editing">
+                <input id="email" name="email" #emailRef="ngModel" type="text"
+                    [ngClass]="{'invalid': emailRef.invalid && emailRef.touched}" [(ngModel)]="emailEdit" size="20"
+                    required email placeholder="Email" />
+                <label *ngIf="emailRef.invalid && emailRef.touched" class="error">
+                    Please enter a valid email.
+                </label>
+            </div>
+
+        </div>
+        <span class="h-divider" style="background-color: var(--theme-darkblue-color-3);"></span>
+        <div class="user-info-pre">
+            <label class="prop-name">Country</label>
+            <label *ngIf="!editing" class="prop-value">{{this.user.country}}</label>
+            <select *ngIf="editing" [(ngModel)]="countryEdit" id="country" name="country" required>
+                <option *ngFor="let cntr of countries" [value]="cntr">{{cntr}}</option>
+            </select>
+        </div>
+        <span class="h-divider" style="background-color: var(--theme-darkblue-color-3);"></span>
+        <div class="user-info-pre">
+            <label class="prop-name">Receive updates</label>
+            <label *ngIf="!editing" class="prop-value">{{this.user.receive_updates == 1? 'Yes': 'No'}}</label>
+            <div *ngIf="editing" style="display: flex; flex-direction: row; gap: 15px; align-items: center;">
+                <div style="display: flex; flex-direction: row; gap: 3px; align-items: center;">
+                    <input type="radio" id="yes" name="updates" [value]="true"
+                        style="box-shadow: none; cursor: pointer;" [(ngModel)]="updateEdit">
+                    <label for="yes" style="cursor: pointer;">Yes</label>
+                </div>
+                <div style="display: flex; flex-direction: row; gap: 3px; align-items: center;">
+                    <input type="radio" id="no" name="updates" [value]="false"
+                        style="box-shadow: none; cursor: pointer;" [(ngModel)]="updateEdit">
+                    <label for="no" style="cursor: pointer;">No</label>
+                </div>
+            </div>
+
+        </div>
+        <span class="h-divider" style="background-color: var(--theme-darkblue-color-3);"></span>
+        <div style="width: 100%; display: flex; flex-direction: row-reverse; gap: 10px; align-items: center;">
+            <button class="btn-light-small" style="margin-bottom: 0; border: 1px solid transparent;"
+                (click)="closeModal()">Close</button>
+            <button *ngIf="!editing" class="btn-light-small" style="margin-bottom: 0; border: 1px solid transparent"
+                (click)="editUser()">Edit</button>
+            <button *ngIf="editing" class="btn-light-small btn-red" style="margin-bottom: 0;"
+                (click)="cancelEditing()">Cancel</button>
+            <button *ngIf="editing" class="btn-green btn-light-small" style="margin-bottom: 0;"
+                (click)="saveEditing()" [ngClass]="{
+                    'btn-disabled': !userSettingsForm.form.valid
+                }">Save</button>
+            <app-spinner *ngIf="showSpinner" size="15px" border-width="2px" color="var(--theme-darkblue-color-3)"
+                style="margin: 0 7px 0 0;"></app-spinner>
+            <button *ngIf="!editing" class="btn-light-small" style="margin-bottom: 0; margin-right: auto;"
+                (click)="handleResetPassword()">Reset password</button>
+        </div>
+    </form>
 </div>

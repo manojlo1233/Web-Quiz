@@ -38,7 +38,7 @@ export class MainPageComponent implements OnInit, OnDestroy {
     private friendsService: FriendsService,
     private snackBarService: SnackBarService,
     private notificationService: NotificationService,
-    private confirmService: ConfirmService
+    private confirmService: ConfirmService,
   ) {
     this.errorSub = this.wsService.error$.subscribe((msg) => {
       this.errorMessage = msg;
@@ -46,6 +46,8 @@ export class MainPageComponent implements OnInit, OnDestroy {
       this.isSearching = false;
       console.error('Error: ', msg)
     })
+
+    this.allCategories = utilService.allCategories;
   }
   user: User = new User();
   userStatistic: Statistic = new Statistic();
@@ -53,6 +55,9 @@ export class MainPageComponent implements OnInit, OnDestroy {
   // LEADRBOARD
   leaderbaord: Leaderboard[] = [];
   leaderBoardCategory: string = 'General';
+  leaderBoardRefreshDisabled: boolean = false;
+  leaderBoardTimeout = null;
+  leaderBoardLoading: boolean = false;
 
   // FIRENDS
   FRIENDS_TAB = {
@@ -88,7 +93,7 @@ export class MainPageComponent implements OnInit, OnDestroy {
   matchmakingLbl: string = 'Battle'
   isSearching: boolean = false;
   searchDisabled: boolean = false;
-  allCategories: string[] = ['General', 'History', 'Science'];
+  allCategories: string[] = [];
   searchCategory: string = 'General';
   // MATCHMAKING TIMER
   secondsElapsed = 0;
@@ -178,14 +183,6 @@ export class MainPageComponent implements OnInit, OnDestroy {
     })
     // --------- LEADERBOARD ---------
     this.getLeaderboard();
-    this.wsService.refreshLeaderboard$.subscribe({
-      next: (resp: any) => {
-        this.getLeaderboard();
-      },
-      error: (error: any) => {
-        // SHOW ERROR PAGE
-      }
-    });
     // --------- START QUIZ ---------
     this.startQuizSub = this.wsService.startQuiz$.subscribe((resp: WSMatchFoundMsg) => {
       this.isSearching = false;
@@ -269,9 +266,11 @@ export class MainPageComponent implements OnInit, OnDestroy {
   }
 
   getLeaderboard() {
-    this.userService.getLeaderBoard(this.searchCategory).subscribe({
+    this.leaderBoardLoading = true;
+    this.userService.getLeaderBoard(this.leaderBoardCategory).subscribe({
       next: (resp: any) => {
         this.leaderbaord = resp;
+        this.leaderBoardLoading = false;
       },
       error: (error: any) => {
       }
@@ -428,6 +427,10 @@ export class MainPageComponent implements OnInit, OnDestroy {
       case 'notification':
         this.showNotifications = true;
         break;
+      case 'admin-settings':
+        const url = '/admin/admin-settings';
+        window.open(url, '_blank');
+        break;
     }
   }
 
@@ -502,12 +505,26 @@ export class MainPageComponent implements OnInit, OnDestroy {
       return 'LEFT';
     }
     else {
-      return item.user_id === item.winner_id? 'WIN': 'LOSE';
+      return item.user_id === item.winner_id ? 'WIN' : 'LOSE';
     }
   }
 
-  handleLeaderboardCategoryClick(cat: string) {
+  handleLeaderboardCategoryClick(cat: string): void {
     this.leaderBoardCategory = cat;
+    this.getLeaderboard();
+  }
+
+  handleRefreshLeaderboardClick(): void {
+    if (!this.leaderBoardTimeout) {
+      this.leaderBoardRefreshDisabled = true;
+      this.getLeaderboard();
+      this.leaderBoardTimeout = setTimeout(() => {
+        this.leaderBoardRefreshDisabled = false;
+        clearTimeout(this.leaderBoardTimeout);
+        this.leaderBoardTimeout = null;
+      }, 3000)
+    }
+
   }
 
   ngOnDestroy(): void {
@@ -521,5 +538,5 @@ export class MainPageComponent implements OnInit, OnDestroy {
     if (this.battleDeclineSub) this.battleDeclineSub.unsubscribe();
     if (this.battleWithdrawSub) this.battleWithdrawSub.unsubscribe();
     if (this.battleAutoWithdrawSub) this.battleAutoWithdrawSub.unsubscribe();
-  }  
+  }
 }

@@ -26,7 +26,7 @@ const battleRequestTimeout: Map<string, NodeJS.Timeout> = new Map();
 export default function initWebSocketServer(server: Server) {
     const wss = new WebSocketServer({ server });
     // INIT
-    initUserOnlineStatusBroadcast();
+    initFriendsOnlineStatusBroadcast();
     initCategories();
 
     wss.on('connection', (ws) => {
@@ -222,7 +222,7 @@ export default function initWebSocketServer(server: Server) {
                     sendNextQuestion(match);
                 }
             }
-
+            
             // ------------------------------------------------------------------------------------------------------------------------
             // --------------------------------------------------- BATTLE FUNCTIONS ---------------------------------------------------
             // ------------------------------------------------------------------------------------------------------------------------
@@ -643,10 +643,10 @@ export default function initWebSocketServer(server: Server) {
     });
 }
 
-function initUserOnlineStatusBroadcast() {
+function initFriendsOnlineStatusBroadcast() {
     setInterval(() => {
         usersWebSockets.forEach(ws => {
-            ws.send(JSON.stringify({ type: 'broadcast/REFRESH_FRIENDS' }));
+            ws.send(JSON.stringify({ type: 'broadcast/REFRESH_FRIENDS', id: (ws as any).id }));
         })
     }, 5000);
 }
@@ -679,4 +679,16 @@ export function checkIfUserSessionExists(userId: number): boolean {
         }
     });
     return ret;
+}
+
+export function isUserOnline(userId: number): boolean {
+    let online = false;
+    usersWebSockets.forEach(ws => {
+        if (online) return;
+        if ((ws as any).id === userId) {
+            online = true;
+            return;
+        }
+    })
+    return online;
 }

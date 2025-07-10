@@ -26,6 +26,8 @@ import { BattleSummaryComponent } from './quiz/battle-summary/battle-summary.com
 import { ShowAvatarsComponent } from './dashboard/show-avatars/show-avatars.component';
 import { DotLoaderComponent } from './shared/ui-indicators/dot-loader/dot-loader.component';
 import { AdminSettingsComponent } from './admin/admin-settings/admin-settings.component';
+import { DatepickerDirective } from './shared/directives/datepicker.directive';
+import { BanUserComponent } from './admin/ban-user/ban-user.component';
 
 
 @NgModule({
@@ -50,7 +52,9 @@ import { AdminSettingsComponent } from './admin/admin-settings/admin-settings.co
     BattleSummaryComponent,
     ShowAvatarsComponent,
     DotLoaderComponent,
-    AdminSettingsComponent
+    AdminSettingsComponent,
+    DatepickerDirective,
+    BanUserComponent
   ],
   imports: [
     BrowserModule,

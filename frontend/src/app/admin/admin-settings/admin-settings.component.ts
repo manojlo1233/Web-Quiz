@@ -53,6 +53,7 @@ export class AdminSettingsComponent implements OnInit {
     this.adminService.getAllUsers().subscribe({
       next: (resp: User[]) => {
         this.allUsers = resp;
+        console.log(this.allUsers)
       },
       error: (error: any) => {
         // SHOW ERROR PAGE
@@ -62,6 +63,7 @@ export class AdminSettingsComponent implements OnInit {
     this.utilService.getAllCategories().subscribe({
       next: (resp: Category[]) => {
         this.allCategories = resp;
+        this.allCategories = this.allCategories.filter(c => c.name !== 'General')
         if (this.allCategories.length > 0) {
           this.selectedCategory = this.allCategories[0].name;
         }
@@ -95,6 +97,51 @@ export class AdminSettingsComponent implements OnInit {
         })
       }
     )
+  }
+
+  showDetails(user: User) {
+
+  }
+
+  banUser(user: User) {
+
+  }
+
+  unbanUser(user: User) {
+
+  }
+
+  deleteUser(item: User) {
+    this.confirmService.showCustomConfirm(`Are you sure you want to delete ${item.username}'s user account?`, () => {
+      this.adminService.deleteUser(item.id).subscribe({
+        next: (resp: any) => {
+          this.snackBarService.showSnackBar(resp.message);
+          if (resp.message === 'User deleted successfully.') this.allUsers = this.allUsers.filter(u => u.id !== item.id)
+        },
+        error: (error: any) => {
+          // SHOW ERROR PAGE
+        }
+      })
+    })
+
+  }
+
+  isButtonBanDisabled(item: User): boolean {
+    if (this.user.id === item.id || item.role === 1 || item.banned_until) {
+      return true;
+    }
+    else {
+      return false;
+    }
+  }
+
+  isButtonDeleteDisabled(item: User): boolean {
+    if (this.user.id === item.id || item.role === 1) {
+      return true;
+    }
+    else {
+      return false;
+    }
   }
 
 }

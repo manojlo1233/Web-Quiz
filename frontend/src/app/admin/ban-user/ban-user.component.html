@@ -1,0 +1,18 @@
+<div class="modal-container">
+    <div class="modal-window">
+        <label class="hdr">Ban user until</label>
+        <input #banDateRef (change)="checkDate()" class="date-input" type="text" placeholder="Select ban date..."
+            appDatepicker [(ngModel)]="banDate" (dateSelected)="banDateSelected($event)">
+        <!---------------- HOURS ---------------->
+        <select [(ngModel)]="banHours" style="cursor: pointer; margin-left: 10px;">
+            <option *ngFor="let hour of getHours()" [ngValue]="hour">{{hour}}</option>
+        </select>
+        <span>HH</span>
+        <!---------------- MINUTES ---------------->
+        <select [(ngModel)]="banMinutes" style="cursor: pointer; margin-left: 10px;">
+            <option *ngFor="let minut of getMinutes()" [ngValue]="minut">{{minut}}</option>
+        </select>
+        <span>MM</span>
+    </div>
+
+</div>

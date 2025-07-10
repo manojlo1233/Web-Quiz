@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import pool from "../config/db";
+import { isUserOnline } from "../websockets/matchmaking.ws";
 
 export const getAllUsers = async (req: Request, res: Response) => {
     try {
@@ -62,3 +63,36 @@ export const addQuestion = async (req: Request, res: Response) => {
         res.status(500).json({ message: 'getAllUsers failed', error: error.message })
     }
 }
+
+export const deleteUser = async (req: Request, res: Response) => {
+    try {
+        const userId = req.params.userId;
+
+        const userOnline = isUserOnline(Number.parseInt(userId));
+
+        if (userOnline) {
+            res.status(200).json({message: 'User is currently online.'});
+            return;
+        }
+
+        const [userResult] = await pool.query(
+            `
+                DELETE 
+                FROM users u
+                WHERE u.id = ?            
+            `,
+            [userId]
+        )
+
+        if ((userResult as any).affectedRows <= 0) {
+             res.status(500).json({ message: 'Delete user failed' })
+            return;
+        }
+
+        res.status(200).json({message: 'User deleted successfully.'});
+    } catch (error: any) {
+        console.log('addQuestion error', error);
+        res.status(500).json({ message: 'getAllUsers failed', error: error.message })
+    }
+}
+

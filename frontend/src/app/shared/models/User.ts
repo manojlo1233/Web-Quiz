@@ -10,4 +10,5 @@ export class User {
     avatar: string;
     ranking: number;
     last_login: Date;
+    banned_until: Date;
 }

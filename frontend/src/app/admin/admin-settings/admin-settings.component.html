@@ -1,52 +1,116 @@
 <div class="row-cont">
-    <label>All users</label>
-    <div class="users-container">
-        <div *ngFor="let user of allUsers">
-            <label>{{user.username}}</label>
-            <label>{{user.last_login | date:'dd.MM.yy HH:mm:ss'}}</label>
-        </div>
+    <label style="font-size: 28px;">All users</label>
+    <span class="h-divider" style="background-color: var(--theme-darkblue-color-3);">aaaa</span>
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Username</th>
+                    <th>Last login</th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody *ngIf="allUsers.length !== 0">
+                <tr *ngFor="let item of allUsers">
+                    <td>{{ item.username }}</td>
+                    <td *ngIf="item.last_login">{{ item.last_login | date: 'dd.MM.yy HH:mm:ss' }}</td>
+                    <td *ngIf="!item.last_login" class="neutral-italic">--- No data ---</td>
+                    <td>
+                        <button class="btn-light-small" style="margin: 0;" (click)="showDetails(item)">Details</button>
+                    </td>
+                    <td *ngIf="!item.banned_until">
+                        <button class="btn-light-small btn-red" [ngClass]="{
+                            'btn-disabled': isButtonBanDisabled(item)
+                        }" style="margin: 0;" (click)="banUser(item)">Ban</button>
+                    </td>
+                    <td *ngIf="item.banned_until">
+                        <button class="btn-light-small btn-green" style="margin: 0;"
+                            (click)="unbanUser(item)">Unban</button>
+                    </td>
+                    <td>
+                        <button class="btn-light-small btn-red" [ngClass]="{
+                            'btn-disabled': isButtonDeleteDisabled(item)
+                        }" style="margin: 0;" (click)="deleteUser(item)">Delete</button>
+                    </td>
+            </tbody>
+            <tbody *ngIf="allUsers.length === 0">
+                <td class="neutral-italic" colspan="5">--- There are no users ---</td>
+            </tbody>
+        </table>
     </div>
 </div>
 
 <div class="row-cont">
-    <form>
-        <label>Insert questions</label>
+    <form class="question-form">
+        <label style="font-size: 28px;">Insert questions and asnwers</label>
+        <span class="h-divider" style="background-color: var(--theme-darkblue-color-3);">aaaa</span>
+        <label style="font-size: 22px;">Question</label>
         <div class="question">
-            <label>Question</label>
-            <textarea id="question" name="question" type="text" [(ngModel)]="questionText"></textarea>
-            <label>Description</label>
-            <textarea id="description" name="description" type="text" [(ngModel)]="questionDescription"></textarea>
-            <select [(ngModel)]="selectedCategory" id="category" name="category">
-                <option style="cursor: pointer;" *ngFor="let cat of allCategories" [value]="cat.name">{{cat.name}}</option>
-            </select>
+            <div class="q-form-field">
+                <label>Question</label>
+                <textarea id="question" name="question" type="text" [(ngModel)]="questionText"></textarea>
+            </div>
+            <div class="q-form-field">
+                <label>Description</label>
+                <textarea id="description" name="description" type="text" [(ngModel)]="questionDescription"></textarea>
+            </div>
+            <div class="q-form-field">
+                <label>Category</label>
+                <select class="select-light" [(ngModel)]="selectedCategory" id="category" name="category">
+                    <option style="cursor: pointer;" *ngFor="let cat of allCategories" [value]="cat.name">{{cat.name}}
+                    </option>
+                </select>
+            </div>
+
         </div>
-        <label>Answers</label>
+        <span class="h-divider" style="background-color: var(--theme-darkblue-color-3);">aaaa</span>
+        <label style="font-size: 22px;">Answers</label>
         <div class="answer">
-            <label for="ans1">True</label>
-            <input type="radio" id="ans1" name="trueAnswer" [value]="1" [(ngModel)]="correctAnswer">
-            <label for>Answer 1</label>
-            <textarea id="answer1" name="answer1" type="text" [(ngModel)]="answer1"></textarea>
+            <label style="width: 20%; font-size: 18px;">Answer 1</label>
+            <div class="a-radio">
+                <label for="ans1">Correct</label>
+                <input type="radio" id="ans1" name="trueAnswer" [value]="1" [(ngModel)]="correctAnswer">
+            </div>
+            <div class="a-form-field">
+                <textarea id="answer1" name="answer1" type="text" [(ngModel)]="answer1"></textarea>
+            </div>
         </div>
         <div class="answer">
-            <label for="ans2">True</label>
-            <input type="radio" id="ans2" name="trueAnswer" [value]="2" [(ngModel)]="correctAnswer">
-            <label>Answer 2</label>
-            <textarea id="answer2" name="answer2" type="text" [(ngModel)]="answer2"></textarea>
+            <label style="width: 20%; font-size: 18px;">Answer 2</label>
+            <div class="a-radio">
+                <label for="ans2">Correct</label>
+                <input type="radio" id="ans2" name="trueAnswer" [value]="2" [(ngModel)]="correctAnswer">
+            </div>
+            <div class="a-form-field">
+                <textarea id="answer2" name="answer2" type="text" [(ngModel)]="answer2"></textarea>
+            </div>
         </div>
         <div class="answer">
-            <label for="ans3">True</label>
-            <input type="radio" id="ans3" name="trueAnswer" [value]="3" [(ngModel)]="correctAnswer">
-            <label>Answer 3</label>
-            <textarea id="answer3" name="answer3" type="text" [(ngModel)]="answer3"></textarea>
+            <label style="width: 20%; font-size: 18px;">Answer 3</label>
+            <div class="a-radio">
+                <label for="ans3">Correct</label>
+                <input type="radio" id="ans3" name="trueAnswer" [value]="3" [(ngModel)]="correctAnswer">
+            </div>
+            <div class="a-form-field">
+
+                <textarea id="answer3" name="answer3" type="text" [(ngModel)]="answer3"></textarea>
+            </div>
         </div>
         <div class="answer">
-            <label for="ans4">True</label>
-            <input type="radio" id="ans4" name="trueAnswer" [value]="4" [(ngModel)]="correctAnswer">
-            <label>Answer 4</label>
-            <textarea id="answer4" name="answer4" type="text" [(ngModel)]="answer4"></textarea>
+            <label style="width: 20%; font-size: 18px;">Answer 4</label>
+            <div class="a-radio">
+                <label for="ans4">Correct</label>
+                <input type="radio" id="ans4" name="trueAnswer" [value]="4" [(ngModel)]="correctAnswer">
+            </div>
+            <div class="a-form-field">
+                <textarea id="answer4" name="answer4" type="text" [(ngModel)]="answer4"></textarea>
+            </div>
         </div>
-        <button (click)="handleAddQuestion()">Add</button>
+        <button class="btn-light" style="width: 50%; margin-top: auto;" (click)="handleAddQuestion()">Add</button>
 
     </form>
 
 </div>
+<app-ban-user></app-ban-user>

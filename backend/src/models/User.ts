@@ -13,4 +13,5 @@ export class User {
     receive_updates: boolean;
     avatar: string;
     ranking: number;
+    banned_until: Date;
 }

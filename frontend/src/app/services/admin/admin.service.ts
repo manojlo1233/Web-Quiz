@@ -31,4 +31,8 @@ export class AdminService {
     return this.http.post(`${this.url}/addQuestion`, body)
   }
 
+  deleteUser(userId: number) {
+    return this.http.delete(`${this.url}/deleteUser/${userId}`);
+  }
+
 }

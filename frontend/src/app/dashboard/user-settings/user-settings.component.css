@@ -74,7 +74,8 @@
 }
 
 .btn-disabled {
-    background-color: var(--theme-color-neutral-1);
+    color: var(--theme-color-neutral-1);
+    border-color: var(--theme-color-neutral-1);
     user-select: none;
     pointer-events: none;
     cursor: default;

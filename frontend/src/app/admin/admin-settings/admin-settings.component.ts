@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { UserService } from '../../services/shared/user.service';
 import { User } from '../../shared/models/User';
 import { AdminService } from '../../services/admin/admin.service';
@@ -8,21 +8,32 @@ import { QuizAnswer } from '../../shared/models/Quiz/QuizAnswer';
 import { NotificationService } from '../../services/shared/notification.service';
 import { ConfirmService } from '../../services/shared/confirm.service';
 import { SnackBarService } from '../../services/shared/snack-bar.service';
+import { DateService } from '../../services/shared/date.service';
+import { Subscription } from 'rxjs';
+import { WebsocketService } from '../../services/quiz/websocket.service';
 
 @Component({
   selector: 'app-admin-settings',
   templateUrl: './admin-settings.component.html',
   styleUrl: './admin-settings.component.css'
 })
-export class AdminSettingsComponent implements OnInit {
+export class AdminSettingsComponent implements OnInit, OnDestroy {
 
   constructor(
     private userService: UserService,
     private adminService: AdminService,
     private utilService: UtilService,
     private snackBarService: SnackBarService,
-    private confirmService: ConfirmService
+    private confirmService: ConfirmService,
+    private dateService: DateService,
+    private wsService: WebsocketService
   ) { }
+
+  // SUBSCRIPTIONS
+  private connectionSub: Subscription;
+  private adminUserBannedSub: Subscription;
+  private adminUserUnbannedSub: Subscription;
+  private adminUserDeletedSub: Subscription;
 
   user: User = new User();
   allUsers: User[] = [];
@@ -38,12 +49,25 @@ export class AdminSettingsComponent implements OnInit {
   allCategories: Category[] = [];
   selectedCategory: string = '';
 
+  // BAN
+  openBanUser: boolean = false;
+  banUser: User = null;
+
+  // USER DETAILS
+  detailsUser: User = null;
+  openUserDetails: boolean = false;
+
   ngOnInit(): void {
-    const userId = sessionStorage.getItem('userId');
+    const userId = Number.parseInt(sessionStorage.getItem('userId'));
     // -------------------- GET USER --------------------
-    this.userService.getUserById(Number.parseInt(userId)).subscribe({
+    this.userService.getUserById(userId).subscribe({
       next: (resp: User) => {
         this.user = resp;
+        this.wsService.connect();
+        if (this.connectionSub) this.connectionSub.unsubscribe();
+        this.connectionSub = this.wsService.connectionOpen$.subscribe(() => {
+          this.wsService.sendHelloAsAdmin(userId, this.user.username);
+        })
       },
       error: (error: any) => {
         // SHOW ERROR PAGE
@@ -53,7 +77,12 @@ export class AdminSettingsComponent implements OnInit {
     this.adminService.getAllUsers().subscribe({
       next: (resp: User[]) => {
         this.allUsers = resp;
-        console.log(this.allUsers)
+        this.allUsers = this.allUsers.map((u) => {
+          if (u.banned_until) {
+            return { ...u, banned_until: new Date(u.banned_until) }
+          }
+          return u;
+        })
       },
       error: (error: any) => {
         // SHOW ERROR PAGE
@@ -74,6 +103,21 @@ export class AdminSettingsComponent implements OnInit {
       error: (error: any) => {
         // SHOW ERROR PAGE
       }
+    })
+
+    // -------------------- SUBSCRIPTIONS --------------------
+    this.adminUserBannedSub = this.wsService.adminUserBanned$.subscribe((resp: any) => {
+      const user = this.allUsers.find(u => u.id === resp.userId);
+      user.banned_until = new Date(resp.banned_until);
+    })
+
+    this.adminUserUnbannedSub = this.wsService.adminUserUnbanned$.subscribe((data: any) => {
+      const user = this.allUsers.find(u => u.id === data.userId);
+      user.banned_until = null;
+    })
+
+    this.adminUserDeletedSub = this.wsService.adminUserDeleted$.subscribe((data: any) => {
+      this.allUsers = this.allUsers.filter(u => u.id === data.userId);
     })
   }
 
@@ -99,16 +143,40 @@ export class AdminSettingsComponent implements OnInit {
     )
   }
 
-  showDetails(user: User) {
-
+  handleShowDetails(user: User) {
+    this.detailsUser = user;
+    this.openUserDetails = true;
   }
 
-  banUser(user: User) {
-
+  handleCloseUserDetails() {
+    this.detailsUser = null;
+    this.openUserDetails = false;
   }
 
-  unbanUser(user: User) {
+  handleBanUser(user: User) {
+    this.banUser = user;
+    this.openBanUser = true;
+  }
 
+  handleUnbanUser(user: User) {
+    const date = this.dateService.convertDateToMysqlDateTime(user.banned_until);;
+    this.confirmService.showCustomConfirm(`Are you sure you want to unban ${user.username}? Banned until: ${date}`, () => {
+      this.adminService.unbanUser(user.id).subscribe({
+        next: (resp: any) => {
+          this.snackBarService.showSnackBar(resp.message);
+          this.allUsers.forEach(u => {
+            if (u.id === user.id) {
+              u.banned_until = null;
+            }
+          })
+        },
+        error: (error: any) => {
+          if (error.status === 409) {
+            this.snackBarService.showSnackBar(error.error.message);
+          }
+        }
+      })
+    })
   }
 
   deleteUser(item: User) {
@@ -119,7 +187,10 @@ export class AdminSettingsComponent implements OnInit {
           if (resp.message === 'User deleted successfully.') this.allUsers = this.allUsers.filter(u => u.id !== item.id)
         },
         error: (error: any) => {
-          // SHOW ERROR PAGE
+          if (error.status === 409) {
+            this.snackBarService.showSnackBar(error.error.message);
+          }
+
         }
       })
     })
@@ -142,6 +213,20 @@ export class AdminSettingsComponent implements OnInit {
     else {
       return false;
     }
+  }
+
+  handleCloseBan(banResult: { userId: number, banned: boolean, date: Date }) {
+    this.openBanUser = false;
+    if (banResult.banned) {
+      const user = this.allUsers.find(u => u.id === banResult.userId);
+      user.banned_until = banResult.date;
+    }
+  }
+
+  ngOnDestroy(): void {
+    if (this.adminUserBannedSub) this.adminUserBannedSub.unsubscribe();
+    if (this.adminUserUnbannedSub) this.adminUserUnbannedSub.unsubscribe();
+    if (this.adminUserDeletedSub) this.adminUserDeletedSub.unsubscribe();
   }
 
 }

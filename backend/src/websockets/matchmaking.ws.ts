@@ -13,7 +13,7 @@ const categoryWaitingLists: Map<string, WebSocket[]> = new Map([
     ['Science', []]
 ]
 );
-
+let adminsWebSockets: WebSocket[] = []; // ALL ACTIVE ADMINS USING ADMIN PAGE
 let usersWebSockets: WebSocket[] = []; // ALL ACTIVE USERS
 const activeMatches: Map<string, Match> = new Map(); // ALL ACTIVE MATCHES
 const matchStartTimeout: Map<string, NodeJS.Timeout> = new Map();
@@ -40,8 +40,16 @@ export default function initWebSocketServer(server: Server) {
                 (ws as any).username = data.username;
                 usersWebSockets.push(ws);
             }
+            else if (data.type === 'USER_ADMIN_SUBSCRIBE') {
+                if (adminsWebSockets.filter(ws => (ws as any).username === data.username).length !== 0) {
+                    adminsWebSockets = adminsWebSockets.filter(ws => (ws as any).username !== data.username)
+                }
+                (ws as any).id = data.id;
+                (ws as any).username = data.username;
+                adminsWebSockets.push(ws);
+            }
             // ----------------- BATTLE -----------------
-            if (data.type === 'battle/JOIN_QUEUE') {
+            else if (data.type === 'battle/JOIN_QUEUE') {
                 const waitingList = categoryWaitingLists.get(data.category);
                 if (waitingList.filter(ws => (ws as any).username === data.username).length !== 0) { // Avoid adding same players to waitinList
                     return;
@@ -222,7 +230,7 @@ export default function initWebSocketServer(server: Server) {
                     sendNextQuestion(match);
                 }
             }
-            
+
             // ------------------------------------------------------------------------------------------------------------------------
             // --------------------------------------------------- BATTLE FUNCTIONS ---------------------------------------------------
             // ------------------------------------------------------------------------------------------------------------------------
@@ -255,7 +263,7 @@ export default function initWebSocketServer(server: Server) {
 
             async function createMatchInDB(category: string): Promise<number> {
                 const cat = availableCategories.filter(c => c.name === category)[0];
-                const categoryId = cat.id; 
+                const categoryId = cat.id;
                 const [quizResult] = await pool.query(
                     `INSERT INTO quizzes (category_id, created_at) VALUES (?, NOW())`,
                     [categoryId]
@@ -637,8 +645,9 @@ export default function initWebSocketServer(server: Server) {
         ws.on('close', () => {
             categoryWaitingLists.forEach(waitingList => {
                 waitingList = waitingList.filter(sock => sock !== ws);
-                usersWebSockets = usersWebSockets.filter(sock => sock !== ws);
             })
+            usersWebSockets = usersWebSockets.filter(sock => sock !== ws);
+            adminsWebSockets = adminsWebSockets.filter(sock => sock !== ws);
         });
     });
 }
@@ -691,4 +700,50 @@ export function isUserOnline(userId: number): boolean {
         }
     })
     return online;
+}
+
+export function broadCastUserBanned(userId: number, banned_until: string) {
+    const payload = JSON.stringify({
+        type: 'admin/USER_BANNED',
+        userId,
+        banned_until
+    });
+    adminsWebSockets.forEach(ws => {
+        ws.send(payload);
+    })
+    usersWebSockets.forEach(ws => {
+        if ((ws as any).id === userId) {
+            ws.send(payload);
+        }
+    })
+}
+
+export function broadCastUserUnbanned(userId: number) {
+    const payload = JSON.stringify({
+        type: 'admin/USER_UNBANNED',
+        userId
+    });
+    adminsWebSockets.forEach(ws => {
+        ws.send(payload);
+    })
+    usersWebSockets.forEach(ws => {
+        if ((ws as any).id === userId) {
+            ws.send(payload);
+        }
+    })
+}
+
+export function broadcastUserDeleted(userId: number) {
+    const payload = JSON.stringify({
+        type: 'admin/USER_DELETED',
+        userId
+    });
+    adminsWebSockets.forEach(ws => {
+        ws.send(payload);
+    })
+    usersWebSockets.forEach(ws => {
+        if ((ws as any).id === userId) {
+            ws.send(payload);
+        }
+    })
 }

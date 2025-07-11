@@ -13,14 +13,14 @@ export class AdminService {
   constructor(
     private http: HttpClient,
     private urlService: UrlService
-  ) { 
+  ) {
     this.url = `${urlService.url}/admin`;
   }
 
   getAllUsers() {
     return this.http.get(`${this.url}/getAllUsers`);
   }
-  
+
   addQuestion(questionText: string, questionDescription: string, categoryId: number, answers: QuizAnswer[]) {
     const body = {
       questionText,
@@ -33,6 +33,21 @@ export class AdminService {
 
   deleteUser(userId: number) {
     return this.http.delete(`${this.url}/deleteUser/${userId}`);
+  }
+
+  banUser(userId: number, date: string) {
+    const data = {
+      userId,
+      date
+    }
+    return this.http.post(`${this.url}/banUser`, data);
+  }
+
+  unbanUser(userId: number) {
+    const data = {
+      userId
+    }
+    return this.http.post(`${this.url}/unbanUser`, data);
   }
 
 }

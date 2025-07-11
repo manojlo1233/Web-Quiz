@@ -22,22 +22,28 @@ export class DateService {
 
   checkDate(
     date: string,
+    hours: string,
+    minutes: string,
     renderer: Renderer2,
-    inputStartDateRef: ElementRef
+    dateRef: ElementRef
   ) {
-    let startDateValid = false;
+    let dateValid = false;
+    let currentDate = new Date(Date.now());
 
     if (date !== '' && Number.isNaN(this.parseDate(date + " 00:00:00"))) {
-      renderer.setStyle(inputStartDateRef.nativeElement, 'border', '1px solid var(--theme-darkblue-red)');
-      renderer.setStyle(inputStartDateRef.nativeElement, 'box-shadow', '0 0 2px 1px var(--theme-darkblue-red)')
-      startDateValid = false;
+      renderer.setStyle(dateRef.nativeElement, 'border', '1px solid var(--theme-darkblue-red)');
+      renderer.setStyle(dateRef.nativeElement, 'box-shadow', '0 0 2px 1px var(--theme-darkblue-red)')
+      dateValid = false;
     }
     else {
-      renderer.setStyle(inputStartDateRef.nativeElement, 'border', '1px solid transparent');
-      renderer.setStyle(inputStartDateRef.nativeElement, 'box-shadow', 'none')
-      startDateValid = true;
+      renderer.setStyle(dateRef.nativeElement, 'border', '1px solid transparent');
+      renderer.setStyle(dateRef.nativeElement, 'box-shadow', 'none')
+      dateValid = true;
     }
-    if (startDateValid) {
+    if (currentDate >= (this.parseDate(`${date} ${hours}:${minutes}:00`) as Date)) {
+      dateValid = false;
+    }
+    if (dateValid) {
       return true;
     }
     else return false;
@@ -76,4 +82,11 @@ export class DateService {
       return Number.NaN
     }
   }
+
+  convertDateToMysqlDateTime(date: Date): string {
+    const pad = (n: number) => n < 10 ? '0' + n : n;
+    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ` +
+      `${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
+  }
+
 }

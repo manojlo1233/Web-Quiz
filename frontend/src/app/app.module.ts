@@ -28,6 +28,7 @@ import { DotLoaderComponent } from './shared/ui-indicators/dot-loader/dot-loader
 import { AdminSettingsComponent } from './admin/admin-settings/admin-settings.component';
 import { DatepickerDirective } from './shared/directives/datepicker.directive';
 import { BanUserComponent } from './admin/ban-user/ban-user.component';
+import { UserDetailsComponent } from './admin/user-details/user-details.component';
 
 
 @NgModule({
@@ -54,7 +55,8 @@ import { BanUserComponent } from './admin/ban-user/ban-user.component';
     DotLoaderComponent,
     AdminSettingsComponent,
     DatepickerDirective,
-    BanUserComponent
+    BanUserComponent,
+    UserDetailsComponent
   ],
   imports: [
     BrowserModule,

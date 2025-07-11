@@ -1,0 +1,35 @@
+<div class="modal-window">
+    <label class="hdr">User settings</label>
+    <span class="h-divider" style="background-color: var(--theme-darkblue-color-3);"></span>
+    <form #userSettingsForm="ngForm">
+        <div class="user-info-pre">
+            <label class="prop-name">Name</label>
+            <label class="prop-value">{{this.user.firstname}} {{this.user.lastname}}</label> 
+        </div>
+        <span class="h-divider" style="background-color: var(--theme-darkblue-color-3);"></span>
+        <div class="user-info-pre">
+            <label class="prop-name">Username</label>
+            <label class="prop-value">{{this.user.username}}</label>
+        </div>
+        <span class="h-divider" style="background-color: var(--theme-darkblue-color-3);"></span>
+        <div class="user-info-pre">
+            <label class="prop-name">Email</label>
+            <label class="prop-value">{{this.user.email}}</label>
+        </div>
+        <span class="h-divider" style="background-color: var(--theme-darkblue-color-3);"></span>
+        <div class="user-info-pre">
+            <label class="prop-name">Country</label>
+            <label class="prop-value">{{this.user.country}}</label>
+        </div>
+        <span class="h-divider" style="background-color: var(--theme-darkblue-color-3);"></span>
+        <div class="user-info-pre">
+            <label class="prop-name">Receive updates</label>
+            <label class="prop-value">{{this.user.receive_updates == 1? 'Yes': 'No'}}</label>
+        </div>
+        <span class="h-divider" style="background-color: var(--theme-darkblue-color-3);"></span>
+        <div style="width: 100%; display: flex; flex-direction: row-reverse; gap: 10px; align-items: center;">
+            <button class="btn-light-small" style="margin-bottom: 0; border: 1px solid transparent;"
+                (click)="closeModal()">Close</button>
+        </div>
+    </form>
+</div>

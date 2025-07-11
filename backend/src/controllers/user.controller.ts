@@ -216,7 +216,8 @@ export const getUserById = async (req: Request, res: Response) => {
             country: user.country,
             role: user.role,
             receive_updates: user.receive_updates,
-            avatar: user.avatar
+            avatar: user.avatar,
+            banned_until: user.banned_until
         });
     } catch (error: any) {
         console.log('Get user by id error', error);

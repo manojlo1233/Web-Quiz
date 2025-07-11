@@ -26,6 +26,10 @@ export class WebsocketService {
   public battleWithdraw$ = new Subject<any>();
   public battleAutoWithdraw$ = new Subject<any>();
   public battleReadyOvertime$ = new Subject<void>();
+  // ADMIN
+  public adminUserBanned$ = new Subject<any>();
+  public adminUserUnbanned$ = new Subject<any>();
+  public adminUserDeleted$ = new Subject<any>();
   public adminUsersOnline$ = new Subject<void>();
   // BATTLE - CHAT
   public chatMessage$ = new Subject<any>();
@@ -97,6 +101,15 @@ export class WebsocketService {
         case 'admin/USERS_ONLINE':
           this.adminUsersOnline$.next(data);
           break;
+        case 'admin/USER_BANNED':
+          this.adminUserBanned$.next({ userId: data.userId, banned_until: data.banned_until });
+          break;
+        case 'admin/USER_UNBANNED':
+          this.adminUserUnbanned$.next(data);
+          break;
+        case 'admin/USER_DELETED':
+          this.adminUserDeleted$.next(data);
+          break;
       }
     };
 
@@ -116,6 +129,10 @@ export class WebsocketService {
     else {
       console.warn('WebSocket not open')
     }
+  }
+
+  sendHelloAsAdmin(id: number, username: string): void {
+    this.send({ type: 'USER_ADMIN_SUBSCRIBE', id, username });
   }
 
   sendHello(id: number, username: string): void {

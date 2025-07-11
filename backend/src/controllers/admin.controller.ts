@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import pool from "../config/db";
-import { isUserOnline } from "../websockets/matchmaking.ws";
+import { broadCastUserBanned, broadcastUserDeleted, broadCastUserUnbanned, isUserOnline } from "../websockets/matchmaking.ws";
 
 export const getAllUsers = async (req: Request, res: Response) => {
     try {
@@ -57,10 +57,10 @@ export const addQuestion = async (req: Request, res: Response) => {
             res.status(500).json({ message: 'addQuestion failed' })
             return;
         }
-        res.status(200).json({message: 'Question successfully added.'});
+        res.status(200).json({ message: 'Question successfully added.' });
     } catch (error: any) {
-        console.log('addQuestion error', error);
-        res.status(500).json({ message: 'getAllUsers failed', error: error.message })
+        console.log('Add question error', error);
+        res.status(500).json({ message: 'Add question failed', error: error.message })
     }
 }
 
@@ -71,7 +71,21 @@ export const deleteUser = async (req: Request, res: Response) => {
         const userOnline = isUserOnline(Number.parseInt(userId));
 
         if (userOnline) {
-            res.status(200).json({message: 'User is currently online.'});
+            res.status(200).json({ message: 'User is currently online.' });
+            return;
+        }
+
+        const [getUserResult] = await pool.query(
+            `
+                SELECT * 
+                FROM users u
+                WHERE u.id = ?
+            `,
+            [userId]
+        )
+
+        if ((getUserResult as any[]).length === 0) {
+            res.status(409).json({ message: 'User has already been deleted.' });
             return;
         }
 
@@ -85,14 +99,80 @@ export const deleteUser = async (req: Request, res: Response) => {
         )
 
         if ((userResult as any).affectedRows <= 0) {
-             res.status(500).json({ message: 'Delete user failed' })
+            res.status(500).json({ message: 'Delete user failed' })
             return;
         }
-
-        res.status(200).json({message: 'User deleted successfully.'});
+        broadcastUserDeleted(Number.parseInt(userId));
+        res.status(200).json({ message: 'User deleted successfully.' });
     } catch (error: any) {
-        console.log('addQuestion error', error);
-        res.status(500).json({ message: 'getAllUsers failed', error: error.message })
+        console.log('Delete user error', error);
+        res.status(500).json({ message: 'Delete user failed', error: error.message })
+    }
+}
+
+export const banUser = async (req: Request, res) => {
+    try {
+        const userId = req.body.userId;
+        const date = req.body.date;
+
+        const [user] = await pool.query('SELECT banned_until FROM users WHERE id = ?', [userId]);
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+        if ((user as any)[0].banned_until) {
+            return res.status(409).json({ message: 'User already banned' });
+        }
+        const [banDateResult] = await pool.query(
+            `
+                UPDATE users u
+                SET u.banned_until = ?
+                WHERE u.id = ?           
+            `,
+            [date, userId]
+        )
+
+        if ((banDateResult as any).affectedRows <= 0) {
+            res.status(500).json({ message: 'Ban user failed' })
+            return;
+        }
+        broadCastUserBanned(userId, date);
+        res.status(200).json({ message: 'User has been banned successfully.' });
+    } catch (error: any) {
+        console.log('Ban user error', error);
+        res.status(500).json({ message: 'Ban user failed', error: error.message })
+    }
+}
+
+export const unbanUser = async (req: Request, res) => {
+    try {
+        const userId = req.body.userId;
+
+        const [user] = await pool.query('SELECT banned_until FROM users WHERE id = ?', [userId]);
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+        if ((user as any)[0].banned_until === null) {
+            return res.status(409).json({ message: 'User already unbanned' });
+        }
+
+        const [banDateResult] = await pool.query(
+            `
+                UPDATE users u
+                SET u.banned_until = null
+                WHERE u.id = ?           
+            `,
+            [userId]
+        )
+
+        if ((banDateResult as any).affectedRows <= 0) {
+            res.status(500).json({ message: 'Unban user failed' })
+            return;
+        }
+        broadCastUserUnbanned(userId);
+        res.status(200).json({ message: 'User has been unbanned successfully.' });
+    } catch (error: any) {
+        console.log('Unban user error', error);
+        res.status(500).json({ message: 'Unban user failed', error: error.message })
     }
 }
 

@@ -1,4 +1,4 @@
-import { Component, ElementRef, OnInit, ViewChild, ViewContainerRef } from '@angular/core';
+import { Component, ElementRef, OnDestroy, OnInit, ViewChild, ViewContainerRef } from '@angular/core';
 import { MatchStateService } from '../../services/quiz/match-state.service';
 import { WSMatchFoundMsg } from '../../shared/models/WSMatchFoundMsg';
 import { WebsocketService } from '../../services/quiz/websocket.service';
@@ -10,7 +10,10 @@ import { ChatMessage } from '../../shared/models/ChatMessage';
 import { BattleSummary } from '../../shared/models/Battle/BattleSummary';
 import { Router } from '@angular/router';
 import { AnswerSummary } from '../../shared/models/Battle/AnswerSummary';
+import { Subscription } from 'rxjs';
+import { UtilService } from '../../services/shared/util.service';
 
+import * as leoProfanity from 'leo-profanity';
 
 @Component({
   selector: 'app-battle',
@@ -26,7 +29,8 @@ export class BattleComponent implements OnInit {
     private matchStateService: MatchStateService,
     private wsService: WebsocketService,
     private userService: UserService,
-    private router: Router
+    private router: Router,
+    private utilService: UtilService
   ) { }
   // USERS
   user: User = new User();
@@ -190,7 +194,8 @@ export class BattleComponent implements OnInit {
   sendMessage() {
     if (this.messageText === '' || this.messageText.trim() === '' || this.chatDebouncerActive) return;
     this.chatDebouncerActive = true;
-    this.wsService.sendChatMessage(this.match.matchId.toString(), this.user.username, this.messageText, new Date().toLocaleString("en-GB"));
+    const cleanedMessage = leoProfanity.clean(this.messageText);
+    this.wsService.sendChatMessage(this.match.matchId.toString(), this.user.username, cleanedMessage, new Date().toLocaleString("en-GB"));
     this.messageText = '';
     setTimeout(() => {
       this.chatDebouncerActive = false;
@@ -226,4 +231,5 @@ export class BattleComponent implements OnInit {
       this.wsService.sendLeaveBattle(this.match.matchId, this.user.id);
     }
   }
+
 }

@@ -66,6 +66,7 @@ html {
 .btn-dark-large:disabled {
     background-color: darkgray;
     user-select: none;
+    pointer-events: none;
     cursor: default;
 }
 
@@ -93,6 +94,7 @@ html {
 .btn-dark-small:disabled {
     background-color: darkgray;
     user-select: none;
+    pointer-events: none;
     cursor: default;
 }
 
@@ -117,6 +119,7 @@ html {
 
 .btn-light:disabled {
     background-color: darkgray;
+    pointer-events: none;
     user-select: none;
     cursor: default;
 }
@@ -143,6 +146,7 @@ html {
 .select-light:disabled {
     background-color: darkgray;
     user-select: none;
+    pointer-events: none;
     cursor: default;
 }
 
@@ -170,6 +174,7 @@ html {
 
 .btn-light-small:disabled {
     background-color: darkgray;
+    pointer-events: none;
     user-select: none;
     cursor: default;
 }

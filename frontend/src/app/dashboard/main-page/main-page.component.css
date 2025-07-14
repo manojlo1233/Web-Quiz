@@ -401,12 +401,29 @@
 
 .matchmaking {
     display: flex;
-    flex-direction: row;
-    align-items: end;
-    justify-content: space-evenly;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
     padding: 20px 0 20px 0;
     background-color: var(--theme-darkblue-box-bg);
     border: 1px solid var(--theme-darkblue-color-3);
+}
+
+.matchmaking-btns {
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    align-items: end;
+    justify-content: space-evenly;
+    gap: 10px;
+}
+
+.ban-message {
+    box-sizing: border-box;
+    width: fit-content;
+    background-color: var(--theme-darkblue-color-6);
+    padding: 5px 10px;
+    border: 1px solid var(--theme-darkblue-red);
 }
 
 .category {

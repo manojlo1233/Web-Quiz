@@ -74,23 +74,27 @@
     </div>
     <div class="col-cont" style="max-width: 30%;">
         <div class="matchmaking">
-            <div class="category">
-                <label>Category</label>
-                <select class="select-light" [(ngModel)]="searchCategory" id="category" name="category"
-                    [disabled]="isSearching">
-                    <option style="cursor: pointer;" *ngFor="let cat of allCategories" [value]="cat">{{cat}}</option>
-                </select>
-            </div>
-
-            <div class="play-btns">
-                <div class="search">
-                    <label *ngIf="!isSearching"> &nbsp;</label>
-                    <label *ngIf="isSearching">Searching {{ formattedTime }}</label>
-                    <button class="btn-light" style="width: 150px; height: fit-content;" [ngClass]="{
-                'btn-glow': isSearching
-            }" (click)="onBattleClick()" [disabled]="searchDisabled">{{matchmakingLbl}}</button>
+            <div class="matchmaking-btns">
+                <div class="category">
+                    <label>Category</label>
+                    <select class="select-light" [(ngModel)]="searchCategory" id="category" name="category"
+                        [disabled]="isSearching || user.banned_until !== null">
+                        <option style="cursor: pointer;" *ngFor="let cat of allCategories" [value]="cat">{{cat}}
+                        </option>
+                    </select>
                 </div>
-
+                <div class="play-btns">
+                    <div class="search">
+                        <label *ngIf="!isSearching"> &nbsp;</label>
+                        <label *ngIf="isSearching">Searching {{ formattedTime }}</label>
+                        <button class="btn-light" style="width: 150px; height: fit-content;" [ngClass]="{
+                'btn-glow': isSearching
+            }" (click)="onBattleClick()" [disabled]="searchDisabled || user.banned_until">{{matchmakingLbl}}</button>
+                    </div>
+                </div>
+            </div>
+            <div *ngIf="user.banned_until != null" class="ban-message">
+                <label>Banned until: {{user.banned_until | date: 'dd.MM.yy HH:mm:ss'}}</label>
             </div>
         </div>
     </div>
@@ -98,8 +102,8 @@
         <div class="lboard">
             <div class="hdr">
                 <label>Leaderboard </label>
-                <app-icon class="icon" style="margin-left: auto;"
-                    src="/assets/svg/icon_refresh.svg" color="var(--theme-darkblue-color-3)" title="Refresh" [class.disabled]="leaderBoardRefreshDisabled"
+                <app-icon class="icon" style="margin-left: auto;" src="/assets/svg/icon_refresh.svg"
+                    color="var(--theme-darkblue-color-3)" title="Refresh" [class.disabled]="leaderBoardRefreshDisabled"
                     (click)="handleRefreshLeaderboardClick()" />
             </div>
             <div style="display: flex; flex-direction: column; width: 100%;">

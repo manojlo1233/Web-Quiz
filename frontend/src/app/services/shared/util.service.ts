@@ -18,6 +18,8 @@ export class UtilService {
 
   allCategories: string[] = ['General', 'History', 'Science'];
 
+  showMessage: string = '';
+
   formatDurationToMinSecFromSec(seconds: number): string {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
@@ -34,5 +36,13 @@ export class UtilService {
 
   getAllCategories() {
     return this.http.get(`${this.url}/getAllCategories`);
+  }
+
+  setShowMessage(message: string): void {
+    this.showMessage = message;
+  }
+
+  getShowMessage(): string {
+    return this.showMessage;
   }
 }

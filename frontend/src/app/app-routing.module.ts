@@ -9,6 +9,7 @@ import { MainPageComponent } from './dashboard/main-page/main-page.component';
 import { BattleComponent } from './quiz/battle/battle.component';
 import { ReadyScreenComponent } from './quiz/ready-screen/ready-screen.component';
 import { AdminSettingsComponent } from './admin/admin-settings/admin-settings.component';
+import { ShowMessageComponent } from './shared/components/show-message/show-message.component';
 
 const routes: Routes = [
   { path: "", component: LoginComponent },
@@ -23,7 +24,9 @@ const routes: Routes = [
   { path: "quiz/loading-screen", component: ReadyScreenComponent },
   { path: "quiz/battle", component: BattleComponent },
   // ----------------- ADMIN -----------------
-  { path: "admin/admin-settings", component: AdminSettingsComponent }
+  { path: "admin/admin-settings", component: AdminSettingsComponent },
+  // ----------------- UTIL -----------------
+  { path: "util/show-message", component: ShowMessageComponent }
 ];
 
 @NgModule({

@@ -29,6 +29,7 @@ import { AdminSettingsComponent } from './admin/admin-settings/admin-settings.co
 import { DatepickerDirective } from './shared/directives/datepicker.directive';
 import { BanUserComponent } from './admin/ban-user/ban-user.component';
 import { UserDetailsComponent } from './admin/user-details/user-details.component';
+import { ShowMessageComponent } from './shared/components/show-message/show-message.component';
 
 
 @NgModule({
@@ -56,7 +57,8 @@ import { UserDetailsComponent } from './admin/user-details/user-details.componen
     AdminSettingsComponent,
     DatepickerDirective,
     BanUserComponent,
-    UserDetailsComponent
+    UserDetailsComponent,
+    ShowMessageComponent
   ],
   imports: [
     BrowserModule,

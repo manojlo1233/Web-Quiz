@@ -179,6 +179,7 @@
 }
 
 .chat-container {
+    max-height: 50vh;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -342,4 +343,3 @@
     background-color: var(--theme-darkblue-color-6);
     font-size: 18px;
 }
-

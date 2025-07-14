@@ -117,7 +117,7 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
     })
 
     this.adminUserDeletedSub = this.wsService.adminUserDeleted$.subscribe((data: any) => {
-      this.allUsers = this.allUsers.filter(u => u.id === data.userId);
+      this.allUsers = this.allUsers.filter(u => u.id !== data.userId);
     })
   }
 

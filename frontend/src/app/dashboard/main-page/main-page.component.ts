@@ -88,6 +88,8 @@ export class MainPageComponent implements OnInit, OnDestroy {
   private battleDeclineSub: Subscription;
   private battleWithdrawSub: Subscription;
   private battleAutoWithdrawSub: Subscription;
+  private adminUserDeletedSub: Subscription;
+  private adminUserBannedSub: Subscription;
 
   // MATCHMAKING
   matchmakingLbl: string = 'Battle'
@@ -114,6 +116,7 @@ export class MainPageComponent implements OnInit, OnDestroy {
     this.userService.getUserById(userId).subscribe({
       next: (resp: User) => {
         this.user = resp;
+        console.log(this.user);
         this.wsService.connect();
         if (this.connectionSub) this.connectionSub.unsubscribe();
         this.connectionSub = this.wsService.connectionOpen$.subscribe(() => {
@@ -222,6 +225,23 @@ export class MainPageComponent implements OnInit, OnDestroy {
       this.friends.filter(f => f.friendId === resp.friendId)[0].battleRequestSent = false;
     })
 
+    this.adminUserDeletedSub = this.wsService.adminUserDeleted$.subscribe((data: any) => {
+      this.utilService.setShowMessage('Your account has been deleted. Visit mail for more information.');
+      this.router.navigate(['show-message']);
+    })
+
+    this.adminUserDeletedSub = this.wsService.adminUserDeleted$.subscribe((data: any) => {
+      this.utilService.setShowMessage('Your account has been deleted. Visit mail for more information.');
+      this.router.navigate(['show-message']);
+    })
+
+    this.adminUserBannedSub = this.wsService.adminUserBanned$.subscribe((data: any) => {
+      if (this.isSearching) {
+        this.stopBattleSearch();
+      }
+      this.user.banned_until = data.banned_until;
+    })
+
   }
 
   getFriends(userId: number) {
@@ -300,22 +320,30 @@ export class MainPageComponent implements OnInit, OnDestroy {
 
   onBattleClick() {
     if (!this.isSearching) {
-      this.matchmakingLbl = 'Cancel'
-      this.isSearching = true;
-      this.secondsElapsed = 0;
-      this.updateFormattedTime();
-      this.timerInterval = setInterval(() => {
-        this.secondsElapsed++;
-        this.updateFormattedTime();
-      }, 1000)
-      this.wsService.joinMatchmaking(this.user.id, this.user.username, this.searchCategory);
+      this.startBattleSearch();
     }
     else {
-      this.matchmakingLbl = 'Battle'
-      this.isSearching = false;
-      clearInterval(this.timerInterval);
-      this.wsService.cancelMatchmaking(this.user.username, this.searchCategory);
+      this.stopBattleSearch();
     }
+  }
+
+  startBattleSearch() {
+    this.matchmakingLbl = 'Cancel'
+    this.isSearching = true;
+    this.secondsElapsed = 0;
+    this.updateFormattedTime();
+    this.timerInterval = setInterval(() => {
+      this.secondsElapsed++;
+      this.updateFormattedTime();
+    }, 1000)
+    this.wsService.joinMatchmaking(this.user.id, this.user.username, this.searchCategory);
+  }
+
+  stopBattleSearch() {
+    this.wsService.cancelMatchmaking(this.user.username, this.searchCategory);
+    this.matchmakingLbl = 'Battle'
+    this.isSearching = false;
+    clearInterval(this.timerInterval);
   }
 
   updateFormattedTime() {
@@ -538,5 +566,7 @@ export class MainPageComponent implements OnInit, OnDestroy {
     if (this.battleDeclineSub) this.battleDeclineSub.unsubscribe();
     if (this.battleWithdrawSub) this.battleWithdrawSub.unsubscribe();
     if (this.battleAutoWithdrawSub) this.battleAutoWithdrawSub.unsubscribe();
+    if (this.adminUserDeletedSub) this.adminUserDeletedSub.unsubscribe();
+    if (this.adminUserBannedSub) this.adminUserBannedSub.unsubscribe();
   }
 }

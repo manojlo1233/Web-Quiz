@@ -9,6 +9,7 @@ import { Router } from '@angular/router';
 import { QuizService } from '../../services/shared/quiz.service';
 import { animate, style, transition, trigger } from '@angular/animations';
 import { ConfirmService } from '../../services/shared/confirm.service';
+import { UtilService } from '../../services/shared/util.service';
 
 @Component({
   selector: 'app-ready-screen',
@@ -35,7 +36,8 @@ export class ReadyScreenComponent implements OnInit, OnDestroy {
     private confirmService: ConfirmService,
     private matchStateService: MatchStateService,
     private wsService: WebsocketService,
-    private router: Router
+    private router: Router,
+    private utilService: UtilService
   ) { }
 
   user: User = new User();
@@ -52,8 +54,8 @@ export class ReadyScreenComponent implements OnInit, OnDestroy {
   currentTip: string = '';
 
   // DECLINE
-  showDeclined = false;
   showCancelled = false;
+  showDeclined = false;
   declineUsername: string = '';
   declineTimeRemaining = 5;
 

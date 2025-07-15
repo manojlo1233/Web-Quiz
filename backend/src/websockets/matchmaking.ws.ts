@@ -238,7 +238,11 @@ export default function initWebSocketServer(server: Server) {
                 const match = activeMatches.get(data.matchId);
                 if (!match) return;
                 const player = match.player1.id === data.userId ? match.player1 : match.player2;
-                
+                const payload = JSON.stringify({
+                    type:'/battle/USER_ACTION',
+                    action: data.action,
+
+                })
             }
 
             // ------------------------------------------------------------------------------------------------------------------------
@@ -378,7 +382,6 @@ export default function initWebSocketServer(server: Server) {
                     else {
                         match.player1.points -= 5;
                     }
-
                 }
 
                 if (match.player2.answer) {

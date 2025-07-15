@@ -15,6 +15,7 @@ import { UtilService } from '../../services/shared/util.service';
 
 import * as leoProfanity from 'leo-profanity';
 import { QuizService } from '../../services/shared/quiz.service';
+import { SnackBarService } from '../../services/shared/snack-bar.service';
 
 @Component({
   selector: 'app-battle',
@@ -31,7 +32,8 @@ export class BattleComponent implements OnInit {
     private wsService: WebsocketService,
     private userService: UserService,
     private router: Router,
-    private quizService: QuizService
+    private quizService: QuizService,
+    private snackBarService: SnackBarService
   ) { }
   // USERS
   user: User = new User();
@@ -69,9 +71,12 @@ export class BattleComponent implements OnInit {
 
   // ACTIONS
   ACTION_TYPE = {
-    HIDE_2_WRONG_ANSWERS: 1,
-    HALF_THE_TIME: 2
+    HIDE_2_WRONG_ANSWERS: 0,
+    HALF_THE_TIME_OPPONENT: 1,
+    DOUBLE_NEGATIVE_POINTS_OPPONENT: 2,
   }
+  actionsUsed: boolean[] = [false, false, false];
+  actionUsed: boolean = false;
 
   ngOnInit(): void {
     this.match = this.matchStateService.getCurrentMatch();
@@ -81,6 +86,7 @@ export class BattleComponent implements OnInit {
     }
     // SUBSCRIBE TO QUESTIONS
     this.wsService.newQuestion$.subscribe(resp => {
+      this.actionUsed = false;
       this.answerSummaryPhase = false;
       this.userAnswerIndex = -1;
       this.opponentAnswerIndex = -1;
@@ -242,7 +248,7 @@ export class BattleComponent implements OnInit {
   handleReport(reasons: any[]) {
     this.quizService.reportUser(this.user.id, this.opponent.id, reasons, this.match.matchId).subscribe({
       next: (resp: any) => {
-        console.log(resp);
+        this.snackBarService.showSnackBar(resp.message);
       },
       error: (error: any) => {
         // SHOW ERROR PAGE
@@ -250,16 +256,28 @@ export class BattleComponent implements OnInit {
     })
   }
 
-  handleActionButtonClick(type: number, questionId: number) {
-    let count = 0;
-    this.question.answers.forEach(a => {
-      if (count == 2) return;
-      if (!a.isCorrect) {
-        a.isDisabled = true;
-        count++;
-      }
-    });
-    this.wsService.sendAction(this.match.matchId, this.user.id, type, questionId);
+  handleActionButtonClick(type: number) {
+    this.actionUsed = true;
+    this.actionsUsed[type] = true;
+    switch (type) {
+      case this.ACTION_TYPE.HIDE_2_WRONG_ANSWERS:
+        let count = 0;
+        this.question.answers.forEach(a => {
+          if (count == 2) return;
+          if (!a.isCorrect) {
+            a.isDisabled = true;
+            count++;
+          }
+        });
+        this.wsService.sendAction(this.match.matchId, this.user.id, type, this.question.id);
+        break;
+      case this.ACTION_TYPE.HALF_THE_TIME_OPPONENT:
+        this.wsService.sendAction(this.match.matchId, this.user.id, type, this.question.id);
+        break;
+      case this.ACTION_TYPE.DOUBLE_NEGATIVE_POINTS_OPPONENT:
+        this.wsService.sendAction(this.match.matchId, this.user.id, type, this.question.id);
+        break;
+    }
   }
 
 }

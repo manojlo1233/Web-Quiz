@@ -451,3 +451,27 @@ export const updateUserAvatar = async (req: Request, res: Response) => {
         res.status(500).json({ message: 'Update user avatar failed', error: error.message })
     }
 }
+
+export const getUserReports = async (req: Request, res: Response) => {
+    try {
+        const userId = req.params.userId;
+
+        const [result] = await pool.execute(
+            `   SELECT r.reason as reason,
+                    r.reportTime as time,
+                    u.username as reportFrom
+                FROM reports r
+                LEFT JOIN users u ON r.userIdReportFrom = u.id
+                WHERE userIdReportTo = ?
+            `
+            , [userId])
+        if ((result as any[]).length == 0) {
+            res.status(404).json({ message: 'User reports not found.' })
+            return;
+        }
+        res.status(200).json(result);
+    } catch (error: any) {
+        console.log('Update user avatar error', error);
+        res.status(500).json({ message: 'Update user avatar failed', error: error.message })
+    }
+}

@@ -5,6 +5,7 @@ import {
     getUserByUsername,
     getUserPlayHistoryById,
     getUserQuizDetails,
+    getUserReports,
     getUsersByUsername,
     getUserStatisticsById,
     loginUser,
@@ -31,4 +32,6 @@ userRouter.get('/getUserQuizDetails/:quizId', getUserQuizDetails)
 userRouter.get('/getLeaderBoard/:category', getLeaderBoard);
 userRouter.post('/updateUserSettingsById', updateUserSettingsById);
 userRouter.patch('/updateUserAvatar', updateUserAvatar);
+userRouter.get('/getUserReports/:userId', getUserReports);
+
 export default userRouter;

@@ -607,14 +607,18 @@ export default function initWebSocketServer(server: Server) {
 
             async function getOvertimeQuestions(oldQuestions: QuizQuestion[], limit: number = 50, category: string) {
                 const usedIds = oldQuestions.map(q => q.id);
+                let sql = `
+                    SELECT q.id, q.text, q.difficulty 
+                    FROM questions q
+                    JOIN categories c ON q.category_id = c.id
+                    WHERE q.id NOT IN (${usedIds.join(',') || 'NULL'})
+                    `;
+                if (category !== 'General') {
+                    sql += ' AND c.name=?'
+                }
+                sql += ' ORDER BY RAND() LIMIT ?'
                 const questionsResult = await pool.query(
-                    `
-                        SELECT q.id, q.text, q.difficulty 
-                        FROM questions q
-                        JOIN category c ON q.category_id = c.id
-                        WHERE id NOT IN (${usedIds.join(',') || 'NULL'}) AND (? = 'General' OR c.name=?)
-                        ORDER BY RAND() LIMIT ?
-                    `
+                    sql
                     , [limit, category, category]);
                 const questions: QuizQuestion[] = (questionsResult[0] as any[]);
                 const questionIds = questions.map((q: any) => q.id);
@@ -710,12 +714,21 @@ export function broadCastUserBanned(userId: number, banned_until: string) {
     });
     adminsWebSockets.forEach(ws => {
         ws.send(payload);
-    })
+    });
     usersWebSockets.forEach(ws => {
         if ((ws as any).id === userId) {
             ws.send(payload);
         }
-    })
+    });
+    // SEND TO OPPONENT IF IN BATTLE
+    activeMatches.forEach((v, k) => {
+        if (v.player1.id === userId) {
+            v.player2.sock.send(payload);
+        }
+        else if (v.player2.id === userId) {
+            v.player1.sock.send(payload);
+        }
+    });
 }
 
 export function broadCastUserUnbanned(userId: number) {
@@ -744,6 +757,15 @@ export function broadcastUserDeleted(userId: number) {
     usersWebSockets.forEach(ws => {
         if ((ws as any).id === userId) {
             ws.send(payload);
+        }
+    })
+    // SEND TO OPPONENT IF IN BATTLE
+    activeMatches.forEach((v, k) => {
+        if (v.player1.id === userId) {
+            v.player2.sock.send(payload);
+        }
+        else if (v.player2.id === userId) {
+            v.player1.sock.send(payload);
         }
     })
 }

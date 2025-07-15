@@ -31,7 +31,6 @@ export class BattleComponent implements OnInit {
     private wsService: WebsocketService,
     private userService: UserService,
     private router: Router,
-    private utilService: UtilService,
     private quizService: QuizService
   ) { }
   // USERS
@@ -67,6 +66,12 @@ export class BattleComponent implements OnInit {
   // OVERTIME
   showOvertimeMessage: boolean = false;
   overtimeSecondsRemaining: number = 10;
+
+  // ACTIONS
+  ACTION_TYPE = {
+    HIDE_2_WRONG_ANSWERS: 1,
+    HALF_THE_TIME: 2
+  }
 
   ngOnInit(): void {
     this.match = this.matchStateService.getCurrentMatch();
@@ -243,6 +248,18 @@ export class BattleComponent implements OnInit {
         // SHOW ERROR PAGE
       }
     })
+  }
+
+  handleActionButtonClick(type: number, questionId: number) {
+    let count = 0;
+    this.question.answers.forEach(a => {
+      if (count == 2) return;
+      if (!a.isCorrect) {
+        a.isDisabled = true;
+        count++;
+      }
+    });
+    this.wsService.sendAction(this.match.matchId, this.user.id, type, questionId);
   }
 
 }

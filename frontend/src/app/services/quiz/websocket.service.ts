@@ -191,6 +191,10 @@ export class WebsocketService {
     this.send({ type: 'battle/START_OVERTIME', matchId, username });
   }
 
+  sendAction(matchId: number, userId: number, action: number, questionId: number) {
+    this.send({ type: 'battle/USER_ACTION', matchId, userId, action, questionId })
+  }
+
   close(): void {
     if (this.socket) {
       this.socket.close();

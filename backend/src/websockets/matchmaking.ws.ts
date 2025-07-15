@@ -23,6 +23,10 @@ const answerSummaryIdleTimeout: Map<string, NodeJS.Timeout> = new Map();
 
 const battleRequestTimeout: Map<string, NodeJS.Timeout> = new Map();
 
+const ACTION_TYPE = {
+    HIDE_2_WRONG_ANSWERS: 1
+}
+
 export default function initWebSocketServer(server: Server) {
     const wss = new WebSocketServer({ server });
     // INIT
@@ -229,6 +233,12 @@ export default function initWebSocketServer(server: Server) {
                 if (match.player1.overtimeReady && match.player2.overtimeReady) {
                     sendNextQuestion(match);
                 }
+            }
+            else if (data.type === 'battle/USER_ACTION') { // this.send({ type: 'battle/USER_ACTION', matchId, userId, action, questionId })
+                const match = activeMatches.get(data.matchId);
+                if (!match) return;
+                const player = match.player1.id === data.userId ? match.player1 : match.player2;
+                
             }
 
             // ------------------------------------------------------------------------------------------------------------------------

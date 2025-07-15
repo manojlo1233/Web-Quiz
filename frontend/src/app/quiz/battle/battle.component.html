@@ -6,7 +6,16 @@
         <label class="points">Points: {{userPoints}}</label>
     </div>
     <div class="actions-container">
-        <label>User Actions</label>
+        <div class="actions-box">
+            <label style="user-select: none; font-size: 28px;">Actions</label>
+            <span class="h-divider" style="background-color: var(--theme-darkblue-color-3);"></span>
+            <div class="action-buttons">
+                <button class="action-button" title="Remove 2 wrong answers" (click)="handleActionButtonClick(ACTION_TYPE.HIDE_2_WRONG_ANSWERS, question.id)">50/50</button>
+                <button class="action-button" title="Make opponent time cut in half">Half the time</button>
+                <button class="action-button" title="Remove 2 wrong answers" disabled>50/50</button>
+            </div>
+
+        </div>
     </div>
 </div>
 <div class="battle">
@@ -25,7 +34,7 @@
             <span class="h-divider" style="background-color: var(--theme-darkblue-color-3);"></span>
             <div class="answers">
                 <label class="answer" [class.selected]="selectedAnswer === a"
-                    [class.disabled]="selectedAnswer !== null && selectedAnswer !== a"
+                    [class.disabled]="selectedAnswer !== null && selectedAnswer !== a || a.isDisabled"
                     [class.disable-events]="answerSummaryPhase || selectedAnswer !== null"
                     [class.correct-answer]="correctAnswerIndex === i"
                     [class.wrong-answer]="userAnswerIndex !== correctAnswerIndex && userAnswerIndex !== -1 && userAnswerIndex === i"
@@ -35,7 +44,6 @@
                     {{a.text}}
                 </label>
             </div>
-
         </div>
     </div>
     <div class="btns">

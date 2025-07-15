@@ -54,8 +54,12 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
   banUser: User = null;
 
   // USER DETAILS
-  detailsUser: User = null;
+  userDetails: User = null;
   openUserDetails: boolean = false;
+
+  // USER REPORTS
+  userReports: User = null;
+  openUserReports: boolean = false;
 
   ngOnInit(): void {
     const userId = Number.parseInt(sessionStorage.getItem('userId'));
@@ -144,13 +148,23 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
   }
 
   handleShowDetails(user: User) {
-    this.detailsUser = user;
+    this.userDetails = user;
     this.openUserDetails = true;
   }
 
   handleCloseUserDetails() {
-    this.detailsUser = null;
+    this.userDetails = null;
     this.openUserDetails = false;
+  }
+
+  handleShowReports(user: User) {
+    this.userReports = user;
+    this.openUserReports = true;
+  }
+
+  handleCloseUserReports() {
+    this.userReports = null;
+    this.openUserReports = false;
   }
 
   handleBanUser(user: User) {

@@ -1,0 +1,51 @@
+.report-container {
+    position: relative;
+    display: inline-block;
+}
+
+.report-box {
+    box-sizing: border-box;
+    position: absolute;
+    bottom: 120%;
+    /* Iznad dugmeta */
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: var(--theme-darkblue-color-6);
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    border-radius: 3px;
+    border: 1px solid var(--theme-darkblue-red);
+    box-shadow: 0 0 3px 2px var(--theme-darkblue-red);
+    z-index: 1000;
+    min-width: 200px;
+}
+
+.report-box label {
+    display: block;
+    font-size: 18px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.report-box label:hover {
+    box-shadow: 0 0 2px 1px var(--theme-darkblue-red);
+}
+
+.btn-red {
+    background-color: var(--theme-darkblue-color-6);
+    border: 1px solid var(--theme-darkblue-red);
+    color: var(--theme-darkblue-red);
+    font-size: 24px;
+}
+
+.btn-red:hover {
+    border: 1px solid var(--theme-darkblue-red-hover);
+    color: var(--theme-darkblue-red-hover);
+}
+
+.btn-red:active {
+    border: 1px solid var(--theme-darkblue-red-active);
+    color: var(--theme-darkblue-red-active);
+}

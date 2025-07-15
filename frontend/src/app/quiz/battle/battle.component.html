@@ -38,9 +38,13 @@
 
         </div>
     </div>
-    <button class="btn-light-small btn-red" [ngClass]="{
+    <div class="btns">
+        <button class="btn-light-small btn-red" [ngClass]="{
                     'btn-leave-red': reallyLeave
                 }" (click)="handleLeaveClick()">{{reallyLeave? 'Really ': ''}}Leave</button>
+        <app-report (report)="handleReport($event)"></app-report>
+    </div>
+
 </div>
 <div style="display: flex; flex-direction: column; width: 100%;">
     <div class="user">

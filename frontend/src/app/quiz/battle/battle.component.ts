@@ -14,6 +14,7 @@ import { Subscription } from 'rxjs';
 import { UtilService } from '../../services/shared/util.service';
 
 import * as leoProfanity from 'leo-profanity';
+import { QuizService } from '../../services/shared/quiz.service';
 
 @Component({
   selector: 'app-battle',
@@ -30,7 +31,8 @@ export class BattleComponent implements OnInit {
     private wsService: WebsocketService,
     private userService: UserService,
     private router: Router,
-    private utilService: UtilService
+    private utilService: UtilService,
+    private quizService: QuizService
   ) { }
   // USERS
   user: User = new User();
@@ -230,6 +232,17 @@ export class BattleComponent implements OnInit {
     else {
       this.wsService.sendLeaveBattle(this.match.matchId, this.user.id);
     }
+  }
+
+  handleReport(reasons: any[]) {
+    this.quizService.reportUser(this.user.id, this.opponent.id, reasons, this.match.matchId).subscribe({
+      next: (resp: any) => {
+        console.log(resp);
+      },
+      error: (error: any) => {
+        // SHOW ERROR PAGE
+      }
+    })
   }
 
 }

@@ -10,6 +10,7 @@
                     <th></th>
                     <th></th>
                     <th></th>
+                    <th></th>
                 </tr>
             </thead>
             <tbody *ngIf="allUsers.length !== 0">
@@ -19,6 +20,9 @@
                     <td *ngIf="!item.last_login" class="neutral-italic">--- No data ---</td>
                     <td>
                         <button class="btn-light-small" style="margin: 0;" (click)="handleShowDetails(item)">Details</button>
+                    </td>
+                    <td>
+                        <button class="btn-light-small" style="margin: 0;" (click)="handleShowReports(item)">Reports</button>
                     </td>
                     <td *ngIf="!item.banned_until">
                         <button class="btn-light-small btn-red" [ngClass]="{
@@ -114,4 +118,5 @@
 
 </div>
 <app-ban-user [user]="banUser" *ngIf="openBanUser" (close)="handleCloseBan($event)"></app-ban-user>
-<app-user-details [user]="detailsUser" *ngIf="openUserDetails" (close)="handleCloseUserDetails()"></app-user-details>
+<app-user-details [user]="userDetails" *ngIf="openUserDetails" (close)="handleCloseUserDetails()"></app-user-details>
+<app-user-reports [user]="userReports" *ngIf="openUserReports" (close)="handleCloseUserReports()"></app-user-reports>

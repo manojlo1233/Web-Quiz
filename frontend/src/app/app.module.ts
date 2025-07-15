@@ -30,6 +30,8 @@ import { DatepickerDirective } from './shared/directives/datepicker.directive';
 import { BanUserComponent } from './admin/ban-user/ban-user.component';
 import { UserDetailsComponent } from './admin/user-details/user-details.component';
 import { ShowMessageComponent } from './shared/components/show-message/show-message.component';
+import { ReportComponent } from './shared/components/report/report.component';
+import { UserReportsComponent } from './admin/user-reports/user-reports.component';
 
 
 @NgModule({
@@ -58,7 +60,9 @@ import { ShowMessageComponent } from './shared/components/show-message/show-mess
     DatepickerDirective,
     BanUserComponent,
     UserDetailsComponent,
-    ShowMessageComponent
+    ShowMessageComponent,
+    ReportComponent,
+    UserReportsComponent
   ],
   imports: [
     BrowserModule,

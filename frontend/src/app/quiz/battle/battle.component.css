@@ -31,6 +31,11 @@
 }
 
 .points {
+    background-color: var(--theme-darkblue-color-6);
+    padding: 5px 10px;
+    border: 1px solid var(--theme-darkblue-color-3);
+    box-shadow: 0 0 2px 1px var(--theme-darkblue-color-3);
+    border-radius: 2px;
     font-size: 20px;
 }
 
@@ -291,6 +296,13 @@
     align-items: center;
     justify-content: center;
     height: 100%;
+}
+
+.btns {
+    margin: auto;
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
 }
 
 .btn-red {

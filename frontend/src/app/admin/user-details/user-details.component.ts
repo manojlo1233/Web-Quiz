@@ -2,6 +2,7 @@ import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { User } from '../../shared/models/User';
 import { SnackBarService } from '../../services/shared/snack-bar.service';
 import { ConfirmService } from '../../services/shared/confirm.service';
+import { UserService } from '../../services/shared/user.service';
 
 @Component({
   selector: 'app-user-details',
@@ -17,8 +18,9 @@ export class UserDetailsComponent {
     private confirmService: ConfirmService
   ) { }
 
+  reports: any[] = [];
+
   ngOnInit(): void {
-   
   }
 
   closeModal() {

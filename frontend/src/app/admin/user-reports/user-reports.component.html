@@ -1,0 +1,28 @@
+<div class="modal-window">
+    <label class="hdr">User reports</label>
+    <span class="h-divider" style="background-color: var(--theme-darkblue-color-3);"></span>
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Reason</th>
+                    <th>From</th>
+                    <th>Date</th>
+                </tr>
+            </thead>
+            <tbody *ngIf="reports.length !== 0">
+                <tr *ngFor="let item of reports">
+                    <td>{{item.reason}}</td>
+                    <td>{{item.reportFrom}}</td>
+                    <td>{{item.time | date: 'dd.MM.yy HH:mm:ss'}}</td>
+            </tbody>
+            <tbody *ngIf="reports.length === 0">
+                <td class="neutral-italic" colspan="5">--- There are no reports ---</td>
+            </tbody>
+        </table>
+    </div>
+    <div style="width: 100%; display: flex; flex-direction: row-reverse; gap: 10px; align-items: center;">
+        <button class="btn-light-small" style="margin-bottom: 0; border: 1px solid transparent;"
+            (click)="closeModal()">Close</button>
+    </div>
+</div>

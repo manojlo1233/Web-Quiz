@@ -57,4 +57,8 @@ export class UserService {
     }
     return this.http.patch(`${this.url}/updateUserAvatar`, body);
   }
+
+  getUserReports(userId: number) {
+    return this.http.get(`${this.url}/getUserReports/${userId}`)
+  }
 }

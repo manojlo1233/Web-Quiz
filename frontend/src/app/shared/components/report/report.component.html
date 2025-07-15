@@ -1,0 +1,19 @@
+<div class="report-container">
+  <button (click)="toggleReportBox()" class="btn-light-small btn-red" [style.box-shadow]="showReportBox ? '0 0 5px 2px var(--theme-darkblue-red)': 'none'">Report</button>
+
+  <div 
+    class="report-box" 
+    *ngIf="showReportBox" 
+    [@boxAnimation]
+  >
+    <label>
+      <input type="checkbox" [(ngModel)]="reasons.cheating" />
+      Cheating
+    </label>
+    <label>
+      <input type="checkbox" [(ngModel)]="reasons.abusive" />
+      Abusive chat
+    </label>
+    <button class="btn-light-small btn-red" style="width: 100%; font-size: 20px;" (click)="submitReport()">Submit</button>
+  </div>
+</div>

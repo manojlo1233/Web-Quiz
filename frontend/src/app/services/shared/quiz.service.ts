@@ -11,11 +11,21 @@ export class QuizService {
   constructor(
     private http: HttpClient,
     private urlService: UrlService
-  ) { 
+  ) {
     this.url = `${urlService.url}/quiz`;
   }
 
   getRandomHints() {
     return this.http.get(`${this.url}/getRandomHints`);
+  }
+
+  reportUser(userIdReportTo: number, userIdReportFrom: number, reasons: string[], quizId: number) {
+    const body = {
+      userIdReportTo,
+      userIdReportFrom,
+      reasons,
+      quizId
+    }
+    return this.http.post(`${this.url}/reportUser`, body);
   }
 }

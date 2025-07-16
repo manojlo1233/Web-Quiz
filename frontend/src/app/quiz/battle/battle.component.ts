@@ -54,7 +54,9 @@ export class BattleComponent implements OnInit {
   opponentAnswerIndex: number = -1;
   correctAnswerIndex: number = -1;
   userPoints: number = 0;
+  userDeltaPoints: number = 0;
   opponentPoints: number = 0;
+  opponentDeltaPoints: number = 0;
   //CHAT
   messageText: string = "";
   chatMessages: ChatMessage[] = [];
@@ -75,8 +77,10 @@ export class BattleComponent implements OnInit {
     HALF_THE_TIME_OPPONENT: 1,
     DOUBLE_NEGATIVE_POINTS_OPPONENT: 2,
   }
+  actionNames: string[] = ['50/50', 'Half the time', '-2x'];
   actionsUsed: boolean[] = [false, false, false];
   actionUsed: boolean = false;
+  opponentAction: number = -1;
 
   ngOnInit(): void {
     this.match = this.matchStateService.getCurrentMatch();
@@ -86,11 +90,7 @@ export class BattleComponent implements OnInit {
     }
     // SUBSCRIBE TO QUESTIONS
     this.wsService.newQuestion$.subscribe(resp => {
-      this.actionUsed = false;
-      this.answerSummaryPhase = false;
-      this.userAnswerIndex = -1;
-      this.opponentAnswerIndex = -1;
-      this.correctAnswerIndex = -1;
+      this.resetParameters();
       this.question = resp.question;
       this.init();
     })
@@ -102,8 +102,7 @@ export class BattleComponent implements OnInit {
       this.selectedAnswer = null;
       this.initTimerIncrease();
       this.getAnswerIndices(resp);
-      this.userPoints = resp.yourPoints;
-      this.opponentPoints = resp.opponentPoints;
+      this.initDeltaPoints(resp.yourDeltaPoints, resp.opponentDeltaPoints);
     })
 
     const userId = parseInt(sessionStorage.getItem('userId'), 10);
@@ -153,6 +152,23 @@ export class BattleComponent implements OnInit {
         }
       }, 1000)
     })
+
+    // --------- OPPONENT ACTION ---------
+    this.wsService.battleUserAction$.subscribe((resp: any) => {
+      this.opponentAction = resp.action;
+      if (this.opponentAction === this.ACTION_TYPE.HALF_THE_TIME_OPPONENT) {
+        this.remainingTime = Math.floor(this.remainingTime / 2);
+      }
+    })
+  }
+
+  resetParameters() {
+    this.actionUsed = false;
+    this.opponentAction = -1;
+    this.answerSummaryPhase = false;
+    this.userAnswerIndex = -1;
+    this.opponentAnswerIndex = -1;
+    this.correctAnswerIndex = -1;
   }
 
   // INIT
@@ -184,6 +200,17 @@ export class BattleComponent implements OnInit {
       }
       this.remainingTime++;
     }, 1000)
+  }
+
+  initDeltaPoints(userDeltaPoints: number, opponentDeltaPoints: number) {
+    this.userDeltaPoints = userDeltaPoints;
+    this.opponentDeltaPoints = opponentDeltaPoints;
+    setTimeout(() => {
+      this.userPoints += this.userDeltaPoints;
+      this.opponentPoints += this.opponentDeltaPoints;
+      this.userDeltaPoints = 0;
+      this.opponentDeltaPoints = 0;
+    }, 4000)
   }
 
   getAnswerIndices(resp: AnswerSummary) {
@@ -261,23 +288,22 @@ export class BattleComponent implements OnInit {
     this.actionsUsed[type] = true;
     switch (type) {
       case this.ACTION_TYPE.HIDE_2_WRONG_ANSWERS:
-        let count = 0;
-        this.question.answers.forEach(a => {
-          if (count == 2) return;
-          if (!a.isCorrect) {
-            a.isDisabled = true;
-            count++;
-          }
+        const incorrectAnswers = this.question.answers.filter(a => !a.isCorrect);
+        for (let i = incorrectAnswers.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [incorrectAnswers[i], incorrectAnswers[j]] = [incorrectAnswers[j], incorrectAnswers[i]];
+        }
+        incorrectAnswers.slice(0, 2).forEach(a => {
+          a.isDisabled = true;
         });
-        this.wsService.sendAction(this.match.matchId, this.user.id, type, this.question.id);
-        break;
-      case this.ACTION_TYPE.HALF_THE_TIME_OPPONENT:
-        this.wsService.sendAction(this.match.matchId, this.user.id, type, this.question.id);
-        break;
-      case this.ACTION_TYPE.DOUBLE_NEGATIVE_POINTS_OPPONENT:
-        this.wsService.sendAction(this.match.matchId, this.user.id, type, this.question.id);
         break;
     }
+
+    this.wsService.sendAction(this.match.matchId, this.user.id, type, this.question.id);
+  }
+
+  getActionName(type: number): string {
+    return this.actionNames[type];
   }
 
 }

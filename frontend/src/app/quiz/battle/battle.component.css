@@ -20,13 +20,39 @@
     gap: 10px;
 
     .avatar {
-        width: 60px;
-        height: 60px;
+        width: 200px;
+        height: 200px;
         object-fit: cover;
         border-radius: 3px;
         background-color: #f0f0f0;
         border: 1px solid var(--theme-darkblue-color-3);
         box-shadow: 0 0 3px 2px var(--theme-darkblue-color-3);
+    }
+}
+
+.user-info {
+    margin-top: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+.user-points {
+    position: relative;
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+}
+
+.opponent-action {
+    margin-top: auto;
+
+    label {
+        background-color: var(--theme-darkblue-color-6);
+        padding: 5px 10px;
+        border: 1px solid var(--theme-darkblue-red);
+        box-shadow: 0 0 3px 1px var(--theme-darkblue-red);
     }
 }
 
@@ -37,6 +63,72 @@
     box-shadow: 0 0 2px 1px var(--theme-darkblue-color-3);
     border-radius: 2px;
     font-size: 20px;
+}
+
+.user-delta-points {
+    position: absolute;
+    right: 0;
+    transform: translateX(120%);
+    background-color: var(--theme-darkblue-color-6);
+}
+
+.opponent-delta-points {
+    position: absolute;
+    left: 0;
+    transform: translateX(-120%);
+    background-color: var(--theme-darkblue-color-6);
+}
+
+.delta-points-red {
+    padding: 5px 10px;
+    border: 1px solid var(--theme-darkblue-red);
+    box-shadow: 0 0 2px 1px var(--theme-darkblue-red);
+    border-radius: 2px;
+    font-size: 20px;
+    animation: points-glow-red 0.5s linear infinite;
+}
+
+.delta-points-green {
+    padding: 5px 10px;
+    border: 1px solid var(--theme-darkblue-green);
+    box-shadow: 0 0 2px 1px var(--theme-darkblue-green);
+    border-radius: 2px;
+    font-size: 20px;
+    animation: points-glow-green 0.5s linear infinite;
+}
+
+@keyframes points-glow-red {
+
+    0%,
+    100% {
+        box-shadow: 0 0 2px 1px var(--theme-darkblue-red);
+    }
+
+    25%,
+    75% {
+        box-shadow: 0 0 5px 2px var(--theme-darkblue-red);
+    }
+
+    50% {
+        box-shadow: 0 0 7px 3px var(--theme-darkblue-red);
+    }
+}
+
+@keyframes points-glow-green {
+
+    0%,
+    100% {
+        box-shadow: 0 0 2px 1px var(--theme-darkblue-green);
+    }
+
+    25%,
+    75% {
+        box-shadow: 0 0 5px 2px var(--theme-darkblue-green);
+    }
+
+    50% {
+        box-shadow: 0 0 7px 3px var(--theme-darkblue-green);
+    }
 }
 
 .battle {
@@ -404,8 +496,8 @@
 }
 
 .action-button:disabled {
-     user-select: none;
-        pointer-events: none;
-        background-color: darkgray;
-        cursor: default;
+    user-select: none;
+    pointer-events: none;
+    background-color: darkgray;
+    cursor: default;
 }

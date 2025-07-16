@@ -9,6 +9,7 @@ export class Player {
     answer: string;
     elapsedTime: number;
     points: number;
+    activeAction: number;
 
     constructor(sock: WebSocket, id: number, username: string) {
         this.sock = sock;
@@ -17,5 +18,6 @@ export class Player {
         this.answer = null;
         this.elapsedTime = null;
         this.points = 0;
+        this.activeAction = null;
     }
 }

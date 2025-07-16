@@ -1,9 +1,20 @@
 <app-battle-summary *ngIf="showBattleSummary" [data]="battleSummaryData" (closeEvent)="goToMainPage()" />
 <div style="display: flex; flex-direction: column; width: 100%;">
     <div class="user">
-        <img [src]="'http://localhost:3000/static/avatars/' + user.avatar" alt="User Avatar" class="avatar" />
-        <label>{{user.username}}</label>
-        <label class="points">Points: {{userPoints}}</label>
+        <div class="user-info">
+            <img [src]="'http://localhost:3000/static/avatars/' + user.avatar" alt="User Avatar" class="avatar" />
+            <label>{{user.username}}</label>
+            <div class="user-points">
+                <label class="points">Points: {{userPoints}}</label>
+                <span *ngIf="userDeltaPoints !== 0" class="user-delta-points" [ngClass]="{
+                    'delta-points-red': userDeltaPoints < 0,
+                    'delta-points-green': userDeltaPoints > 0
+                }">{{userDeltaPoints > 0 ? '+' : ''}}{{userDeltaPoints}}</span>
+            </div>
+
+        </div>
+
+        <label style="margin-top: auto; color: transparent;">aaaa</label>
     </div>
     <div class="actions-container">
         <div class="actions-box">
@@ -13,15 +24,15 @@
                 <button class="action-button" title="Remove 2 wrong answers"
                     (click)="handleActionButtonClick(ACTION_TYPE.HIDE_2_WRONG_ANSWERS)"
                     [disabled]="actionsUsed[ACTION_TYPE.HIDE_2_WRONG_ANSWERS] || actionUsed || answerSummaryPhase || selectedAnswer !== null">
-                    50/50</button>
+                    {{actionNames[ACTION_TYPE.HIDE_2_WRONG_ANSWERS]}}</button>
                 <button class="action-button" title="Make opponent time cut in half"
                     (click)="handleActionButtonClick(ACTION_TYPE.HALF_THE_TIME_OPPONENT)"
                     [disabled]="actionsUsed[ACTION_TYPE.HALF_THE_TIME_OPPONENT] || actionUsed || answerSummaryPhase || selectedAnswer !== null">
-                    Half the time</button>
+                    {{actionNames[ACTION_TYPE.HALF_THE_TIME_OPPONENT]}}</button>
                 <button class="action-button" title="Double negative points to opponent"
                     (click)="handleActionButtonClick(ACTION_TYPE.DOUBLE_NEGATIVE_POINTS_OPPONENT)"
                     [disabled]="actionsUsed[ACTION_TYPE.DOUBLE_NEGATIVE_POINTS_OPPONENT] || actionUsed || answerSummaryPhase || selectedAnswer !== null">
-                    -2x</button>
+                    {{actionNames[ACTION_TYPE.DOUBLE_NEGATIVE_POINTS_OPPONENT]}}</button>
             </div>
 
         </div>
@@ -44,7 +55,7 @@
             <div class="answers">
                 <label class="answer" [class.selected]="selectedAnswer === a"
                     [class.disabled]="selectedAnswer !== null && selectedAnswer !== a || a.isDisabled"
-                    [class.disable-events]="answerSummaryPhase || selectedAnswer !== null"
+                    [class.disable-events]="answerSummaryPhase || selectedAnswer !== null || remainingTime === 0"
                     [class.correct-answer]="correctAnswerIndex === i"
                     [class.wrong-answer]="userAnswerIndex !== correctAnswerIndex && userAnswerIndex !== -1 && userAnswerIndex === i"
                     (click)="handleAnswerClick(a)" *ngFor="let a of question.answers, let i = index">
@@ -65,9 +76,23 @@
 </div>
 <div style="display: flex; flex-direction: column; width: 100%;">
     <div class="user">
-        <img [src]="'http://localhost:3000/static/avatars/' + opponent.avatar" alt="User Avatar" class="avatar" />
-        <label>{{opponent.username}}</label>
-        <label class="points">Points: {{opponentPoints}}</label>
+        <div class="user-info">
+            <img [src]="'http://localhost:3000/static/avatars/' + opponent.avatar" alt="User Avatar" class="avatar" />
+            <label>{{opponent.username}}</label>
+            <div class="user-points">
+                <label class="points">Points: {{opponentPoints}}</label>
+                <span class="opponent-delta-points" [ngClass]="{
+                    'delta-points-red': opponentDeltaPoints < 0,
+                    'delta-points-green': opponentDeltaPoints > 0
+                }" *ngIf="opponentDeltaPoints !== 0">{{opponentDeltaPoints > 0 ? '+' :
+                    ''}}{{opponentDeltaPoints}}</span>
+            </div>
+        </div>
+        <label *ngIf="opponentAction === -1" style="margin-top: auto; color: transparent;">aaa</label>
+        <div class="opponent-action" *ngIf="opponentAction !== -1">
+            <label>{{opponent.username}} has used <span
+                    style="font-size: 18px; color: var(--theme-darkblue-red);">{{getActionName(opponentAction)}}</span></label>
+        </div>
     </div>
     <div class="chat-container">
         <div class="chat-box">

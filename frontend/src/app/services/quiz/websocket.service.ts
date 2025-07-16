@@ -26,6 +26,7 @@ export class WebsocketService {
   public battleWithdraw$ = new Subject<any>();
   public battleAutoWithdraw$ = new Subject<any>();
   public battleReadyOvertime$ = new Subject<void>();
+  public battleUserAction$ = new Subject<any>();
   // ADMIN
   public adminUserBanned$ = new Subject<any>();
   public adminUserUnbanned$ = new Subject<any>();
@@ -97,6 +98,9 @@ export class WebsocketService {
           break;
         case 'battle/OVERTIME':
           this.battleReadyOvertime$.next();
+          break;
+        case '/battle/USER_ACTION':
+          this.battleUserAction$.next(data);
           break;
         case 'admin/USERS_ONLINE':
           this.adminUsersOnline$.next(data);

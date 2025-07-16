@@ -24,7 +24,9 @@ const answerSummaryIdleTimeout: Map<string, NodeJS.Timeout> = new Map();
 const battleRequestTimeout: Map<string, NodeJS.Timeout> = new Map();
 
 const ACTION_TYPE = {
-    HIDE_2_WRONG_ANSWERS: 1
+    HIDE_2_WRONG_ANSWERS: 0,
+    HALF_THE_TIME_OPPONENT: 1,
+    DOUBLE_NEGATIVE_POINTS_OPPONENT: 2,
 }
 
 export default function initWebSocketServer(server: Server) {
@@ -237,12 +239,14 @@ export default function initWebSocketServer(server: Server) {
             else if (data.type === 'battle/USER_ACTION') { // this.send({ type: 'battle/USER_ACTION', matchId, userId, action, questionId })
                 const match = activeMatches.get(data.matchId);
                 if (!match) return;
-                const player = match.player1.id === data.userId ? match.player1 : match.player2;
+                const playerTo = match.player1.id !== data.userId ? match.player1 : match.player2;
+                const playerFrom = match.player1.id === data.userId ? match.player1 : match.player2;
+                playerFrom.activeAction = data.action;
                 const payload = JSON.stringify({
-                    type:'/battle/USER_ACTION',
+                    type: '/battle/USER_ACTION',
                     action: data.action,
-
                 })
+                playerTo.sock.send(payload);
             }
 
             // ------------------------------------------------------------------------------------------------------------------------
@@ -354,6 +358,8 @@ export default function initWebSocketServer(server: Server) {
                 match.player2.answer = null;
                 match.player1.elapsedTime = null;
                 match.player2.elapsedTime = null;
+                match.player1.activeAction = null;
+                match.player2.activeAction = null;
                 match.player1.sock.send(payload);
                 match.player2.sock.send(payload);
                 answerSummaryIdleTimeout.set(match.matchId, setTimeout(() => {
@@ -375,21 +381,52 @@ export default function initWebSocketServer(server: Server) {
 
                 const correctText = correctAns?.text || null;
 
+                let player1DeltaPoints = 0;
+                let player2DeltaPoints = 0;
                 if (match.player1.answer) {
                     if (match.player1.answer === correctText) {
-                        match.player1.points += 10;
+                        if (match.player1.activeAction === ACTION_TYPE.HIDE_2_WRONG_ANSWERS) {
+                            match.player1.points += 5;
+                            player1DeltaPoints = 5;
+                        }
+                        else {
+                            match.player1.points += 10;
+                            player1DeltaPoints = 10;
+                        }
                     }
                     else {
-                        match.player1.points -= 5;
+                        if (match.player2.activeAction === ACTION_TYPE.DOUBLE_NEGATIVE_POINTS_OPPONENT) {
+                            match.player1.points -= 10;
+                            player1DeltaPoints = -10;
+                        }
+                        else {
+                            match.player1.points -= 5;
+                            player1DeltaPoints = -5;
+                        }
+
                     }
                 }
 
                 if (match.player2.answer) {
                     if (match.player2.answer === correctText) {
-                        match.player2.points += 10;
+                        if (match.player2.activeAction === ACTION_TYPE.HIDE_2_WRONG_ANSWERS) {
+                            match.player2.points += 5;
+                            player2DeltaPoints = 5;
+                        }
+                        else {
+                            match.player2.points += 10;
+                            player2DeltaPoints = 10;
+                        }
                     }
                     else {
-                        match.player2.points -= 5;
+                        if (match.player1.activeAction === ACTION_TYPE.DOUBLE_NEGATIVE_POINTS_OPPONENT) {
+                            match.player2.points -= 10;
+                            player2DeltaPoints = -10;
+                        }
+                        else {
+                            match.player2.points -= 5;
+                            player2DeltaPoints = -5;
+                        }
                     }
                 }
 
@@ -398,9 +435,11 @@ export default function initWebSocketServer(server: Server) {
                     yourAnswer: match.player1.answer,
                     yourPoints: match.player1.points,
                     yourTime: match.player1.elapsedTime,
+                    yourDeltaPoints: player1DeltaPoints,
                     opponentAnswer: match.player2.answer,
                     opponentPoints: match.player2.points,
                     opponentTime: match.player2.elapsedTime,
+                    opponentDeltaPoints: player2DeltaPoints,
                     correctAnswer: correctAns.text || null
                 }
 
@@ -410,9 +449,11 @@ export default function initWebSocketServer(server: Server) {
                     yourAnswer: match.player2.answer,
                     yourPoints: match.player2.points,
                     yourTime: match.player2.elapsedTime,
+                    yourDeltaPoints: player2DeltaPoints,
                     opponentAnswer: match.player1.answer,
                     opponentPoints: match.player1.points,
-                    opponentTime: match.player1.elapsedTime
+                    opponentTime: match.player1.elapsedTime,
+                    opponentDeltaPoints: player1DeltaPoints
                 }));
 
                 const attemptP1 = (match.player1.sock as any).quizAttemptId;

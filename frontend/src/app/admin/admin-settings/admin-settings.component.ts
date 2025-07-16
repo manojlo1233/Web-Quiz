@@ -61,6 +61,10 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
   userReports: User = null;
   openUserReports: boolean = false;
 
+  // TABLE
+  pageSize = 10;
+  currentPage = 1;
+
   ngOnInit(): void {
     const userId = Number.parseInt(sessionStorage.getItem('userId'));
     // -------------------- GET USER --------------------
@@ -235,6 +239,32 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
       const user = this.allUsers.find(u => u.id === banResult.userId);
       user.banned_until = banResult.date;
     }
+  }
+
+  // ---------------- TABLE ----------------
+  get filteredData(): any[] {
+    return this.allUsers.slice((this.currentPage - 1) * this.pageSize, this.currentPage * this.pageSize);
+  }
+
+  get totalPages(): number {
+    return Math.ceil(
+      this.allUsers.length / this.pageSize
+    );
+  }
+
+  changePage(delta: number) {
+    const newPage = this.currentPage + delta;
+    if (newPage > 0 && newPage <= this.totalPages) {
+      this.currentPage = newPage;
+    }
+  }
+
+  firstPage() {
+    this.currentPage = 1;
+  }
+
+  lastPage() {
+    this.currentPage = this.totalPages;
   }
 
   ngOnDestroy(): void {

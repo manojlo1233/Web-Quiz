@@ -137,6 +137,18 @@
         }
 
     }
+
+    .paginator {
+        box-sizing: border-box;
+        width: 100%;
+        height: fit-content;
+        display: flex;
+        flex-direction: row;
+        gap: 10px;
+        padding: 5px;
+        background-color: var(--theme-darkblue-color-6);
+    }
+
 }
 
 .play-btns {
@@ -238,6 +250,7 @@
     .frnds-container {
         width: 100%;
         overflow: auto;
+
         div {
             width: 100%;
             display: flex;
@@ -346,6 +359,12 @@
     height: 23px;
 }
 
+.icon.small.disabled {
+    user-select: none;
+    pointer-events: none;
+    animation: battleGlow 3s ease infinite;
+}
+
 .icon.withdraw:hover {
     box-shadow: 0 0 3px 1px white;
 }
@@ -354,10 +373,28 @@
     box-shadow: 0 0 5px 2px white;
 }
 
-.icon.small.disabled {
+.icon-paginator {
+    width: 23px;
+    height: 23px;
+    border-radius: 2px;
+    padding: 1px;
+    cursor: pointer;
+    transition: all 0.1s ease;
+}
+
+.icon-paginator:hover {
+    box-shadow: 0 0 3px 1px white;
+}
+
+.icon-paginator:active {
+    box-shadow: 0 0 5px 2px white;
+}
+
+.icon-paginator.disabled {
     user-select: none;
     pointer-events: none;
-    animation: battleGlow 3s ease infinite;
+    box-shadow: none;
+    box-shadow: 0 0 3px 1px var(--theme-color-neutral-2);
 }
 
 .avatar_icon {
@@ -477,4 +514,67 @@
     justify-content: center;
     background-color: var(--theme-darkblue-color-6);
     border-radius: 3px;
+}
+
+.news-container {
+    box-sizing: border-box;
+    margin-top: auto;
+    width: 100%;
+    max-width: 600px;
+    height: 50vh;
+    min-height: 300px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    border: 1px solid var(--theme-darkblue-color-3);
+    border-radius: 2px;
+    padding: 10px;
+    background-color: var(--theme-darkblue-box-bg);
+    overflow: hidden;
+}
+
+.news-carousel {
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+}
+
+.carousel-slide {
+    display: none;
+    text-align: center;
+    transition: opacity 0.5s ease;
+}
+
+.carousel-slide.active {
+    display: block;
+}
+
+.carousel-slide img {
+    width: 100%;
+    border-radius: 10px;
+}
+
+.caption {
+    padding: 1rem;
+}
+
+.prev,
+.next {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(255, 255, 255, 0.7);
+    border: none;
+    font-size: 2rem;
+    cursor: pointer;
+    padding: 0.5rem 1rem;
+    z-index: 1;
+}
+
+.prev {
+    left: 10px;
+}
+
+.next {
+    right: 10px;
 }

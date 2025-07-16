@@ -110,6 +110,32 @@ export class MainPageComponent implements OnInit, OnDestroy {
   // AVATARS
   showAvailableAvatars: boolean = false;
 
+  // TABLE
+  pageSize = 10;
+  currentPage = 1;
+
+  // NEWS
+  news = [
+    {
+      imageUrl: 'https://picsum.photos/id/1011/600/300',
+      title: 'New Tournament Coming!',
+      description: 'Prepare for the next big challenge.'
+    },
+    {
+      imageUrl: 'https://picsum.photos/id/1015/600/300',
+      title: 'Feature Update',
+      description: 'New 50/50 power-up now available!'
+    },
+    {
+      imageUrl: 'https://picsum.photos/id/1016/600/300',
+      title: 'Community Spotlight',
+      description: 'Check out the top players this month.'
+    }
+  ];
+
+  newsCurrentSlide = 0;
+  newsIntervalId: any;
+
   ngOnInit(): void {
     const userId = Number.parseInt(sessionStorage.getItem('userId'));
     // --------- INITIALIZE WEBSOCKET CONNECTION ---------
@@ -242,6 +268,8 @@ export class MainPageComponent implements OnInit, OnDestroy {
       this.user.banned_until = data.banned_until;
     })
 
+    // --------- NEWS ---------
+    this.startNewsAutoSlide();
   }
 
   getFriends(userId: number) {
@@ -408,7 +436,6 @@ export class MainPageComponent implements OnInit, OnDestroy {
         })
       }
     )
-
   }
 
   handleSendFriendRequest(id: number) {
@@ -552,7 +579,45 @@ export class MainPageComponent implements OnInit, OnDestroy {
         this.leaderBoardTimeout = null;
       }, 3000)
     }
+  }
 
+  // ---------------- TABLE ----------------
+  get filteredData(): any[] {
+    return this.userPlayHistory.slice((this.currentPage - 1) * this.pageSize, this.currentPage * this.pageSize);
+  }
+
+  get totalPages(): number {
+    return Math.ceil(
+      this.userPlayHistory.length / this.pageSize
+    );
+  }
+
+  changePage(delta: number) {
+    const newPage = this.currentPage + delta;
+    if (newPage > 0 && newPage <= this.totalPages) {
+      this.currentPage = newPage;
+    }
+  }
+
+  firstPage() {
+    this.currentPage = 1;
+  }
+
+  lastPage() {
+    this.currentPage = this.totalPages;
+  }
+
+  // ---------------- NEWS ----------------
+  startNewsAutoSlide() {
+    this.newsIntervalId = setInterval(() => this.nextNewsSlide(), 5000);
+  }
+
+  nextNewsSlide() {
+    this.newsCurrentSlide = (this.newsCurrentSlide + 1) % this.news.length;
+  }
+
+  prevNewsSlide() {
+    this.newsCurrentSlide = (this.newsCurrentSlide - 1 + this.news.length) % this.news.length;
   }
 
   ngOnDestroy(): void {
@@ -568,5 +633,6 @@ export class MainPageComponent implements OnInit, OnDestroy {
     if (this.battleAutoWithdrawSub) this.battleAutoWithdrawSub.unsubscribe();
     if (this.adminUserDeletedSub) this.adminUserDeletedSub.unsubscribe();
     if (this.adminUserBannedSub) this.adminUserBannedSub.unsubscribe();
+    if (this.newsIntervalId) clearInterval(this.newsIntervalId);
   }
 }

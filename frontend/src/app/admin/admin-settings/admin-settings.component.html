@@ -19,10 +19,12 @@
                     <td *ngIf="item.last_login">{{ item.last_login | date: 'dd.MM.yy HH:mm:ss' }}</td>
                     <td *ngIf="!item.last_login" class="neutral-italic">--- No data ---</td>
                     <td>
-                        <button class="btn-light-small" style="margin: 0;" (click)="handleShowDetails(item)">Details</button>
+                        <button class="btn-light-small" style="margin: 0;"
+                            (click)="handleShowDetails(item)">Details</button>
                     </td>
                     <td>
-                        <button class="btn-light-small" style="margin: 0;" (click)="handleShowReports(item)">Reports</button>
+                        <button class="btn-light-small" style="margin: 0;"
+                            (click)="handleShowReports(item)">Reports</button>
                     </td>
                     <td *ngIf="!item.banned_until">
                         <button class="btn-light-small btn-red" [ngClass]="{
@@ -43,6 +45,17 @@
                 <td class="neutral-italic" colspan="5">--- There are no users ---</td>
             </tbody>
         </table>
+    </div>
+    <div class="paginator" style="margin-top: auto;">
+        <span style="margin-left: auto;">{{ currentPage }} / {{ totalPages }}</span>
+        <app-icon class="icon-paginator" src="/assets/svg/icon_first_page.svg" color="white" title="First Page"
+            (click)="firstPage()" />
+        <app-icon class="icon-paginator" src="/assets/svg/icon_prev_page.svg" color="white" title="Previous Page"
+            [class.disabled]="currentPage === 1" (click)="changePage(-1)" />
+        <app-icon class="icon-paginator" src="/assets/svg/icon_next_page.svg" color="white" title="Next Page"
+            [class.disabled]="currentPage === totalPages" (click)="changePage(1)" />
+        <app-icon class="icon-paginator" src="/assets/svg/icon_last_page.svg" color="white" title="Last Page"
+            (click)="lastPage()" />
     </div>
 </div>
 

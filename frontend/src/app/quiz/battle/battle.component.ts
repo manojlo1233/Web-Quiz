@@ -1,4 +1,4 @@
-import { Component, ElementRef, OnDestroy, OnInit, ViewChild, ViewContainerRef } from '@angular/core';
+import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { MatchStateService } from '../../services/quiz/match-state.service';
 import { WSMatchFoundMsg } from '../../shared/models/WSMatchFoundMsg';
 import { WebsocketService } from '../../services/quiz/websocket.service';
@@ -10,8 +10,6 @@ import { ChatMessage } from '../../shared/models/ChatMessage';
 import { BattleSummary } from '../../shared/models/Battle/BattleSummary';
 import { Router } from '@angular/router';
 import { AnswerSummary } from '../../shared/models/Battle/AnswerSummary';
-import { Subscription } from 'rxjs';
-import { UtilService } from '../../services/shared/util.service';
 
 import * as leoProfanity from 'leo-profanity';
 import { QuizService } from '../../services/shared/quiz.service';

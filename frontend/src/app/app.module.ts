@@ -32,6 +32,7 @@ import { UserDetailsComponent } from './admin/user-details/user-details.componen
 import { ShowMessageComponent } from './shared/components/show-message/show-message.component';
 import { ReportComponent } from './shared/components/report/report.component';
 import { UserReportsComponent } from './admin/user-reports/user-reports.component';
+import { NewsCarouselComponent } from './dashboard/news-carousel/news-carousel.component';
 
 
 @NgModule({
@@ -62,7 +63,8 @@ import { UserReportsComponent } from './admin/user-reports/user-reports.componen
     UserDetailsComponent,
     ShowMessageComponent,
     ReportComponent,
-    UserReportsComponent
+    UserReportsComponent,
+    NewsCarouselComponent
   ],
   imports: [
     BrowserModule,

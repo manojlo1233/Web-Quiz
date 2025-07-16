@@ -53,7 +53,7 @@
                         </tr>
                     </thead>
                     <tbody *ngIf="userPlayHistory.length !== 0">
-                        <tr *ngFor="let item of userPlayHistory">
+                        <tr *ngFor="let item of filteredData">
                             <td>{{ item.category }}</td>
                             <td>{{ item.start | date: 'dd.MM.yy HH:mm:ss' }}</td>
                             <td>{{ formatDuration(item.duration) }}</td>
@@ -69,6 +69,17 @@
                         <td class="neutral-italic" colspan="5">--- Play history does not exist ---</td>
                     </tbody>
                 </table>
+            </div>
+            <div class="paginator">
+                <span style="margin-left: auto;">{{ currentPage }} / {{ totalPages }}</span>
+                <app-icon class="icon-paginator" src="/assets/svg/icon_first_page.svg" color="white" title="First Page"
+                    (click)="firstPage()" />
+                <app-icon class="icon-paginator" src="/assets/svg/icon_prev_page.svg" color="white"
+                    title="Previous Page" [class.disabled]="currentPage === 1" (click)="changePage(-1)" />
+                <app-icon class="icon-paginator" src="/assets/svg/icon_next_page.svg" color="white" title="Next Page"
+                    [class.disabled]="currentPage === totalPages" (click)="changePage(1)" />
+                <app-icon class="icon-paginator" src="/assets/svg/icon_last_page.svg" color="white" title="Last Page"
+                    (click)="lastPage()" />
             </div>
         </div>
     </div>
@@ -97,6 +108,24 @@
                 <label>Banned until: {{user.banned_until | date: 'dd.MM.yy HH:mm:ss'}}</label>
             </div>
         </div>
+        <div class="news-container">
+            <label style="font-size: 20px;">News and updates</label>
+            <span class="h-divider" style="background-color: var(--theme-darkblue-color-3); color: transparent;">aaa</span>
+            <div class="news-carousel">
+                <div class="carousel-slide" *ngFor="let item of news; let i = index"
+                    [class.active]="i === newsCurrentSlide">
+                    <img [src]="item.imageUrl" alt="News Image" />
+                    <div class="caption">
+                        <h3>{{ item.title }}</h3>
+                        <p>{{ item.description }}</p>
+                    </div>
+                </div>
+
+                <button class="prev" (click)="prevNewsSlide()">‹</button>
+                <button class="next" (click)="nextNewsSlide()">›</button>
+            </div>
+        </div>
+
     </div>
     <div class="col-cont" style="max-width: 30%;">
         <div class="lboard">

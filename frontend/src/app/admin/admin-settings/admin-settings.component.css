@@ -197,3 +197,37 @@ table {
     cursor: default;
 }
 
+.paginator {
+    box-sizing: border-box;
+    width: 100%;
+    height: fit-content;
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+    padding: 5px;
+    background-color: var(--theme-darkblue-color-6);
+}
+
+.icon-paginator {
+    width: 23px;
+    height: 23px;
+    border-radius: 2px;
+    padding: 1px;
+    cursor: pointer;
+    transition: all 0.1s ease;
+}
+
+.icon-paginator:hover {
+    box-shadow: 0 0 3px 1px white;
+}
+
+.icon-paginator:active {
+    box-shadow: 0 0 5px 2px white;
+}
+
+.icon-paginator.disabled {
+    user-select: none;
+    pointer-events: none;
+    box-shadow: none;
+    box-shadow: 0 0 3px 1px var(--theme-color-neutral-2);
+}

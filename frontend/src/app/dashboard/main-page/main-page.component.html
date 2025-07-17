@@ -74,10 +74,10 @@
                 <span style="margin-left: auto;">{{ currentPage }} / {{ totalPages }}</span>
                 <app-icon class="icon-paginator" src="/assets/svg/icon_first_page.svg" color="white" title="First Page"
                     (click)="firstPage()" />
-                <app-icon class="icon-paginator" src="/assets/svg/icon_prev_page.svg" color="white"
+                <app-icon class="icon-paginator" src="/assets/svg/icon_prev_page.svg" [color]="iconPrevPageColor"
                     title="Previous Page" [class.disabled]="currentPage === 1" (click)="changePage(-1)" />
-                <app-icon class="icon-paginator" src="/assets/svg/icon_next_page.svg" color="white" title="Next Page"
-                    [class.disabled]="currentPage === totalPages" (click)="changePage(1)" />
+                <app-icon class="icon-paginator" src="/assets/svg/icon_next_page.svg" [color]="iconNextPageColor"
+                    title="Next Page" [class.disabled]="currentPage === totalPages" (click)="changePage(1)" />
                 <app-icon class="icon-paginator" src="/assets/svg/icon_last_page.svg" color="white" title="Last Page"
                     (click)="lastPage()" />
             </div>
@@ -110,19 +110,24 @@
         </div>
         <div class="news-container">
             <label style="font-size: 20px;">News and updates</label>
-            <span class="h-divider" style="background-color: var(--theme-darkblue-color-3); color: transparent;">aaa</span>
+            <span class="h-divider"
+                style="background-color: var(--theme-darkblue-color-3); color: transparent;">aaa</span>
             <div class="news-carousel">
                 <div class="carousel-slide" *ngFor="let item of news; let i = index"
                     [class.active]="i === newsCurrentSlide">
-                    <img [src]="item.imageUrl" alt="News Image" />
-                    <div class="caption">
+                    <div class="carousel-img-container">
+                        <img [src]="item.imageUrl" alt="News Image" />
+                        <app-icon class="news-prev" src="/assets/svg/icon_prev_page.svg" color="white" title="Previous"
+                            (click)="prevNewsSlide()" />
+                        <app-icon class="news-next" src="/assets/svg/icon_next_page.svg" color="white" title="Next"
+                            (click)="nextNewsSlide()" />
+                    </div>
+                    <div class="news-caption">
                         <h3>{{ item.title }}</h3>
                         <p>{{ item.description }}</p>
                     </div>
                 </div>
 
-                <button class="prev" (click)="prevNewsSlide()">‹</button>
-                <button class="next" (click)="nextNewsSlide()">›</button>
             </div>
         </div>
 

@@ -117,17 +117,17 @@ export class MainPageComponent implements OnInit, OnDestroy {
   // NEWS
   news = [
     {
-      imageUrl: 'https://picsum.photos/id/1011/600/300',
+      imageUrl: '/assets/img/news1.jpg',
       title: 'New Tournament Coming!',
       description: 'Prepare for the next big challenge.'
     },
     {
-      imageUrl: 'https://picsum.photos/id/1015/600/300',
+      imageUrl: '/assets/img/news2.jpg',
       title: 'Feature Update',
       description: 'New 50/50 power-up now available!'
     },
     {
-      imageUrl: 'https://picsum.photos/id/1016/600/300',
+      imageUrl: '/assets/img/news3.jpg',
       title: 'Community Spotlight',
       description: 'Check out the top players this month.'
     }
@@ -135,6 +135,11 @@ export class MainPageComponent implements OnInit, OnDestroy {
 
   newsCurrentSlide = 0;
   newsIntervalId: any;
+
+  // COLORS
+
+  iconPrevPageColor: string = 'var(--theme-color-neutral-2)';
+  iconNextPageColor: string = 'white';
 
   ngOnInit(): void {
     const userId = Number.parseInt(sessionStorage.getItem('userId'));
@@ -596,6 +601,18 @@ export class MainPageComponent implements OnInit, OnDestroy {
     const newPage = this.currentPage + delta;
     if (newPage > 0 && newPage <= this.totalPages) {
       this.currentPage = newPage;
+    }
+    if (this.currentPage === 1) {
+      this.iconPrevPageColor = 'var(--theme-color-neutral-2)'
+    }
+    else {
+      this.iconPrevPageColor = 'white';
+    }
+    if (this.currentPage === this.totalPages) {
+      this.iconNextPageColor = 'var(--theme-color-neutral-2)'
+    }
+    else {
+      this.iconPrevPageColor = 'white';
     }
   }
 

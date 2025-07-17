@@ -23,15 +23,15 @@
             <div class="action-buttons">
                 <button class="action-button" title="Remove 2 wrong answers"
                     (click)="handleActionButtonClick(ACTION_TYPE.HIDE_2_WRONG_ANSWERS)"
-                    [disabled]="actionsUsed[ACTION_TYPE.HIDE_2_WRONG_ANSWERS] || actionUsed || answerSummaryPhase || selectedAnswer !== null">
+                    [disabled]="actionsUsed[ACTION_TYPE.HIDE_2_WRONG_ANSWERS] || actionUsed || answerSummaryPhase || selectedAnswer !== null || overtimePhase">
                     {{actionNames[ACTION_TYPE.HIDE_2_WRONG_ANSWERS]}}</button>
                 <button class="action-button" title="Make opponent time cut in half"
                     (click)="handleActionButtonClick(ACTION_TYPE.HALF_THE_TIME_OPPONENT)"
-                    [disabled]="actionsUsed[ACTION_TYPE.HALF_THE_TIME_OPPONENT] || actionUsed || answerSummaryPhase || selectedAnswer !== null">
+                    [disabled]="actionsUsed[ACTION_TYPE.HALF_THE_TIME_OPPONENT] || actionUsed || answerSummaryPhase || selectedAnswer !== null || overtimePhase">
                     {{actionNames[ACTION_TYPE.HALF_THE_TIME_OPPONENT]}}</button>
                 <button class="action-button" title="Double negative points to opponent"
                     (click)="handleActionButtonClick(ACTION_TYPE.DOUBLE_NEGATIVE_POINTS_OPPONENT)"
-                    [disabled]="actionsUsed[ACTION_TYPE.DOUBLE_NEGATIVE_POINTS_OPPONENT] || actionUsed || answerSummaryPhase || selectedAnswer !== null">
+                    [disabled]="actionsUsed[ACTION_TYPE.DOUBLE_NEGATIVE_POINTS_OPPONENT] || actionUsed || answerSummaryPhase || selectedAnswer !== null || overtimePhase">
                     {{actionNames[ACTION_TYPE.DOUBLE_NEGATIVE_POINTS_OPPONENT]}}</button>
             </div>
 

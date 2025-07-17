@@ -68,6 +68,7 @@ export class BattleComponent implements OnInit {
   // OVERTIME
   showOvertimeMessage: boolean = false;
   overtimeSecondsRemaining: number = 10;
+  overtimePhase: boolean = false;
 
   // ACTIONS
   ACTION_TYPE = {
@@ -147,6 +148,7 @@ export class BattleComponent implements OnInit {
         if (this.overtimeSecondsRemaining === 0) {
           this.wsService.sendStartOvertime(this.match.matchId, this.user.username);
           this.showOvertimeMessage = false;
+          this.overtimePhase = true;
         }
       }, 1000)
     })

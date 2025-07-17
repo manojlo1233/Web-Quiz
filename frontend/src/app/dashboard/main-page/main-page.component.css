@@ -586,7 +586,6 @@
     cursor: pointer;
     background-color: var(--theme-darkblue-color-6);
     transition: all 0.1s ease;
-    z-index: 1;
 }
 
 .news-prev {

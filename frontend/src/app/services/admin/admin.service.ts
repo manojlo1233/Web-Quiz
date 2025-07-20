@@ -21,14 +21,35 @@ export class AdminService {
     return this.http.get(`${this.url}/getAllUsers`);
   }
 
-  addQuestion(questionText: string, questionDescription: string, categoryId: number, answers: QuizAnswer[]) {
+  getAllQuestions() {
+    return this.http.get(`${this.url}/getAllQuestions`);
+  }
+
+  addQuestion(questionText: string, questionDescription: string, categoryId: number, difficulty: number, answers: QuizAnswer[]) {
     const body = {
       questionText,
       questionDescription,
       categoryId,
+      difficulty,
       answers
     }
     return this.http.post(`${this.url}/addQuestion`, body)
+  }
+
+  updateQuestion(questionId: number, questionText: string, questionDescription: string, categoryId: number, difficulty: number, answers: QuizAnswer[]) {
+    const body = {
+      questionId,
+      questionText,
+      questionDescription,
+      categoryId,
+      difficulty,
+      answers
+    }
+    return this.http.post(`${this.url}/updateQuestion`, body)
+  }
+
+  deleteQuestion(questionId: number) {
+    return this.http.delete(`${this.url}/deleteQuestion/${questionId}`);
   }
 
   deleteUser(userId: number) {

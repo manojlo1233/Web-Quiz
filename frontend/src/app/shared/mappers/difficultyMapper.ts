@@ -1,9 +1,9 @@
 export abstract class DifficultyMapper {
 
     private static difficulty = new Map<number, string >([
-       [0, 'Easy'],
-       [1, 'Medium'],
-       [2, 'Hard']
+       [1, 'Easy'],
+       [2, 'Medium'],
+       [3, 'Hard']
     ]);
 
     public static getDifficulty(num: number): string {

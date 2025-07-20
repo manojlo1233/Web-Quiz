@@ -40,6 +40,7 @@ html {
     --theme-darkblue-green: rgb(89, 241, 89);
     --theme-darkblue-green-hover: rgb(79, 212, 79);
     --theme-darkblue-green-active: rgb(66, 177, 66);
+    --theme-darkblue-orange: rgb(235, 175, 85);
 }
 
 .btn-dark-large {
@@ -184,6 +185,8 @@ html {
     height: 100%;
     width: 1px;
     color: transparent;
+    user-select: none;
+    pointer-events: none;
 }
 
 .h-divider {
@@ -191,4 +194,6 @@ html {
     height: 1px;
     width: 100%;
     color: transparent;
+    user-select: none;
+    pointer-events: none;
 }

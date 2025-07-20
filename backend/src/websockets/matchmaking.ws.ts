@@ -304,7 +304,7 @@ export default function initWebSocketServer(server: Server) {
 
             async function getRandomQuestions(limit = 10, category: string): Promise<QuizQuestion[]> {
                 const questionsResult = await pool.query(
-                    `   SELECT q.id, q.text, q.difficulty, q.description 
+                    `   SELECT q.id, q.category_id, q.text, q.difficulty, q.description 
                         FROM questions q
                         JOIN categories c ON c.id = q.category_id
                         WHERE (? = 'General' OR c.name = ?)
@@ -329,7 +329,9 @@ export default function initWebSocketServer(server: Server) {
 
                 return questions.map((q: any) => ({
                     id: q.id,
+                    category_id: q.category_id,
                     text: q.text,
+                    description: q.description,
                     difficulty: q.difficulty,
                     answers: groupedAnswers[q.id] || []
                 }));
@@ -662,7 +664,7 @@ export default function initWebSocketServer(server: Server) {
             async function getOvertimeQuestions(oldQuestions: QuizQuestion[], limit: number = 50, category: string) {
                 const usedIds = oldQuestions.map(q => q.id);
                 let sql = `
-                    SELECT q.id, q.text, q.difficulty 
+                    SELECT q.id, q.category_id, q.text, q.difficulty 
                     FROM questions q
                     JOIN categories c ON q.category_id = c.id
                     WHERE q.id NOT IN (${usedIds.join(',') || 'NULL'})
@@ -691,7 +693,9 @@ export default function initWebSocketServer(server: Server) {
 
                 return questions.map((q: any) => ({
                     id: q.id,
+                    category_id: q.category_id,
                     text: q.text,
+                    description: q.description,
                     difficulty: q.difficulty,
                     answers: groupedAnswers[q.id] || []
                 }));

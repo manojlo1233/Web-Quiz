@@ -1,6 +1,8 @@
 import { Request, Response } from "express";
 import pool from "../config/db";
 import { broadCastUserBanned, broadcastUserDeleted, broadCastUserUnbanned, isUserOnline } from "../websockets/matchmaking.ws";
+import { QuizQuestion } from "../models/Quiz/QuizQuestion";
+import { QuizAnswer } from "../models/Quiz/QuizAnswer";
 
 export const getAllUsers = async (req: Request, res: Response) => {
     try {
@@ -18,20 +20,65 @@ export const getAllUsers = async (req: Request, res: Response) => {
     }
 }
 
+export const getAllQuestions = async (req: Request, res: Response) => {
+    try {
+        const questionsResult = await pool.query(
+            `   SELECT *
+                FROM questions q
+                ORDER BY q.difficulty
+                    `
+        );
+        if ((questionsResult as any[]).length == 0) {
+            res.status(400).json({ message: 'No questions found' })
+            return;
+        }
+        let questions: QuizQuestion[] = (questionsResult[0] as any[]);
+        const questionIds = questions.map((q: any) => q.id);
+        const answersResult = await pool.query(
+            `SELECT id, question_id, text, is_correct FROM answers WHERE question_id IN (?) ORDER BY RAND()`,
+            [questionIds]);
+        if ((answersResult as any[]).length == 0) {
+            res.status(400).json({ message: 'No answers found' })
+            return;
+        }
+        const answers: QuizAnswer[] = (answersResult[0] as any[]);
+        const groupedAnswers: { [key: number]: any[] } = {};
+        answers.forEach((a: any) => {
+            if (!groupedAnswers[a.question_id]) {
+                groupedAnswers[a.question_id] = [];
+            }
+            groupedAnswers[a.question_id].push(new QuizAnswer(a.id, a.text, a.is_correct));
+        });
+        questions = questions.map((q: any) => ({
+            id: q.id,
+            category_id: q.category_id,
+            text: q.text,
+            description: q.description,
+            difficulty: q.difficulty,
+            answers: groupedAnswers[q.id] || []
+        }));
+        res.status(200).json(questions);
+    } catch (error: any) {
+        console.log('getAllQuestions error', error);
+        res.status(500).json({ message: 'getAllQuestions failed', error: error.message })
+    }
+}
+
 export const addQuestion = async (req: Request, res: Response) => {
     try {
         const questionText = req.body.questionText;
         const questionDescription = req.body.questionDescription;
         const categoryId = req.body.categoryId;
+        const difficulty = req.body.difficulty;
         const answers: any[] = req.body.answers; // [{text: string, isCorrect: boolean}]
 
         const [questionResult] = await pool.query(
             `
-                INSERT INTO questions (category_id, text, description)
-                VALUES (?, ?, ?)
+                INSERT INTO questions (category_id, text, description, difficulty)
+                VALUES (?, ?, ?, ?)
                 
             `,
-            [categoryId, questionText, questionDescription]
+            [categoryId, questionText, questionDescription, difficulty]
         )
         if ((questionResult as any).affectedRows <= 0) {
             res.status(500).json({ message: 'addQuestion failed' })
@@ -49,7 +96,7 @@ export const addQuestion = async (req: Request, res: Response) => {
             `,
                 [questionId, a.text, a.isCorrect]
             )
-            if ((questionResult as any).affectedRows <= 0) {
+            if ((answerResult as any).affectedRows <= 0) {
                 hasError = true;
             }
         })
@@ -61,6 +108,70 @@ export const addQuestion = async (req: Request, res: Response) => {
     } catch (error: any) {
         console.log('Add question error', error);
         res.status(500).json({ message: 'Add question failed', error: error.message })
+    }
+}
+
+export const deleteQuestion = async (req: Request, res: Response) => {
+    try {
+        const questionId = req.params.questionId;
+
+        const [questionResult] = await pool.query(
+            `
+                DELETE FROM questions q WHERE q.id = ?                
+            `,
+            [questionId]
+        )
+        if ((questionResult as any).affectedRows <= 0) {
+            res.status(500).json({ message: 'deleteQuestion failed' })
+            return;
+        }
+
+        res.status(200).json({ message: 'Question successfully deleted.' });
+    } catch (error: any) {
+        console.log('Delete question error', error);
+        res.status(500).json({ message: 'Delete question failed', error: error.message })
+    }
+}
+
+export const updateQuestion = async (req: Request, res: Response) => {
+
+    try {
+        const { questionId, questionText, questionDescription, categoryId, difficulty, answers } = req.body;
+       
+        const [qRes] = await pool.query(
+            `UPDATE questions
+         SET category_id = ?, text = ?, description = ?, difficulty = ?
+       WHERE id = ?`,
+            [categoryId, questionText, questionDescription, difficulty, questionId]
+        );
+        if ((qRes as any).affectedRows === 0) {
+            throw new Error('Question not found or not updated');
+        }
+
+        await pool.query(
+            `DELETE FROM answers
+         WHERE question_id = ?`,
+            [questionId]
+        );
+
+        for (const a of answers) {
+            const [aRes] = await pool.query(
+                `INSERT INTO answers (question_id, text, is_correct)
+         VALUES (?, ?, ?)`,
+                [questionId, a.text, a.isCorrect]
+            );
+            if ((aRes as any).affectedRows === 0) {
+                throw new Error('Failed to insert an answer');
+            }
+        }
+
+        res.status(200).json({ message: 'Question successfully updated.' });
+    } catch (error: any) {
+        console.error('Update question error', error);
+        res.status(500).json({
+            message: 'Update question failed',
+            error: error.message
+        });
     }
 }
 

@@ -1,5 +1,5 @@
 <div class="row-cont">
-    <label style="font-size: 28px;">All users</label>
+    <label style="font-size: 28px;">Users</label>
     <span class="h-divider" style="background-color: var(--theme-darkblue-color-3);">aaaa</span>
     <div class="table-container">
         <table>
@@ -13,8 +13,8 @@
                     <th></th>
                 </tr>
             </thead>
-            <tbody *ngIf="allUsers.length !== 0">
-                <tr *ngFor="let item of allUsers">
+            <tbody *ngIf="usersPaginator.array.length !== 0">
+                <tr *ngFor="let item of usersPaginator.filteredData">
                     <td>{{ item.username }}</td>
                     <td *ngIf="item.last_login">{{ item.last_login | date: 'dd.MM.yy HH:mm:ss' }}</td>
                     <td *ngIf="!item.last_login" class="neutral-italic">--- No data ---</td>
@@ -41,44 +41,201 @@
                         }" style="margin: 0;" (click)="deleteUser(item)">Delete</button>
                     </td>
             </tbody>
-            <tbody *ngIf="allUsers.length === 0">
-                <td class="neutral-italic" colspan="5">--- There are no users ---</td>
+            <tbody *ngIf="usersPaginator.array.length === 0">
+                <td class="neutral-italic" colspan="6">--- There are no users ---</td>
             </tbody>
         </table>
     </div>
     <div class="paginator" style="margin-top: auto;">
-        <span style="margin-left: auto;">{{ currentPage }} / {{ totalPages }}</span>
+        <span style="margin-left: auto;">{{ usersPaginator.currentPage }} / {{ usersPaginator.totalPages }}</span>
         <app-icon class="icon-paginator" src="/assets/svg/icon_first_page.svg" color="white" title="First Page"
-            (click)="firstPage()" />
+            (click)="usersPaginator.firstPage()" />
         <app-icon class="icon-paginator" src="/assets/svg/icon_prev_page.svg" color="white" title="Previous Page"
-            [class.disabled]="currentPage === 1" (click)="changePage(-1)" />
+            [class.disabled]="usersPaginator.currentPage === 1" (click)="usersPaginator.changePage(-1)" />
         <app-icon class="icon-paginator" src="/assets/svg/icon_next_page.svg" color="white" title="Next Page"
-            [class.disabled]="currentPage === totalPages" (click)="changePage(1)" />
+            [class.disabled]="usersPaginator.currentPage === usersPaginator.totalPages"
+            (click)="usersPaginator.changePage(1)" />
         <app-icon class="icon-paginator" src="/assets/svg/icon_last_page.svg" color="white" title="Last Page"
-            (click)="lastPage()" />
+            (click)="usersPaginator.lastPage()" />
     </div>
 </div>
 
 <div class="row-cont">
-    <form class="question-form">
-        <label style="font-size: 28px;">Insert questions and asnwers</label>
+    <label style="font-size: 28px;">Questions</label>
+    <div style="display: flex; flex-direction: column; width: 100%;">
+        <div class="tabs">
+            <label class="tab" [class.selected]="selectedTab === 'Edit'" (click)="this.selectedTab = 'Edit'">Edit
+                questions</label>
+            <label class="tab" [class.selected]="selectedTab === 'Add'" (click)="this.selectedTab = 'Add'">Add
+                question</label>
+            <label class="tab" [class.selected]="selectedTab === 'Category'"
+                (click)="this.selectedTab = 'Category'">Categories</label>
+        </div>
         <span class="h-divider" style="background-color: var(--theme-darkblue-color-3);">aaaa</span>
+    </div>
+    <div *ngIf="selectedTab === 'Edit' && !editQuestion" class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Question</th>
+                    <th>Difficulty</th>
+                    <th></th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody *ngIf="questionsPaginator.array.length !== 0">
+                <tr *ngFor="let item of questionsPaginator.filteredData">
+                    <td>{{ item.text }}</td>
+                    <td *ngIf="item.difficulty" [style]="getDifficultyColor(item)">{{
+                        getQuestionDifficulty(item.difficulty)}}</td>
+                    <td>
+                        <button class="btn-light-small" style="margin: 0;"
+                            (click)="handleEditQuestion(item)">Edit</button>
+                    </td>
+                    <td>
+                        <button class="btn-light-small btn-red" style="margin: 0;"
+                            (click)="handleDeleteQuestion(item)">Delete</button>
+                    </td>
+            </tbody>
+            <tbody *ngIf="questionsPaginator.array.length === 0">
+                <td class="neutral-italic" colspan="4">--- There are no questions ---</td>
+            </tbody>
+        </table>
+    </div>
+    <div class="paginator" *ngIf="selectedTab === 'Edit' && !editQuestion" style="margin-top: auto;">
+        <span style="margin-left: auto;">{{ questionsPaginator.currentPage }} / {{ questionsPaginator.totalPages
+            }}</span>
+        <app-icon class="icon-paginator" src="/assets/svg/icon_first_page.svg" color="white" title="First Page"
+            (click)="questionsPaginator.firstPage()" />
+        <app-icon class="icon-paginator" src="/assets/svg/icon_prev_page.svg" color="white" title="Previous Page"
+            [class.disabled]="questionsPaginator.currentPage === 1" (click)="questionsPaginator.changePage(-1)" />
+        <app-icon class="icon-paginator" src="/assets/svg/icon_next_page.svg" color="white" title="Next Page"
+            [class.disabled]="questionsPaginator.currentPage === questionsPaginator.totalPages"
+            (click)="questionsPaginator.changePage(1)" />
+        <app-icon class="icon-paginator" src="/assets/svg/icon_last_page.svg" color="white" title="Last Page"
+            (click)="questionsPaginator.lastPage()" />
+    </div>
+
+    <!------------------------------- EDIT QUESTIONS ------------------------------->
+    <form *ngIf="selectedTab === 'Edit' && editQuestion" class="question-form">
         <label style="font-size: 22px;">Question</label>
         <div class="question">
             <div class="q-form-field">
                 <label>Question</label>
-                <textarea id="question" name="question" type="text" [(ngModel)]="questionText"></textarea>
+                <textarea id="question" name="question" type="text" [(ngModel)]="editQuestionText"></textarea>
             </div>
             <div class="q-form-field">
                 <label>Description</label>
-                <textarea id="description" name="description" type="text" [(ngModel)]="questionDescription"></textarea>
+                <textarea id="description" name="description" type="text"
+                    [(ngModel)]="editQuestionDescription"></textarea>
+            </div>
+            <span class="h-divider" style="background-color: var(--theme-darkblue-color-3);">aaaa</span>
+            <div style="width: 100%; display: flex; flex-direction: row; gap: 10px;">
+                <div class="q-form-field">
+                    <label>Category</label>
+                    <select class="select-light" [(ngModel)]="selectedCategoryEdit" id="editCat" name="editCat">
+                        <option style="cursor: pointer;" *ngFor="let cat of allCategories" [value]="cat.name">
+                            {{cat.name}}
+                        </option>
+                    </select>
+                </div>
+                <span class="v-divider"
+                    style="background-color: var(--theme-darkblue-color-3); color: transparent;">aaaa</span>
+                <div class="q-form-field">
+                    <label>Difficulty</label>
+                    <select class="select-light" [(ngModel)]="selectedDifficultyEdit" id="editDiff" name="editDiff">
+                        <option style="cursor: pointer;" *ngFor="let diff of allDifficulties" [value]="diff">
+                            {{getQuestionDifficulty(diff)}}
+                        </option>
+                    </select>
+                </div>
+            </div>
+
+
+        </div>
+        <span class="h-divider" style="background-color: var(--theme-darkblue-color-3);">aaaa</span>
+        <label style="font-size: 22px;">Answers</label>
+        <div class="answer">
+            <label style="width: 20%; font-size: 18px;">Answer 1</label>
+            <div class="a-radio">
+                <label for="ans1">Correct</label>
+                <input type="radio" id="ans1" name="trueAnswer" [value]="1" [(ngModel)]="editCorrectAnswer">
+            </div>
+            <div class="a-form-field">
+                <textarea id="answer1" name="answer1" type="text" [(ngModel)]="editAnswer1"></textarea>
+            </div>
+        </div>
+        <div class="answer">
+            <label style="width: 20%; font-size: 18px;">Answer 2</label>
+            <div class="a-radio">
+                <label for="ans2">Correct</label>
+                <input type="radio" id="ans2" name="trueAnswer" [value]="2" [(ngModel)]="editCorrectAnswer">
+            </div>
+            <div class="a-form-field">
+                <textarea id="answer2" name="answer2" type="text" [(ngModel)]="editAnswer2"></textarea>
+            </div>
+        </div>
+        <div class="answer">
+            <label style="width: 20%; font-size: 18px;">Answer 3</label>
+            <div class="a-radio">
+                <label for="ans3">Correct</label>
+                <input type="radio" id="ans3" name="trueAnswer" [value]="3" [(ngModel)]="editCorrectAnswer">
+            </div>
+            <div class="a-form-field">
+
+                <textarea id="answer3" name="answer3" type="text" [(ngModel)]="editAnswer3"></textarea>
+            </div>
+        </div>
+        <div class="answer">
+            <label style="width: 20%; font-size: 18px;">Answer 4</label>
+            <div class="a-radio">
+                <label for="ans4">Correct</label>
+                <input type="radio" id="ans4" name="trueAnswer" [value]="4" [(ngModel)]="editCorrectAnswer">
+            </div>
+            <div class="a-form-field">
+                <textarea id="answer4" name="answer4" type="text" [(ngModel)]="editAnswer4"></textarea>
+            </div>
+        </div>
+        <div
+            style="margin-top: auto; display: flex; flex-direction: row; width: 50%; justify-content: space-evenly; gap: 20px;">
+            <button class="btn-light" style="width: 50%; margin-top: auto;" (click)="handleSaveEdit()">Save</button>
+            <button class="btn-light" style="width: 50%; margin-top: auto;" (click)="handleCancelEdit()">Cancel</button>
+        </div>
+    </form>
+
+    <!------------------------------- ADD QUESTIONS ------------------------------->
+    <form *ngIf="selectedTab === 'Add'" class="question-form">
+        <label style="font-size: 22px;">Question</label>
+        <div class="question">
+            <div class="q-form-field">
+                <label>Question</label>
+                <textarea id="question" name="question" type="text" [(ngModel)]="newQuestionText"></textarea>
             </div>
             <div class="q-form-field">
-                <label>Category</label>
-                <select class="select-light" [(ngModel)]="selectedCategory" id="category" name="category">
-                    <option style="cursor: pointer;" *ngFor="let cat of allCategories" [value]="cat.name">{{cat.name}}
-                    </option>
-                </select>
+                <label>Description</label>
+                <textarea id="description" name="description" type="text"
+                    [(ngModel)]="newQuestionDescription"></textarea>
+            </div>
+            <span class="h-divider" style="background-color: var(--theme-darkblue-color-3);">aaaa</span>
+            <div style="width: 100%; display: flex; flex-direction: row; gap: 10px;">
+                <div class="q-form-field">
+                    <label>Category</label>
+                    <select class="select-light" [(ngModel)]="selectedCategoryNew" id="newCat" name="newCat">
+                        <option style="cursor: pointer;" *ngFor="let cat of allCategories" [value]="cat.name">
+                            {{cat.name}}
+                        </option>
+                    </select>
+                </div>
+                <span class="v-divider"
+                    style="background-color: var(--theme-darkblue-color-3); color: transparent;">aaaa</span>
+                <div class="q-form-field">
+                    <label>Difficulty</label>
+                    <select class="select-light" [(ngModel)]="selectedDifficultyNew" id="newDiff" name="newDiff">
+                        <option style="cursor: pointer;" *ngFor="let diff of allDifficulties" [value]="diff">
+                            {{getQuestionDifficulty(diff)}}
+                        </option>
+                    </select>
+                </div>
             </div>
 
         </div>
@@ -88,47 +245,96 @@
             <label style="width: 20%; font-size: 18px;">Answer 1</label>
             <div class="a-radio">
                 <label for="ans1">Correct</label>
-                <input type="radio" id="ans1" name="trueAnswer" [value]="1" [(ngModel)]="correctAnswer">
+                <input type="radio" id="ans1" name="trueAnswer" [value]="1" [(ngModel)]="newCorrectAnswer">
             </div>
             <div class="a-form-field">
-                <textarea id="answer1" name="answer1" type="text" [(ngModel)]="answer1"></textarea>
+                <textarea id="answer1" name="answer1" type="text" [(ngModel)]="newAnswer1"></textarea>
             </div>
         </div>
         <div class="answer">
             <label style="width: 20%; font-size: 18px;">Answer 2</label>
             <div class="a-radio">
                 <label for="ans2">Correct</label>
-                <input type="radio" id="ans2" name="trueAnswer" [value]="2" [(ngModel)]="correctAnswer">
+                <input type="radio" id="ans2" name="trueAnswer" [value]="2" [(ngModel)]="newCorrectAnswer">
             </div>
             <div class="a-form-field">
-                <textarea id="answer2" name="answer2" type="text" [(ngModel)]="answer2"></textarea>
+                <textarea id="answer2" name="answer2" type="text" [(ngModel)]="newAnswer2"></textarea>
             </div>
         </div>
         <div class="answer">
             <label style="width: 20%; font-size: 18px;">Answer 3</label>
             <div class="a-radio">
                 <label for="ans3">Correct</label>
-                <input type="radio" id="ans3" name="trueAnswer" [value]="3" [(ngModel)]="correctAnswer">
+                <input type="radio" id="ans3" name="trueAnswer" [value]="3" [(ngModel)]="newCorrectAnswer">
             </div>
             <div class="a-form-field">
 
-                <textarea id="answer3" name="answer3" type="text" [(ngModel)]="answer3"></textarea>
+                <textarea id="answer3" name="answer3" type="text" [(ngModel)]="newAnswer3"></textarea>
             </div>
         </div>
         <div class="answer">
             <label style="width: 20%; font-size: 18px;">Answer 4</label>
             <div class="a-radio">
                 <label for="ans4">Correct</label>
-                <input type="radio" id="ans4" name="trueAnswer" [value]="4" [(ngModel)]="correctAnswer">
+                <input type="radio" id="ans4" name="trueAnswer" [value]="4" [(ngModel)]="newCorrectAnswer">
             </div>
             <div class="a-form-field">
-                <textarea id="answer4" name="answer4" type="text" [(ngModel)]="answer4"></textarea>
+                <textarea id="answer4" name="answer4" type="text" [(ngModel)]="newAnswer4"></textarea>
             </div>
         </div>
         <button class="btn-light" style="width: 50%; margin-top: auto;" (click)="handleAddQuestion()">Add</button>
 
     </form>
-
+    <!------------------------------- CATEGORIES ------------------------------->
+    <div *ngIf="selectedTab === 'Category'" class="category-container">
+        <label style="font-size: 28px;">Categories</label>
+        <span class="h-divider" style="background-color: var(--theme-darkblue-color-3);">aaaa</span>
+        <div class="table-container" style="max-height: 80%;">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Category</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody *ngIf="categoriesPaginator.array.length !== 0">
+                    <tr *ngFor="let item of categoriesPaginator.filteredData">
+                        <td>{{ item.name }}</td>
+                        <td>
+                            <button class="btn-light-small brn-red" style="margin: 0;"
+                                (click)="deleteCategory(item)">Delete</button>
+                        </td>
+                </tbody>
+                <tbody *ngIf="categoriesPaginator.array.length === 0">
+                    <td class="neutral-italic" colspan="2">--- There are no categories ---</td>
+                </tbody>
+            </table>
+        </div>
+        <div class="paginator">
+            <span style="margin-left: auto;">{{ categoriesPaginator.currentPage }} / {{ categoriesPaginator.totalPages
+                }}</span>
+            <app-icon class="icon-paginator" src="/assets/svg/icon_first_page.svg" color="white" title="First Page"
+                (click)="categoriesPaginator.firstPage()" />
+            <app-icon class="icon-paginator" src="/assets/svg/icon_prev_page.svg" color="white" title="Previous Page"
+                [class.disabled]="categoriesPaginator.currentPage === 1" (click)="categoriesPaginator.changePage(-1)" />
+            <app-icon class="icon-paginator" src="/assets/svg/icon_next_page.svg" color="white" title="Next Page"
+                [class.disabled]="categoriesPaginator.currentPage === categoriesPaginator.totalPages"
+                (click)="categoriesPaginator.changePage(1)" />
+            <app-icon class="icon-paginator" src="/assets/svg/icon_last_page.svg" color="white" title="Last Page"
+                (click)="categoriesPaginator.lastPage()" />
+        </div>
+         <!------------------------------- ADD CATEGORIEY ------------------------------->
+         <span class="h-divider" style="background-color: var(--theme-darkblue-color-3);">aaaa</span>
+         <label style="font-size: 28px;">Add category</label>
+         <span class="h-divider" style="background-color: var(--theme-darkblue-color-3);">aaaa</span>
+         <div class="add-category-container">
+            <input>
+            <div class="add-cat-buttons">
+                <button class="btn-light-small">Add</button>
+                <button class="btn-light-small">Clear</button>
+            </div>
+         </div>
+    </div>
 </div>
 <app-ban-user [user]="banUser" *ngIf="openBanUser" (close)="handleCloseBan($event)"></app-ban-user>
 <app-user-details [user]="userDetails" *ngIf="openUserDetails" (close)="handleCloseUserDetails()"></app-user-details>

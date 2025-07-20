@@ -4,6 +4,7 @@ export class QuizQuestion {
     id: number;
     category_id: number;
     text: string;
-    difficulty: string;
+    description: string;
+    difficulty: number;
     answers: QuizAnswer[];
 }

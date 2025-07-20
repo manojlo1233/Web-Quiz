@@ -11,6 +11,9 @@ import { SnackBarService } from '../../services/shared/snack-bar.service';
 import { DateService } from '../../services/shared/date.service';
 import { Subscription } from 'rxjs';
 import { WebsocketService } from '../../services/quiz/websocket.service';
+import { QuizQuestion } from '../../shared/models/Quiz/QuizQuestion';
+import { Paginator } from '../../shared/models/Util/Paginator';
+import { DifficultyMapper } from '../../shared/mappers/difficultyMapper';
 
 @Component({
   selector: 'app-admin-settings',
@@ -35,19 +38,41 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
   private adminUserUnbannedSub: Subscription;
   private adminUserDeletedSub: Subscription;
 
+  // TAB
+  selectedTab: string = 'Edit'
+  // USER
   user: User = new User();
   allUsers: User[] = [];
 
-  questionText: string = '';
-  questionDescription: string = '';
-  answer1: string = '';
-  answer2: string = '';
-  answer3: string = '';
-  answer4: string = '';
-  correctAnswer: number = 1;
+  // QUESTIONS
+  allQuestions: QuizQuestion[] = [];
+
+  editQuestion: boolean = false;
+  // EDIT
+  editQuestionId: number;
+  editQuestionText: string = '';
+  editQuestionDescription: string = '';
+  editAnswer1: string = '';
+  editAnswer2: string = '';
+  editAnswer3: string = '';
+  editAnswer4: string = '';
+  editCorrectAnswer: number = 1;
+  selectedCategoryEdit: string = '';
+  selectedDifficultyEdit: number = 1;
+  // NEW
+  newQuestionText: string = '';
+  newQuestionDescription: string = '';
+  newAnswer1: string = '';
+  newAnswer2: string = '';
+  newAnswer3: string = '';
+  newAnswer4: string = '';
+  newCorrectAnswer: number = 1;
+  selectedCategoryNew: string = '';
+  selectedDifficultyNew: number = 1;
+
 
   allCategories: Category[] = [];
-  selectedCategory: string = '';
+  allDifficulties: number[] = [1, 2, 3];
 
   // BAN
   openBanUser: boolean = false;
@@ -61,9 +86,10 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
   userReports: User = null;
   openUserReports: boolean = false;
 
-  // TABLE
-  pageSize = 10;
-  currentPage = 1;
+  // PAGINATORS
+  usersPaginator: Paginator = new Paginator(this.allUsers, 10);
+  questionsPaginator: Paginator = new Paginator(this.allQuestions, 10);
+  categoriesPaginator: Paginator = new Paginator(this.allCategories, 10);
 
   ngOnInit(): void {
     const userId = Number.parseInt(sessionStorage.getItem('userId'));
@@ -91,6 +117,17 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
           }
           return u;
         })
+        this.usersPaginator = new Paginator(this.allUsers, 30);
+      },
+      error: (error: any) => {
+        // SHOW ERROR PAGE
+      }
+    })
+    // -------------------- GET ALL QUESTIONS --------------------
+    this.adminService.getAllQuestions().subscribe({
+      next: (resp: QuizQuestion[]) => {
+        this.allQuestions = resp;
+        this.questionsPaginator = new Paginator(this.allQuestions, 30);
       },
       error: (error: any) => {
         // SHOW ERROR PAGE
@@ -102,10 +139,11 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
         this.allCategories = resp;
         this.allCategories = this.allCategories.filter(c => c.name !== 'General')
         if (this.allCategories.length > 0) {
-          this.selectedCategory = this.allCategories[0].name;
+          this.selectedCategoryNew = this.allCategories[0].name;
+          this.categoriesPaginator.array = this.allCategories;
         }
         else {
-          this.selectedCategory = 'ERROR'
+          this.selectedCategoryNew = 'ERROR'
         }
       },
       error: (error: any) => {
@@ -132,14 +170,14 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
   handleAddQuestion() {
     this.confirmService.showCustomConfirm(`Are you sure you want to proceed?`,
       () => {
-        const categoryId = this.allCategories.filter(c => c.name === this.selectedCategory)[0].id;
+        const categoryId = this.allCategories.filter(c => c.name === this.selectedCategoryNew)[0].id;
         const answers: QuizAnswer[] = [
-          new QuizAnswer(0, this.answer1, this.correctAnswer === 1),
-          new QuizAnswer(0, this.answer2, this.correctAnswer === 2),
-          new QuizAnswer(0, this.answer3, this.correctAnswer === 3),
-          new QuizAnswer(0, this.answer4, this.correctAnswer === 4)
+          new QuizAnswer(0, this.newAnswer1, this.newCorrectAnswer === 1),
+          new QuizAnswer(0, this.newAnswer2, this.newCorrectAnswer === 2),
+          new QuizAnswer(0, this.newAnswer3, this.newCorrectAnswer === 3),
+          new QuizAnswer(0, this.newAnswer4, this.newCorrectAnswer === 4)
         ];
-        this.adminService.addQuestion(this.questionText, this.questionDescription, categoryId, answers).subscribe({
+        this.adminService.addQuestion(this.newQuestionText, this.newQuestionDescription, categoryId, this.selectedDifficultyNew, answers).subscribe({
           next: (resp: any) => {
             this.snackBarService.showSnackBar(resp.message);
           },
@@ -241,30 +279,103 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
     }
   }
 
-  // ---------------- TABLE ----------------
-  get filteredData(): any[] {
-    return this.allUsers.slice((this.currentPage - 1) * this.pageSize, this.currentPage * this.pageSize);
+  getQuestionDifficulty(diff: number): string {
+    return DifficultyMapper.getDifficulty(diff);
   }
 
-  get totalPages(): number {
-    return Math.ceil(
-      this.allUsers.length / this.pageSize
-    );
+  handleEditQuestion(item: QuizQuestion) {
+    this.selectedCategoryEdit = this.allCategories.filter(c => c.id === item.category_id)[0].name;
+    this.selectedDifficultyEdit = item.difficulty;
+    this.editQuestionId = item.id;
+    this.editQuestionText = item.text;
+    this.editQuestionDescription = item.description
+    this.editAnswer1 = item.answers[0].text;
+    this.editAnswer2 = item.answers[1].text;
+    this.editAnswer3 = item.answers[2].text;
+    this.editAnswer4 = item.answers[3].text;
+    this.editCorrectAnswer = item.answers[0].isCorrect ? 1 : this.editCorrectAnswer;
+    this.editCorrectAnswer = item.answers[1].isCorrect ? 2 : this.editCorrectAnswer;
+    this.editCorrectAnswer = item.answers[2].isCorrect ? 3 : this.editCorrectAnswer;
+    this.editCorrectAnswer = item.answers[3].isCorrect ? 4 : this.editCorrectAnswer;
+    this.editQuestion = true;
   }
 
-  changePage(delta: number) {
-    const newPage = this.currentPage + delta;
-    if (newPage > 0 && newPage <= this.totalPages) {
-      this.currentPage = newPage;
+  handleSaveEdit() {
+    this.confirmService.showCustomConfirm(`Are you sure you want to save edit?`, () => {
+      const categoryId = this.allCategories.filter(c => c.name === this.selectedCategoryEdit)[0].id;
+      const answers: QuizAnswer[] = [
+        new QuizAnswer(0, this.editAnswer1, this.editCorrectAnswer === 1),
+        new QuizAnswer(0, this.editAnswer2, this.editCorrectAnswer === 2),
+        new QuizAnswer(0, this.editAnswer3, this.editCorrectAnswer === 3),
+        new QuizAnswer(0, this.editAnswer4, this.editCorrectAnswer === 4)
+      ];
+      this.adminService.updateQuestion(this.editQuestionId, this.editQuestionText, this.editQuestionDescription, categoryId, this.selectedDifficultyEdit, answers).subscribe({
+        next: (resp: any) => {
+          this.snackBarService.showSnackBar(resp.message);
+          this.updateQuestionLocal();
+          this.editQuestion = false;
+        },
+        error: (error: any) => {
+          this.snackBarService.showSnackBar(error.message);
+          console.log(error.error);
+        }
+      })
+
+    })
+  }
+
+  updateQuestionLocal() {
+    const question = this.allQuestions.filter(q => q.id = this.editQuestionId)[0];
+    const categoryId = this.allCategories.filter(c => c.name === this.selectedCategoryEdit)[0].id;
+    const answers: QuizAnswer[] = [
+      new QuizAnswer(0, this.editAnswer1, this.editCorrectAnswer === 1),
+      new QuizAnswer(0, this.editAnswer2, this.editCorrectAnswer === 2),
+      new QuizAnswer(0, this.editAnswer3, this.editCorrectAnswer === 3),
+      new QuizAnswer(0, this.editAnswer4, this.editCorrectAnswer === 4)
+    ];
+    question.category_id = categoryId;
+    question.answers = answers;
+    question.text = this.editQuestionText;
+    question.description = this.editQuestionDescription;
+    question.difficulty = Number.parseInt(this.selectedDifficultyEdit.toString()); // Iz nekog razloga je difficulty upisivao kao string pa je ovo pokusaj kastovanja u number, iako je vec bio unmber...
+    console.log(question)
+  }
+
+  handleCancelEdit() {
+    this.confirmService.showCustomConfirm(`Are you sure you want to cancel edit?`, () => {
+      this.editQuestion = false;
+    })
+
+  }
+
+  handleDeleteQuestion(item: QuizQuestion) {
+    this.confirmService.showCustomConfirm(`Are you sure you want to delete question?`, () => {
+      this.adminService.deleteQuestion(item.id).subscribe({
+        next: (resp: any) => {
+          this.snackBarService.showSnackBar(resp.message);
+          this.allQuestions = this.allQuestions.filter(q => q.id !== item.id);
+          this.questionsPaginator.array = this.allQuestions;
+        },
+        error: (error: any) => {
+          // SHOW ERROR PAGE
+        }
+      })
+    });
+  }
+
+  getDifficultyColor(item: QuizQuestion) {
+    switch (item.difficulty) {
+      case 1:
+        return 'color: var(--theme-darkblue-green)'
+      case 2:
+        return 'color: var(--theme-darkblue-orange)'
+      default:
+        return 'color: var(--theme-darkblue-red)'
     }
   }
 
-  firstPage() {
-    this.currentPage = 1;
-  }
-
-  lastPage() {
-    this.currentPage = this.totalPages;
+  deleteCategory(item: Category) {
+    
   }
 
   ngOnDestroy(): void {

@@ -1,12 +1,14 @@
 import express from 'express';
-import { addQuestion, banUser, deleteUser, getAllUsers, unbanUser } from '../controllers/admin.controller';
+import { addQuestion, banUser, deleteQuestion, deleteUser, getAllQuestions, getAllUsers, unbanUser, updateQuestion } from '../controllers/admin.controller';
 
 const adminRouter = express.Router();
 
 adminRouter.get('/getAllUsers', getAllUsers);
+adminRouter.get('/getAllQuestions', getAllQuestions);
 adminRouter.post('/addQuestion', addQuestion);
+adminRouter.delete('/deleteQuestion/:questionId', deleteQuestion);
 adminRouter.delete('/deleteUser/:userId', deleteUser);
 adminRouter.post('/banUser', banUser);
 adminRouter.post('/unbanUser', unbanUser);
-
+adminRouter.post('/updateQuestion', updateQuestion)
 export default adminRouter;

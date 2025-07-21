@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import pool from "../config/db";
+import pool, { getAllCategoriesFromDB } from "../config/db";
 import bcrypt from 'bcrypt'
 import crypto from 'crypto'
 import nodemailer from 'nodemailer'
@@ -8,7 +8,6 @@ import { User } from "../models/User";
 import { UserPlayHistory } from "../models/UserPlayHistory";
 import { QuizDetailsQuestion } from "../models/QuizDetailsQuestion";
 import { checkIfUserSessionExists } from "../websockets/matchmaking.ws";
-import { availableCategories } from "../util/util";
 
 export const loginUser = async (req: Request, res: Response) => {
     const { userNameOrEmail, password } = req.body;
@@ -96,7 +95,7 @@ export const registerUser = async (req: Request, res: Response) => {
             res.status(500).json({ message: 'Register user failed' })
             return;
         }
-
+        const availableCategories = await getAllCategoriesFromDB();
         availableCategories.forEach(async c => {
             const [resultRanking] = await pool.execute(
                 `INSERT INTO rankings (user_id, category_id) VALUES (?, ?)`,
@@ -369,7 +368,8 @@ export const getUserQuizDetails = async (req: Request, res: Response) => {
 
 export const getLeaderBoard = async (req: Request, res) => {
     try {
-        const category: string = req.params.category as string
+        const category: string = req.params.category as string;
+        const availableCategories = await getAllCategoriesFromDB();
         if (availableCategories.filter(c => c.name === category).length === 0) {
             return res.status(400).json({ message: 'Invalid category' });
         }

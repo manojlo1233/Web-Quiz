@@ -18,6 +18,14 @@ export class Paginator {
         );
     }
 
+    get prevPageColor() {
+        return this.currentPage === 1 ? 'var(--theme-color-neutral-2)' : 'white';
+    }
+
+    get nextPageColor() {
+        return this.currentPage === this.totalPages ? 'var(--theme-color-neutral-2)' : 'white';
+    }
+
     changePage(delta: number) {
         const newPage = this.currentPage + delta;
         if (newPage > 0 && newPage <= this.totalPages) {

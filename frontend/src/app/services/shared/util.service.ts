@@ -16,8 +16,6 @@ export class UtilService {
 
   url: string = null;
 
-  allCategories: string[] = ['General', 'History', 'Science'];
-
   showMessage: string = '';
 
   formatDurationToMinSecFromSec(seconds: number): string {

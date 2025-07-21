@@ -113,6 +113,7 @@
     box-sizing: border-box;
     height: fit-content;
     width: 100%;
+    flex-grow: 1;
     overflow-y: auto;
     overflow-x: auto;
 }
@@ -254,7 +255,7 @@ table {
 
 
 
-    .tabt:hover {
+    .tab:hover {
         background-color: var(--theme-darkblue-color-4);
     }
 
@@ -280,11 +281,27 @@ table {
     width: 100%;
     display: flex;
     flex-direction: row;
+    align-items: center;
     gap: 20px;
 
     .add-cat-buttons {
         display: flex;
         flex-direction: row;
         gap: 10px
+    }
+
+    input {
+        width: 50%;
+        padding: 10px;
+        background-color: rgba(0, 17, 36, 0.81);
+        border: 1px solid transparent;
+        color: white;
+        font-size: 16px;
+        border-radius: 2px;
+    }
+
+    input:focus {
+        outline: none;
+        border: 1px solid var(--theme-darkblue-color-3);
     }
 }

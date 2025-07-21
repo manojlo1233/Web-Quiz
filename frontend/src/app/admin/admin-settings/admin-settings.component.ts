@@ -70,7 +70,6 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
   selectedCategoryNew: string = '';
   selectedDifficultyNew: number = 1;
 
-
   allCategories: Category[] = [];
   allDifficulties: number[] = [1, 2, 3];
 
@@ -90,6 +89,9 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
   usersPaginator: Paginator = new Paginator(this.allUsers, 10);
   questionsPaginator: Paginator = new Paginator(this.allQuestions, 10);
   categoriesPaginator: Paginator = new Paginator(this.allCategories, 10);
+
+  // CATEGORY
+  newCategoryText: string = ''
 
   ngOnInit(): void {
     const userId = Number.parseInt(sessionStorage.getItem('userId'));
@@ -284,7 +286,11 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
   }
 
   handleEditQuestion(item: QuizQuestion) {
-    this.selectedCategoryEdit = this.allCategories.filter(c => c.id === item.category_id)[0].name;
+    if (this.allCategories.length === 0) {
+      this.snackBarService.showSnackBar(`There are no categories available`);
+      return;
+    }
+    this.setEditCategory(item);
     this.selectedDifficultyEdit = item.difficulty;
     this.editQuestionId = item.id;
     this.editQuestionText = item.text;
@@ -298,6 +304,16 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
     this.editCorrectAnswer = item.answers[2].isCorrect ? 3 : this.editCorrectAnswer;
     this.editCorrectAnswer = item.answers[3].isCorrect ? 4 : this.editCorrectAnswer;
     this.editQuestion = true;
+  }
+
+  setEditCategory(item: QuizQuestion) {
+    const cat = this.allCategories.filter(c => c.id === item.category_id);
+    if (cat.length === 0) {
+      this.selectedCategoryEdit = this.allCategories[0].name;
+    }
+    else {
+      this.selectedCategoryEdit = this.allCategories.filter(c => c.id === item.category_id)[0].name;
+    }
   }
 
   handleSaveEdit() {
@@ -374,8 +390,45 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
     }
   }
 
+  getCategoryName(item: QuizQuestion) {
+    const cat = this.allCategories.filter(c => c.id === item.category_id);
+    if (cat.length === 0) {
+      return 'UNDEFINED';
+    }
+    else return cat[0].name;
+  }
+
   deleteCategory(item: Category) {
-    
+    this.confirmService.showCustomConfirm(`Are you sure you want to delete "${item.name}" category?`, () => {
+      this.adminService.deleteCategory(item.id).subscribe({
+        next: (resp: any) => {
+          this.snackBarService.showSnackBar(resp.message);
+          this.allCategories = this.allCategories.filter(c => c.name !== item.name);
+        },
+        error: (error: any) => {
+          // SHOW ERROR PAGE
+        }
+      })
+    })
+  }
+
+  addCategory() {
+    this.confirmService.showCustomConfirm(`Are you sure you want to add "${this.newCategoryText}" category?`, () => {
+      this.adminService.addCategory(this.newCategoryText).subscribe({
+        next: (resp: any) => {
+          const { categoryId, message } = resp;
+          this.snackBarService.showSnackBar(message);
+          this.allCategories.push(new Category(categoryId, this.newCategoryText));
+        },
+        error: (error: any) => {
+          // SHOW ERROR PAGE
+        }
+      })
+    })
+  }
+
+  clearCategoryText() {
+    this.newCategoryText = '';
   }
 
   ngOnDestroy(): void {

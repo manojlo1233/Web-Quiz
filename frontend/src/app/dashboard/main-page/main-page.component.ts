@@ -18,6 +18,7 @@ import { FriendsService } from '../../services/friends/friends.service';
 import { SnackBarService } from '../../services/shared/snack-bar.service';
 import { NotificationService } from '../../services/shared/notification.service';
 import { ConfirmService } from '../../services/shared/confirm.service';
+import { Category } from '../../shared/models/Category';
 
 
 @Component({
@@ -46,8 +47,6 @@ export class MainPageComponent implements OnInit, OnDestroy {
       this.isSearching = false;
       console.error('Error: ', msg)
     })
-
-    this.allCategories = utilService.allCategories;
   }
   user: User = new User();
   userStatistic: Statistic = new Statistic();
@@ -95,7 +94,7 @@ export class MainPageComponent implements OnInit, OnDestroy {
   matchmakingLbl: string = 'Battle'
   isSearching: boolean = false;
   searchDisabled: boolean = false;
-  allCategories: string[] = [];
+  allCategories: Category[] = [];
   searchCategory: string = 'General';
   // MATCHMAKING TIMER
   secondsElapsed = 0;
@@ -214,6 +213,16 @@ export class MainPageComponent implements OnInit, OnDestroy {
     })
     this.refreshFriendsStatusSub = this.wsService.refreshFriendsStatus$.subscribe((resp: any) => {
       this.getFriends(userId);
+    })
+    // --------- CATEGORIES ---------
+    this.utilService.getAllCategories().subscribe({
+      next: (resp: Category[]) => {
+        this.allCategories = resp;
+        this.allCategories = this.allCategories.filter(c => c.name !== 'General');
+      },
+      error: (error: any) => {
+        // SHOW ERROR PAGE
+      }
     })
     // --------- LEADERBOARD ---------
     this.getLeaderboard();

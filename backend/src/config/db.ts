@@ -1,5 +1,6 @@
 import mysql from 'mysql2/promise';
 import dotenv from 'dotenv';
+import { User } from '../models/User';
 
 dotenv.config();
 
@@ -115,10 +116,20 @@ export async function getAllCategoriesFromDB(): Promise<any[]> {
     ` SELECT * 
       FROM categories c
     `);
-    if ((catResult as any[]).length === 0) {
-      console.log('Get categories error');
-    }
-    return catResult as any[];
+  if ((catResult as any[]).length === 0) {
+    console.log('Get categories error');
+  }
+  return catResult as any[];
+}
+
+export async function getAllUsersFromDB(): Promise<User[]> {
+  const [users] = await pool.execute(
+    `SELECT * FROM users`
+  )
+  if ((users as any[]).length == 0) {
+    return [];
+  }
+  return users as User[];
 }
 
 export default pool;

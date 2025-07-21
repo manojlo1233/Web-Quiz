@@ -71,4 +71,15 @@ export class AdminService {
     return this.http.post(`${this.url}/unbanUser`, data);
   }
 
+  addCategory(categoryName: string) {
+    const data = {
+      categoryName
+    }
+    return this.http.post(`${this.url}/addCategory`, data);
+  }
+
+  deleteCategory(categoryId: number) {
+    return this.http.delete(`${this.url}/deleteCategory/${categoryId}`);
+  }
+
 }

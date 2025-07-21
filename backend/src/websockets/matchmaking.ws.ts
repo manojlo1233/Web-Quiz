@@ -2,10 +2,10 @@ import { WebSocketServer, WebSocket } from 'ws';
 import { Server } from 'http';
 import { Match } from '../models/Match';
 import { QuizQuestion } from '../models/Quiz/QuizQuestion';
-import pool, { updateUserStatisticsAndRanking } from '../config/db';
+import pool, { getAllCategoriesFromDB, updateUserStatisticsAndRanking } from '../config/db';
 import { QuizAnswer } from '../models/Quiz/QuizAnswer';
 import { BattleStatusMapper } from '../mappers/BattleStatusMapper';
-import { availableCategories, clearIntervalFromMap, initCategories } from '../util/util';
+import { clearIntervalFromMap } from '../util/util';
 
 const categoryWaitingLists: Map<string, WebSocket[]> = new Map([
     ['General', []],
@@ -33,7 +33,6 @@ export default function initWebSocketServer(server: Server) {
     const wss = new WebSocketServer({ server });
     // INIT
     initFriendsOnlineStatusBroadcast();
-    initCategories();
 
     wss.on('connection', (ws) => {
         ws.on('message', async (message) => {
@@ -48,6 +47,8 @@ export default function initWebSocketServer(server: Server) {
             }
             else if (data.type === 'USER_ADMIN_SUBSCRIBE') {
                 if (adminsWebSockets.filter(ws => (ws as any).username === data.username).length !== 0) {
+                    const sock = adminsWebSockets.filter(ws => (ws as any).username === data.username)[0];
+                    sock.close();
                     adminsWebSockets = adminsWebSockets.filter(ws => (ws as any).username !== data.username)
                 }
                 (ws as any).id = data.id;
@@ -280,6 +281,7 @@ export default function initWebSocketServer(server: Server) {
             }
 
             async function createMatchInDB(category: string): Promise<number> {
+                const availableCategories = await getAllCategoriesFromDB();
                 const cat = availableCategories.filter(c => c.name === category)[0];
                 const categoryId = cat.id;
                 const [quizResult] = await pool.query(

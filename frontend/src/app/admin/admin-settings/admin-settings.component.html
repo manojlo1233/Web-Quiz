@@ -50,9 +50,9 @@
         <span style="margin-left: auto;">{{ usersPaginator.currentPage }} / {{ usersPaginator.totalPages }}</span>
         <app-icon class="icon-paginator" src="/assets/svg/icon_first_page.svg" color="white" title="First Page"
             (click)="usersPaginator.firstPage()" />
-        <app-icon class="icon-paginator" src="/assets/svg/icon_prev_page.svg" color="white" title="Previous Page"
+        <app-icon class="icon-paginator" src="/assets/svg/icon_prev_page.svg" [color]="usersPaginator.prevPageColor" title="Previous Page"
             [class.disabled]="usersPaginator.currentPage === 1" (click)="usersPaginator.changePage(-1)" />
-        <app-icon class="icon-paginator" src="/assets/svg/icon_next_page.svg" color="white" title="Next Page"
+        <app-icon class="icon-paginator" src="/assets/svg/icon_next_page.svg" [color]="usersPaginator.nextPageColor" title="Next Page"
             [class.disabled]="usersPaginator.currentPage === usersPaginator.totalPages"
             (click)="usersPaginator.changePage(1)" />
         <app-icon class="icon-paginator" src="/assets/svg/icon_last_page.svg" color="white" title="Last Page"
@@ -78,6 +78,7 @@
             <thead>
                 <tr>
                     <th>Question</th>
+                    <th>Category</th>
                     <th>Difficulty</th>
                     <th></th>
                     <th></th>
@@ -86,6 +87,7 @@
             <tbody *ngIf="questionsPaginator.array.length !== 0">
                 <tr *ngFor="let item of questionsPaginator.filteredData">
                     <td>{{ item.text }}</td>
+                    <td>{{ getCategoryName(item) }}</td>
                     <td *ngIf="item.difficulty" [style]="getDifficultyColor(item)">{{
                         getQuestionDifficulty(item.difficulty)}}</td>
                     <td>
@@ -107,9 +109,9 @@
             }}</span>
         <app-icon class="icon-paginator" src="/assets/svg/icon_first_page.svg" color="white" title="First Page"
             (click)="questionsPaginator.firstPage()" />
-        <app-icon class="icon-paginator" src="/assets/svg/icon_prev_page.svg" color="white" title="Previous Page"
+        <app-icon class="icon-paginator" src="/assets/svg/icon_prev_page.svg" [color]="questionsPaginator.prevPageColor" title="Previous Page"
             [class.disabled]="questionsPaginator.currentPage === 1" (click)="questionsPaginator.changePage(-1)" />
-        <app-icon class="icon-paginator" src="/assets/svg/icon_next_page.svg" color="white" title="Next Page"
+        <app-icon class="icon-paginator" src="/assets/svg/icon_next_page.svg" [color]="questionsPaginator.nextPageColor" title="Next Page"
             [class.disabled]="questionsPaginator.currentPage === questionsPaginator.totalPages"
             (click)="questionsPaginator.changePage(1)" />
         <app-icon class="icon-paginator" src="/assets/svg/icon_last_page.svg" color="white" title="Last Page"
@@ -315,25 +317,25 @@
                 }}</span>
             <app-icon class="icon-paginator" src="/assets/svg/icon_first_page.svg" color="white" title="First Page"
                 (click)="categoriesPaginator.firstPage()" />
-            <app-icon class="icon-paginator" src="/assets/svg/icon_prev_page.svg" color="white" title="Previous Page"
+            <app-icon class="icon-paginator" src="/assets/svg/icon_prev_page.svg" [color]="categoriesPaginator.prevPageColor" title="Previous Page"
                 [class.disabled]="categoriesPaginator.currentPage === 1" (click)="categoriesPaginator.changePage(-1)" />
-            <app-icon class="icon-paginator" src="/assets/svg/icon_next_page.svg" color="white" title="Next Page"
+            <app-icon class="icon-paginator" src="/assets/svg/icon_next_page.svg" [color]="categoriesPaginator.nextPageColor" title="Next Page"
                 [class.disabled]="categoriesPaginator.currentPage === categoriesPaginator.totalPages"
                 (click)="categoriesPaginator.changePage(1)" />
             <app-icon class="icon-paginator" src="/assets/svg/icon_last_page.svg" color="white" title="Last Page"
                 (click)="categoriesPaginator.lastPage()" />
         </div>
-         <!------------------------------- ADD CATEGORIEY ------------------------------->
-         <span class="h-divider" style="background-color: var(--theme-darkblue-color-3);">aaaa</span>
-         <label style="font-size: 28px;">Add category</label>
-         <span class="h-divider" style="background-color: var(--theme-darkblue-color-3);">aaaa</span>
-         <div class="add-category-container">
-            <input>
+        <!------------------------------- ADD CATEGORIEY ------------------------------->
+        <span class="h-divider" style="background-color: var(--theme-darkblue-color-3);">aaaa</span>
+        <label style="font-size: 28px;">Add category</label>
+        <span class="h-divider" style="background-color: var(--theme-darkblue-color-3);">aaaa</span>
+        <div class="add-category-container">
+            <input type="text" [(ngModel)]="newCategoryText" placeholder="Add category...">
             <div class="add-cat-buttons">
-                <button class="btn-light-small">Add</button>
-                <button class="btn-light-small">Clear</button>
+                <button class="btn-light-small" (click)="addCategory()">Add</button>
+                <button class="btn-light-small" (click)="clearCategoryText()">Clear</button>
             </div>
-         </div>
+        </div>
     </div>
 </div>
 <app-ban-user [user]="banUser" *ngIf="openBanUser" (close)="handleCloseBan($event)"></app-ban-user>

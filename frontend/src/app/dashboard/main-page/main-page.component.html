@@ -90,7 +90,7 @@
                     <label>Category</label>
                     <select class="select-light" [(ngModel)]="searchCategory" id="category" name="category"
                         [disabled]="isSearching || user.banned_until !== null">
-                        <option style="cursor: pointer;" *ngFor="let cat of allCategories" [value]="cat">{{cat}}
+                        <option style="cursor: pointer;" *ngFor="let cat of allCategories" [value]="cat.name">{{cat.name}}
                         </option>
                     </select>
                 </div>
@@ -143,8 +143,8 @@
             <div style="display: flex; flex-direction: column; width: 100%;">
                 <div class="lboard-categories">
                     <label class="lboard-cat" *ngFor="let cat of allCategories"
-                        [class.selected]="leaderBoardCategory === cat"
-                        (click)="handleLeaderboardCategoryClick(cat)">{{cat}}</label>
+                        [class.selected]="leaderBoardCategory === cat.name"
+                        (click)="handleLeaderboardCategoryClick(cat.name)">{{cat.name}}</label>
                 </div>
                 <span class="h-divider" style="background-color: var(--theme-darkblue-color-3);"></span>
             </div>

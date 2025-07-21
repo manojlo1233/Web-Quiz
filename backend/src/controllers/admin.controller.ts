@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import pool from "../config/db";
+import pool, { getAllUsersFromDB } from "../config/db";
 import { broadCastUserBanned, broadcastUserDeleted, broadCastUserUnbanned, isUserOnline } from "../websockets/matchmaking.ws";
 import { QuizQuestion } from "../models/Quiz/QuizQuestion";
 import { QuizAnswer } from "../models/Quiz/QuizAnswer";
@@ -137,7 +137,7 @@ export const updateQuestion = async (req: Request, res: Response) => {
 
     try {
         const { questionId, questionText, questionDescription, categoryId, difficulty, answers } = req.body;
-       
+
         const [qRes] = await pool.query(
             `UPDATE questions
          SET category_id = ?, text = ?, description = ?, difficulty = ?
@@ -284,6 +284,54 @@ export const unbanUser = async (req: Request, res) => {
     } catch (error: any) {
         console.log('Unban user error', error);
         res.status(500).json({ message: 'Unban user failed', error: error.message })
+    }
+}
+
+export const addCategory = async (req: Request, res) => {
+    try {
+        const { categoryName } = req.body;
+        const [catResult] = await pool.execute(
+            `INSERT INTO categories (name) VALUES (?)`,
+            [categoryName]
+        )
+        if ((catResult as any).affectedRows <= 0) {
+            res.status(500).json({ message: 'Add category failed.' });
+            return;
+        }
+        const categoryId = (catResult as any).insertId;
+        const users = await getAllUsersFromDB();
+        users.forEach(async u => {
+            const [resultRanking] = await pool.execute(
+                `INSERT INTO rankings (user_id, category_id) VALUES (?, ?)`,
+                [u.id, categoryId]
+            )
+            if ((resultRanking as any).affectedRows <= 0) {
+                res.status(500).json({ message: 'Add category failed' })
+                return;
+            }
+        })
+        res.status(200).json({ categoryId, message: 'Category has been added successfully.' });
+    } catch (error: any) {
+        console.log('Add category error', error);
+        res.status(500).json({ message: 'Add category failed', error: error.message })
+    }
+}
+
+export const deleteCategory = async (req: Request, res) => {
+    try {
+        const categoryId = req.params.categoryId;
+        const [catResult] = await pool.execute(
+            `DELETE FROM categories c WHERE c.id = ?`,
+            [categoryId]
+        )
+        if ((catResult as any).affectedRows <= 0) {
+            res.status(500).json({ message: 'Delete category failed.' });
+            return;
+        }
+        res.status(200).json({ message: 'Category has been deleted successfully.' });
+    } catch (error: any) {
+        console.log('Delete category error', error);
+        res.status(500).json({ message: 'Delete category failed', error: error.message })
     }
 }
 

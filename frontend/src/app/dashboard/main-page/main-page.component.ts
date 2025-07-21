@@ -218,7 +218,6 @@ export class MainPageComponent implements OnInit, OnDestroy {
     this.utilService.getAllCategories().subscribe({
       next: (resp: Category[]) => {
         this.allCategories = resp;
-        this.allCategories = this.allCategories.filter(c => c.name !== 'General');
       },
       error: (error: any) => {
         // SHOW ERROR PAGE

@@ -1,15 +1,14 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { UserService } from '../../services/shared/user.service';
-import { User } from '../../shared/models/User';
+import { User } from '../../shared/models/User/User';
 import { AdminService } from '../../services/admin/admin.service';
-import { Category } from '../../shared/models/Category';
+import { Category } from '../../shared/models/Shared/Category';
 import { UtilService } from '../../services/shared/util.service';
 import { QuizAnswer } from '../../shared/models/Quiz/QuizAnswer';
-import { NotificationService } from '../../services/shared/notification.service';
 import { ConfirmService } from '../../services/shared/confirm.service';
 import { SnackBarService } from '../../services/shared/snack-bar.service';
 import { DateService } from '../../services/shared/date.service';
-import { Subscription } from 'rxjs';
+import { filter, Subscription } from 'rxjs';
 import { WebsocketService } from '../../services/quiz/websocket.service';
 import { QuizQuestion } from '../../shared/models/Quiz/QuizQuestion';
 import { Paginator } from '../../shared/models/Util/Paginator';
@@ -90,6 +89,13 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
   questionsPaginator: Paginator = new Paginator(this.allQuestions, 10);
   categoriesPaginator: Paginator = new Paginator(this.allCategories, 10);
 
+  set usersSearch(value: string) {
+    this.usersPaginator.searchText = value;
+  }
+  set questionsSearch(value: string) {
+    this.questionsPaginator.searchText = value;
+  }
+
   // CATEGORY
   newCategoryText: string = ''
 
@@ -119,7 +125,7 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
           }
           return u;
         })
-        this.usersPaginator = new Paginator(this.allUsers, 30);
+        this.updateUserPaginator();
       },
       error: (error: any) => {
         // SHOW ERROR PAGE
@@ -129,7 +135,7 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
     this.adminService.getAllQuestions().subscribe({
       next: (resp: QuizQuestion[]) => {
         this.allQuestions = resp;
-        this.questionsPaginator = new Paginator(this.allQuestions, 30);
+        this.updateQuestionPaginator();
       },
       error: (error: any) => {
         // SHOW ERROR PAGE
@@ -147,6 +153,7 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
         else {
           this.selectedCategoryNew = 'ERROR'
         }
+        this.updateQuestionPaginator();
       },
       error: (error: any) => {
         // SHOW ERROR PAGE
@@ -157,15 +164,18 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
     this.adminUserBannedSub = this.wsService.adminUserBanned$.subscribe((resp: any) => {
       const user = this.allUsers.find(u => u.id === resp.userId);
       user.banned_until = new Date(resp.banned_until);
+      this.updateUserPaginator();
     })
 
     this.adminUserUnbannedSub = this.wsService.adminUserUnbanned$.subscribe((data: any) => {
       const user = this.allUsers.find(u => u.id === data.userId);
       user.banned_until = null;
+      this.updateUserPaginator();
     })
 
     this.adminUserDeletedSub = this.wsService.adminUserDeleted$.subscribe((data: any) => {
       this.allUsers = this.allUsers.filter(u => u.id !== data.userId);
+      this.updateUserPaginator();
     })
   }
 
@@ -191,8 +201,21 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
     )
   }
 
-  handleShowDetails(user: User) {
-    this.userDetails = user;
+  updateUserPaginator() {
+    this.usersPaginator.array = this.allUsers.map(u => {
+      let last_login = undefined;
+      if (u.last_login) {
+        last_login = this.dateService.convertDateToEuropeDate(new Date(u.last_login))
+      }
+      return {
+        username: u.username,
+        last_login
+      }
+    });
+  }
+
+  handleShowDetails(filteredUser: any) {
+    this.userDetails = this.allUsers.find(u => u.username === filteredUser.username);
     this.openUserDetails = true;
   }
 
@@ -201,8 +224,8 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
     this.openUserDetails = false;
   }
 
-  handleShowReports(user: User) {
-    this.userReports = user;
+  handleShowReports(filteredUser: any) {
+    this.userReports = this.allUsers.find(u => u.username === filteredUser.username);
     this.openUserReports = true;
   }
 
@@ -211,12 +234,13 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
     this.openUserReports = false;
   }
 
-  handleBanUser(user: User) {
-    this.banUser = user;
+  handleBanUser(filteredUser: any) {
+    this.banUser = this.allUsers.find(u => u.username === filteredUser.username);
     this.openBanUser = true;
   }
 
-  handleUnbanUser(user: User) {
+  handleUnbanUser(filteredUser: any) {
+    const user = this.allUsers.find(u => u.username === filteredUser.username);
     const date = this.dateService.convertDateToMysqlDateTime(user.banned_until);;
     this.confirmService.showCustomConfirm(`Are you sure you want to unban ${user.username}? Banned until: ${date}`, () => {
       this.adminService.unbanUser(user.id).subscribe({
@@ -227,6 +251,7 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
               u.banned_until = null;
             }
           })
+          this.updateUserPaginator();
         },
         error: (error: any) => {
           if (error.status === 409) {
@@ -237,26 +262,34 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
     })
   }
 
-  deleteUser(item: User) {
-    this.confirmService.showCustomConfirm(`Are you sure you want to delete ${item.username}'s user account?`, () => {
-      this.adminService.deleteUser(item.id).subscribe({
+  deleteUser(filteredUser: User) {
+    const user = this.allUsers.find(u => u.username === filteredUser.username);
+    this.confirmService.showCustomConfirm(`Are you sure you want to delete ${user.username}'s user account?`, () => {
+      this.adminService.deleteUser(user.id).subscribe({
         next: (resp: any) => {
           this.snackBarService.showSnackBar(resp.message);
-          if (resp.message === 'User deleted successfully.') this.allUsers = this.allUsers.filter(u => u.id !== item.id)
+          if (resp.message === 'User deleted successfully.') {
+            this.allUsers = this.allUsers.filter(u => u.id !== user.id)
+            this.updateUserPaginator();
+          }
         },
         error: (error: any) => {
           if (error.status === 409) {
             this.snackBarService.showSnackBar(error.error.message);
           }
-
         }
       })
     })
-
   }
 
-  isButtonBanDisabled(item: User): boolean {
-    if (this.user.id === item.id || item.role === 1 || item.banned_until) {
+  isUserBanned(filteredUser: any) {
+    const user = this.allUsers.find(u => u.username === filteredUser.username);
+    return user.banned_until;
+  }
+
+  isButtonBanDisabled(filteredUser: any): boolean {
+    const user = this.allUsers.find(u => u.username === filteredUser.username);
+    if (this.user.id === user.id || user.role === 1 || user.banned_until) {
       return true;
     }
     else {
@@ -264,8 +297,9 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
     }
   }
 
-  isButtonDeleteDisabled(item: User): boolean {
-    if (this.user.id === item.id || item.role === 1) {
+  isButtonDeleteDisabled(filteredUser: any): boolean {
+    const user = this.allUsers.find(u => u.username === filteredUser.username);
+    if (this.user.id === user.id || user.role === 1) {
       return true;
     }
     else {
@@ -281,28 +315,36 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
     }
   }
 
+  handleTabSelect(tab: string) {
+    this.selectedTab = tab;
+    if (this.selectedTab === 'Edit') {
+      this.questionsPaginator.searchText = '';
+    }
+  }
+
   getQuestionDifficulty(diff: number): string {
     return DifficultyMapper.getDifficulty(diff);
   }
 
-  handleEditQuestion(item: QuizQuestion) {
+  handleEditQuestion(filteredQuestions: any) {
+    const question = this.allQuestions.find(q => q.text === filteredQuestions.text);
     if (this.allCategories.length === 0) {
       this.snackBarService.showSnackBar(`There are no categories available`);
       return;
     }
-    this.setEditCategory(item);
-    this.selectedDifficultyEdit = item.difficulty;
-    this.editQuestionId = item.id;
-    this.editQuestionText = item.text;
-    this.editQuestionDescription = item.description
-    this.editAnswer1 = item.answers[0].text;
-    this.editAnswer2 = item.answers[1].text;
-    this.editAnswer3 = item.answers[2].text;
-    this.editAnswer4 = item.answers[3].text;
-    this.editCorrectAnswer = item.answers[0].isCorrect ? 1 : this.editCorrectAnswer;
-    this.editCorrectAnswer = item.answers[1].isCorrect ? 2 : this.editCorrectAnswer;
-    this.editCorrectAnswer = item.answers[2].isCorrect ? 3 : this.editCorrectAnswer;
-    this.editCorrectAnswer = item.answers[3].isCorrect ? 4 : this.editCorrectAnswer;
+    this.setEditCategory(question);
+    this.selectedDifficultyEdit = question.difficulty;
+    this.editQuestionId = question.id;
+    this.editQuestionText = question.text;
+    this.editQuestionDescription = question.description
+    this.editAnswer1 = question.answers[0].text;
+    this.editAnswer2 = question.answers[1].text;
+    this.editAnswer3 = question.answers[2].text;
+    this.editAnswer4 = question.answers[3].text;
+    this.editCorrectAnswer = question.answers[0].isCorrect ? 1 : this.editCorrectAnswer;
+    this.editCorrectAnswer = question.answers[1].isCorrect ? 2 : this.editCorrectAnswer;
+    this.editCorrectAnswer = question.answers[2].isCorrect ? 3 : this.editCorrectAnswer;
+    this.editCorrectAnswer = question.answers[3].isCorrect ? 4 : this.editCorrectAnswer;
     this.editQuestion = true;
   }
 
@@ -330,6 +372,7 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
           this.snackBarService.showSnackBar(resp.message);
           this.updateQuestionLocal();
           this.editQuestion = false;
+          this.questionsPaginator.searchText = '';
         },
         error: (error: any) => {
           this.snackBarService.showSnackBar(error.message);
@@ -360,17 +403,28 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
   handleCancelEdit() {
     this.confirmService.showCustomConfirm(`Are you sure you want to cancel edit?`, () => {
       this.editQuestion = false;
+      this.questionsPaginator.searchText = '';
     })
-
   }
 
-  handleDeleteQuestion(item: QuizQuestion) {
+  updateQuestionPaginator() {
+    this.questionsPaginator.array = this.allQuestions.map(q => {
+      return {
+        text: q.text,
+        category: this.getCategoryName(q.category_id),
+        difficulty: this.getQuestionDifficulty(q.difficulty)
+      }
+    })
+  }
+
+  handleDeleteQuestion(filteredQuestions: any) {
+    const question = this.allQuestions.find(q => q.text === filteredQuestions.text);
     this.confirmService.showCustomConfirm(`Are you sure you want to delete question?`, () => {
-      this.adminService.deleteQuestion(item.id).subscribe({
+      this.adminService.deleteQuestion(question.id).subscribe({
         next: (resp: any) => {
           this.snackBarService.showSnackBar(resp.message);
-          this.allQuestions = this.allQuestions.filter(q => q.id !== item.id);
-          this.questionsPaginator.array = this.allQuestions;
+          this.allQuestions = this.allQuestions.filter(q => q.id !== question.id);
+          this.updateQuestionPaginator();
         },
         error: (error: any) => {
           // SHOW ERROR PAGE
@@ -379,19 +433,19 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
     });
   }
 
-  getDifficultyColor(item: QuizQuestion) {
+  getDifficultyColor(item: any) {
     switch (item.difficulty) {
-      case 1:
+      case 'Easy':
         return 'color: var(--theme-darkblue-green)'
-      case 2:
+      case 'Medium':
         return 'color: var(--theme-darkblue-orange)'
       default:
         return 'color: var(--theme-darkblue-red)'
     }
   }
 
-  getCategoryName(item: QuizQuestion) {
-    const cat = this.allCategories.filter(c => c.id === item.category_id);
+  getCategoryName(catId: number) {
+    const cat = this.allCategories.filter(c => c.id === catId);
     if (cat.length === 0) {
       return 'UNDEFINED';
     }

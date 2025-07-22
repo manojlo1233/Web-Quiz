@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { WSMatchFoundMsg } from '../../shared/models/WSMatchFoundMsg';
+import { WSMatchFoundMsg } from '../../shared/models/WebSocket/WSMatchFoundMsg';
 
 @Injectable({
   providedIn: 'root'

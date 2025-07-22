@@ -31,18 +31,18 @@
     padding: 30px;
 }
 
-.user-info {
+.user {
     box-sizing: border-box;
     width: 100%;
     display: flex;
     flex-direction: column;
     gap: 10px;
-    padding: 20px;
+    padding: 10px;
     background-color: var(--theme-darkblue-box-bg);
     border: 1px solid var(--theme-darkblue-color-3);
     border-radius: 2px;
 
-    .user {
+    .user-info {
         display: flex;
         flex-direction: row;
         gap: 15px;
@@ -57,6 +57,22 @@
         background-color: #f0f0f0;
         border: 1px solid var(--theme-darkblue-color-3);
         box-shadow: 0 0 3px 2px var(--theme-darkblue-color-3);
+    }
+
+    .user-label {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-evenly;
+        gap: 10px;
+    }
+
+    .user-rank {
+        display: flex;
+        flex-direction: row;
+        gap: 10px;
     }
 
     .stats {

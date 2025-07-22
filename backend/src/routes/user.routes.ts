@@ -1,10 +1,10 @@
 import express from 'express'
 import {
-    getLeaderBoard,
     getUserById,
     getUserByUsername,
     getUserPlayHistoryById,
     getUserQuizDetails,
+    getUserRankings,
     getUserReports,
     getUsersByUsername,
     getUserStatisticsById,
@@ -29,9 +29,9 @@ userRouter.post('/getUsersByUsername', getUsersByUsername);
 userRouter.get('/getUserStatisticsById/:id', getUserStatisticsById);
 userRouter.get('/getUserPlayHistoryById/:id', getUserPlayHistoryById);
 userRouter.get('/getUserQuizDetails/:quizId', getUserQuizDetails)
-userRouter.get('/getLeaderBoard/:category', getLeaderBoard);
 userRouter.post('/updateUserSettingsById', updateUserSettingsById);
 userRouter.patch('/updateUserAvatar', updateUserAvatar);
 userRouter.get('/getUserReports/:userId', getUserReports);
+userRouter.get('/getUserRankings/:userId', getUserRankings)
 
 export default userRouter;

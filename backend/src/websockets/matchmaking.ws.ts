@@ -6,13 +6,9 @@ import pool, { getAllCategoriesFromDB, updateUserStatisticsAndRanking } from '..
 import { QuizAnswer } from '../models/Quiz/QuizAnswer';
 import { BattleStatusMapper } from '../mappers/BattleStatusMapper';
 import { clearIntervalFromMap } from '../util/util';
+import ranks from '../public/ranking/ranks.json'
+const categoryRankWaitingLists = new Map<string, Map<number, WebSocket[]>>();
 
-const categoryWaitingLists: Map<string, WebSocket[]> = new Map([
-    ['General', []],
-    ['History', []],
-    ['Science', []]
-]
-);
 let adminsWebSockets: WebSocket[] = []; // ALL ACTIVE ADMINS USING ADMIN PAGE
 let usersWebSockets: WebSocket[] = []; // ALL ACTIVE USERS
 const activeMatches: Map<string, Match> = new Map(); // ALL ACTIVE MATCHES
@@ -29,10 +25,22 @@ const ACTION_TYPE = {
     DOUBLE_NEGATIVE_POINTS_OPPONENT: 2,
 }
 
+async function initWaitingLists() {
+    const categories = await getAllCategoriesFromDB();
+    for (const cat of categories) {
+        const rankMap = new Map<number, WebSocket[]>();
+        for (const r of ranks) {
+            rankMap.set(r.score, []);
+        }
+        categoryRankWaitingLists.set(cat.name, rankMap);
+    }
+}
+
 export default function initWebSocketServer(server: Server) {
     const wss = new WebSocketServer({ server });
     // INIT
     initFriendsOnlineStatusBroadcast();
+    initWaitingLists();
 
     wss.on('connection', (ws) => {
         ws.on('message', async (message) => {
@@ -57,23 +65,60 @@ export default function initWebSocketServer(server: Server) {
             }
             // ----------------- BATTLE -----------------
             else if (data.type === 'battle/JOIN_QUEUE') {
-                const waitingList = categoryWaitingLists.get(data.category);
+                const waitingList = findWaitingList(data.category, data.score);
                 if (waitingList.filter(ws => (ws as any).username === data.username).length !== 0) { // Avoid adding same players to waitinList
                     return;
                 }
                 (ws as any).id = data.userId;
                 (ws as any).username = data.username;
+                (ws as any).score = data.score;
                 waitingList.push(ws);
 
                 if (waitingList.length >= 2) {
                     const p1 = waitingList.shift()!;
                     const p2 = waitingList.shift()!;
+                    removeUserFromWaitingLists((p1 as any).username);
+                    removeUserFromWaitingLists((p2 as any).username);
                     createMatch(p1, p2, data.category);
                 }
             }
+            else if (data.type === 'battle/RELAX_QUEUE') {
+                const category = data.category;
+                const score = data.score;
+                const username = data.username;
+                const userId = data.userId;
+
+                const rankIndex = findRankIndex(score);
+                const relaxedIndexes = [];
+                if (rankIndex > 0) relaxedIndexes.push(rankIndex - 1);
+                if (rankIndex < ranks.length - 1) relaxedIndexes.push(rankIndex + 1);
+
+                const rankMap = categoryRankWaitingLists.get(category);
+                if (!rankMap) return;
+
+                for (const idx of relaxedIndexes) {
+                    const rankScoreKey = ranks[idx].score;
+                    const list = rankMap.get(rankScoreKey);
+                    if (!list) continue;
+
+                    const alreadyInList = list.some((ws) => (ws as any).username === username);
+                    if (!alreadyInList) {
+                        (ws as any).id = userId;
+                        (ws as any).username = username;
+                        (ws as any).score = score;
+                        list.push(ws);
+                        if (list.length >= 2) {
+                            const p1 = list.shift()!;
+                            const p2 = list.shift()!;
+                            removeUserFromWaitingLists((p1 as any).username);
+                            removeUserFromWaitingLists((p2 as any).username);
+                            createMatch(p1, p2, data.category);
+                        }
+                    }
+                }
+            }
             else if (data.type === 'battle/LEAVE_QUEUE') {
-                let waitingList = categoryWaitingLists.get(data.category);
-                waitingList = waitingList.filter(ws => (ws as any).username !== data.username)
+                removeUserFromWaitingLists(data.username);
             }
             else if (data.type === 'battle/READY') {
                 const match = activeMatches.get(data.matchId);
@@ -99,11 +144,6 @@ export default function initWebSocketServer(server: Server) {
                 clearTimeout(matchStartTimeout.get(match.matchId));
                 matchStartTimeout.delete(match.matchId)
                 const payload = JSON.stringify({ type: 'battle/MATCH_DECLINED', username: data.username })
-
-                // MAKE SURE USERS ARE NOT IN QUEUE
-                let waitingList = categoryWaitingLists.get(match.category);
-                waitingList = waitingList.filter(ws => (ws as any).username !== match.player1.username || (ws as any).username !== match.player2.username);
-                categoryWaitingLists.set(match.category, waitingList);
 
                 match.player1.sock.send(payload);
                 match.player2.sock.send(payload);
@@ -293,7 +333,8 @@ export default function initWebSocketServer(server: Server) {
 
             async function startMatch(match: Match) {
                 match.status = 'started';
-                const questions = await getRandomQuestions(5, match.category);
+                const middleScore = Math.floor(((match.player1.sock as any).score + (match.player2.sock as any).score)/2);
+                const questions = await getRandomQuestions(5, match.category, middleScore);
                 matchQuestions.set(match.matchId, questions);
                 insertIntoQuizQuestions(match, questions);
                 createQuizAttempts(match)
@@ -304,16 +345,24 @@ export default function initWebSocketServer(server: Server) {
                 match.player2.sock.send(payload);
             }
 
-            async function getRandomQuestions(limit = 10, category: string): Promise<QuizQuestion[]> {
-                const questionsResult = await pool.query(
-                    `   SELECT q.id, q.category_id, q.text, q.difficulty, q.description 
+            async function getRandomQuestions(limit = 10, category: string, score: number): Promise<QuizQuestion[]> {
+                const difficulty = getQuestionDifficulty(score);
+                let sql =
+                    `
+                        SELECT q.id, q.category_id, q.text, q.difficulty, q.description 
                         FROM questions q
                         JOIN categories c ON c.id = q.category_id
-                        WHERE (? = 'General' OR c.name = ?)
-                        ORDER BY RAND() 
-                        LIMIT ?
+                        WHERE q.difficulty = ?
                     `
-                    , [category, category, limit]);
+                const params: any[] = [difficulty];
+                if (category !== 'General') {
+                    sql += ' AND c.name = ?'
+                    params.push(category);
+                }
+                sql += ` ORDER BY RAND() 
+                        LIMIT ? `
+                params.push(limit)
+                const questionsResult = await pool.query(sql, params);
                 const questions: QuizQuestion[] = (questionsResult[0] as any[]);
                 const questionIds = questions.map((q: any) => q.id);
                 const answersResult = await pool.query(
@@ -337,6 +386,15 @@ export default function initWebSocketServer(server: Server) {
                     difficulty: q.difficulty,
                     answers: groupedAnswers[q.id] || []
                 }));
+            }
+
+            function getQuestionDifficulty(score: number): number {
+                for (let i = 1; i < ranks.length; i++) {
+                    if (score > ranks[i - 1].score && score <= ranks[i].score) {
+                        return i;
+                    }
+                }
+                return ranks.length - 1;
             }
 
             function insertIntoQuizQuestions(match: Match, questions: QuizQuestion[]) {
@@ -671,13 +729,14 @@ export default function initWebSocketServer(server: Server) {
                     JOIN categories c ON q.category_id = c.id
                     WHERE q.id NOT IN (${usedIds.join(',') || 'NULL'})
                     `;
+                const params = [];
                 if (category !== 'General') {
                     sql += ' AND c.name=?'
+                    params.push(category);
                 }
                 sql += ' ORDER BY RAND() LIMIT ?'
-                const questionsResult = await pool.query(
-                    sql
-                    , [limit, category, category]);
+                params.push(limit)
+                const questionsResult = await pool.query(sql, params);
                 const questions: QuizQuestion[] = (questionsResult[0] as any[]);
                 const questionIds = questions.map((q: any) => q.id);
                 const answersResult = await pool.query(
@@ -707,12 +766,52 @@ export default function initWebSocketServer(server: Server) {
         });
 
         ws.on('close', () => {
-            categoryWaitingLists.forEach(waitingList => {
-                waitingList = waitingList.filter(sock => sock !== ws);
-            })
+            categoryRankWaitingLists.forEach(rankList => {
+                rankList.forEach(waitingList => {
+                    const index = waitingList.indexOf(ws);
+                    if (index !== -1) {
+                        waitingList.splice(index, 1);
+                    }
+                })
+            });
             usersWebSockets = usersWebSockets.filter(sock => sock !== ws);
             adminsWebSockets = adminsWebSockets.filter(sock => sock !== ws);
         });
+    });
+}
+
+function findWaitingList(category: string, score: number): WebSocket[] {
+    const userRankScore = getRankScore(score);
+    const rankMap = categoryRankWaitingLists.get(category);
+    if (!rankMap) return;
+    let waitingList = rankMap.get(userRankScore);
+    if (!waitingList) return;
+    return waitingList;
+}
+
+function getRankScore(score: number): number {
+    const sorted = ranks.map(r => r.score).sort((a, b) => a - b);
+    for (let i = sorted.length - 1; i >= 0; i--) {
+        if (score >= sorted[i]) return sorted[i];
+    }
+    return sorted[0];
+}
+
+function findRankIndex(score: number): number {
+    for (let i = 0; i < ranks.length - 1; i++) {
+        if (score >= ranks[i].score && score < ranks[i + 1].score) return i;
+    }
+    return ranks.length - 1;
+}
+
+function removeUserFromWaitingLists(username: string) {
+    categoryRankWaitingLists.forEach(rankList => {
+        rankList.forEach(waitingList => {
+            const index = waitingList.findIndex(ws => (ws as any).username === username);
+            if (index !== -1) {
+                waitingList.splice(index, 1);
+            }
+        })
     });
 }
 

@@ -36,6 +36,14 @@ export class UtilService {
     return this.http.get(`${this.url}/getAllCategories`);
   }
 
+  getLeaderBoard(category: string) {
+    return this.http.get(`${this.url}/getLeaderBoard/${category}`)
+  }
+
+  getAllRanks() {
+    return this.http.get(`${this.urlService.staticUrl}/ranking/ranks.json`);
+  }
+
   setShowMessage(message: string): void {
     this.showMessage = message;
   }

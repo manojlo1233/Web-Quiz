@@ -1,8 +1,8 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { WSMatchFoundMsg } from '../../shared/models/WSMatchFoundMsg';
+import { WSMatchFoundMsg } from '../../shared/models/WebSocket/WSMatchFoundMsg';
 import { UserService } from '../../services/shared/user.service';
 import { MatchStateService } from '../../services/quiz/match-state.service';
-import { User } from '../../shared/models/User';
+import { User } from '../../shared/models/User/User';
 import { interval, Subscription } from 'rxjs';
 import { WebsocketService } from '../../services/quiz/websocket.service';
 import { Router } from '@angular/router';

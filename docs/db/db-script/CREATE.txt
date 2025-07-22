@@ -30,7 +30,7 @@ CREATE TABLE IF NOT EXISTS `answers` (
   CONSTRAINT `answers_ibfk_1` FOREIGN KEY (`question_id`) REFERENCES `questions` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=170 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
--- Dumping data for table webquiz.answers: ~73 rows (approximately)
+-- Dumping data for table webquiz.answers: ~135 rows (approximately)
 INSERT INTO `answers` (`id`, `question_id`, `text`, `is_correct`) VALUES
 	(10, 4, 'Constantine the Great', 1),
 	(11, 4, 'Nero', 0),
@@ -186,9 +186,9 @@ CREATE TABLE IF NOT EXISTS `battles` (
   KEY `player1_id` (`player1_id`),
   KEY `player2_id` (`player2_id`),
   KEY `winner_id` (`winner_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=55 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=67 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
--- Dumping data for table webquiz.battles: ~40 rows (approximately)
+-- Dumping data for table webquiz.battles: ~41 rows (approximately)
 INSERT INTO `battles` (`id`, `quiz_id`, `player1_id`, `player2_id`, `winner_id`, `created_at`, `status`, `player1_points`, `player2_points`, `player_left_id`) VALUES
 	(15, 29, 9, 13, 13, '2025-07-09 13:03:39', 4, -5, 10, 9),
 	(16, 31, 13, 9, NULL, '2025-07-14 15:15:40', 2, 0, 0, NULL),
@@ -229,7 +229,19 @@ INSERT INTO `battles` (`id`, `quiz_id`, `player1_id`, `player2_id`, `winner_id`,
 	(51, 67, 13, 9, 9, '2025-07-17 14:01:13', 4, 15, 30, NULL),
 	(52, 68, 13, 9, 9, '2025-07-17 14:03:53', 4, -25, 20, NULL),
 	(53, 69, 13, 9, 13, '2025-07-17 14:05:10', 4, -5, -10, NULL),
-	(54, 70, 13, 9, 13, '2025-07-17 14:06:31', 4, 15, 5, NULL);
+	(54, 70, 13, 9, 13, '2025-07-17 14:06:31', 4, 15, 5, NULL),
+	(55, 71, 9, 13, 13, '2025-07-22 11:24:20', 4, -5, 10, NULL),
+	(56, 75, 9, 13, NULL, '2025-07-22 16:08:47', 2, 0, 0, NULL),
+	(57, 78, 9, 13, 9, '2025-07-22 16:13:56', 4, 0, 0, 13),
+	(58, 82, 13, 19, 13, '2025-07-22 17:40:11', 4, 0, 0, 19),
+	(59, 83, 19, 13, 19, '2025-07-22 17:41:25', 4, 0, 0, 13),
+	(60, 84, 13, 19, 13, '2025-07-22 17:41:46', 4, 0, 0, 19),
+	(61, 85, 13, 19, 19, '2025-07-22 17:42:45', 4, 0, 0, 13),
+	(62, 86, 13, 19, 19, '2025-07-22 17:43:22', 4, 0, 0, 13),
+	(63, 87, 13, 19, 13, '2025-07-22 17:44:04', 4, 0, 0, 19),
+	(64, 88, 13, 19, NULL, '2025-07-22 17:44:54', 2, 0, 0, NULL),
+	(65, 89, 13, 19, NULL, '2025-07-22 17:48:02', 2, 0, 0, NULL),
+	(66, 90, 19, 13, 19, '2025-07-22 17:49:38', 4, 20, 5, NULL);
 
 -- Dumping structure for table webquiz.categories
 CREATE TABLE IF NOT EXISTS `categories` (
@@ -239,7 +251,7 @@ CREATE TABLE IF NOT EXISTS `categories` (
   UNIQUE KEY `name` (`name`)
 ) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
--- Dumping data for table webquiz.categories: ~4 rows (approximately)
+-- Dumping data for table webquiz.categories: ~6 rows (approximately)
 INSERT INTO `categories` (`id`, `name`) VALUES
 	(5, 'General'),
 	(1, 'History'),
@@ -338,9 +350,9 @@ CREATE TABLE IF NOT EXISTS `quizzes` (
   PRIMARY KEY (`id`),
   KEY `category_id` (`category_id`),
   CONSTRAINT `quizzes_ibfk_1` FOREIGN KEY (`category_id`) REFERENCES `categories` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=71 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=91 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
--- Dumping data for table webquiz.quizzes: ~40 rows (approximately)
+-- Dumping data for table webquiz.quizzes: ~41 rows (approximately)
 INSERT INTO `quizzes` (`id`, `category_id`, `created_at`) VALUES
 	(29, 5, '2025-07-09 13:03:38'),
 	(31, 5, '2025-07-14 15:15:37'),
@@ -381,7 +393,22 @@ INSERT INTO `quizzes` (`id`, `category_id`, `created_at`) VALUES
 	(67, 5, '2025-07-17 14:01:11'),
 	(68, 5, '2025-07-17 14:03:50'),
 	(69, 5, '2025-07-17 14:05:09'),
-	(70, 5, '2025-07-17 14:06:29');
+	(70, 5, '2025-07-17 14:06:29'),
+	(71, 5, '2025-07-22 11:24:16'),
+	(74, 5, '2025-07-22 16:00:26'),
+	(75, 5, '2025-07-22 16:08:43'),
+	(78, 5, '2025-07-22 16:13:12'),
+	(80, 5, '2025-07-22 17:27:27'),
+	(81, 5, '2025-07-22 17:37:15'),
+	(82, 5, '2025-07-22 17:40:08'),
+	(83, 5, '2025-07-22 17:41:24'),
+	(84, 5, '2025-07-22 17:41:44'),
+	(85, 5, '2025-07-22 17:42:43'),
+	(86, 5, '2025-07-22 17:43:21'),
+	(87, 5, '2025-07-22 17:44:02'),
+	(88, 5, '2025-07-22 17:44:52'),
+	(89, 5, '2025-07-22 17:47:59'),
+	(90, 5, '2025-07-22 17:49:36');
 
 -- Dumping structure for table webquiz.quiz_attempts
 CREATE TABLE IF NOT EXISTS `quiz_attempts` (
@@ -395,9 +422,9 @@ CREATE TABLE IF NOT EXISTS `quiz_attempts` (
   KEY `quiz_id` (`quiz_id`),
   CONSTRAINT `quiz_attempts_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `quiz_attempts_ibfk_2` FOREIGN KEY (`quiz_id`) REFERENCES `quizzes` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=111 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=135 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
--- Dumping data for table webquiz.quiz_attempts: ~80 rows (approximately)
+-- Dumping data for table webquiz.quiz_attempts: ~82 rows (approximately)
 INSERT INTO `quiz_attempts` (`id`, `user_id`, `quiz_id`, `started_at`, `completed_at`) VALUES
 	(31, 9, 29, '2025-07-09 13:03:39', '2025-07-09 13:04:00'),
 	(32, 13, 29, '2025-07-09 13:03:39', '2025-07-09 13:04:00'),
@@ -478,7 +505,31 @@ INSERT INTO `quiz_attempts` (`id`, `user_id`, `quiz_id`, `started_at`, `complete
 	(107, 13, 69, '2025-07-17 14:05:10', '2025-07-17 14:05:50'),
 	(108, 9, 69, '2025-07-17 14:05:10', '2025-07-17 14:05:50'),
 	(109, 13, 70, '2025-07-17 14:06:31', '2025-07-17 14:07:10'),
-	(110, 9, 70, '2025-07-17 14:06:31', '2025-07-17 14:07:10');
+	(110, 9, 70, '2025-07-17 14:06:31', '2025-07-17 14:07:10'),
+	(111, 9, 71, '2025-07-22 11:24:20', '2025-07-22 11:25:31'),
+	(112, 13, 71, '2025-07-22 11:24:20', '2025-07-22 11:25:31'),
+	(113, 9, 75, '2025-07-22 16:08:47', NULL),
+	(114, 13, 75, '2025-07-22 16:08:47', NULL),
+	(115, 9, 78, '2025-07-22 16:13:56', '2025-07-22 16:14:39'),
+	(116, 13, 78, '2025-07-22 16:13:56', '2025-07-22 16:14:39'),
+	(117, 13, 82, '2025-07-22 17:40:11', '2025-07-22 17:41:05'),
+	(118, 19, 82, '2025-07-22 17:40:11', '2025-07-22 17:41:05'),
+	(119, 19, 83, '2025-07-22 17:41:25', '2025-07-22 17:41:30'),
+	(120, 13, 83, '2025-07-22 17:41:25', '2025-07-22 17:41:30'),
+	(121, 13, 84, '2025-07-22 17:41:46', '2025-07-22 17:42:29'),
+	(122, 19, 84, '2025-07-22 17:41:46', '2025-07-22 17:42:29'),
+	(123, 13, 85, '2025-07-22 17:42:45', '2025-07-22 17:43:12'),
+	(124, 19, 85, '2025-07-22 17:42:45', '2025-07-22 17:43:12'),
+	(125, 13, 86, '2025-07-22 17:43:22', '2025-07-22 17:43:54'),
+	(126, 19, 86, '2025-07-22 17:43:22', '2025-07-22 17:43:54'),
+	(127, 13, 87, '2025-07-22 17:44:04', '2025-07-22 17:44:25'),
+	(128, 19, 87, '2025-07-22 17:44:04', '2025-07-22 17:44:25'),
+	(129, 13, 88, '2025-07-22 17:44:54', NULL),
+	(130, 19, 88, '2025-07-22 17:44:54', NULL),
+	(131, 13, 89, '2025-07-22 17:48:02', NULL),
+	(132, 19, 89, '2025-07-22 17:48:02', NULL),
+	(133, 19, 90, '2025-07-22 17:49:38', '2025-07-22 17:50:49'),
+	(134, 13, 90, '2025-07-22 17:49:38', '2025-07-22 17:50:49');
 
 -- Dumping structure for table webquiz.quiz_attempt_questions
 CREATE TABLE IF NOT EXISTS `quiz_attempt_questions` (
@@ -494,7 +545,7 @@ CREATE TABLE IF NOT EXISTS `quiz_attempt_questions` (
   CONSTRAINT `FK__quiz_attempts` FOREIGN KEY (`attempt_id`) REFERENCES `quiz_attempts` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
--- Dumping data for table webquiz.quiz_attempt_questions: ~470 rows (approximately)
+-- Dumping data for table webquiz.quiz_attempt_questions: ~398 rows (approximately)
 INSERT INTO `quiz_attempt_questions` (`attempt_id`, `question_id`, `answer_id`, `is_correct`) VALUES
 	(31, 4, 13, 0),
 	(31, 11, NULL, 0),
@@ -883,7 +934,89 @@ INSERT INTO `quiz_attempt_questions` (`attempt_id`, `question_id`, `answer_id`, 
 	(110, 7, 22, 1),
 	(110, 9, 31, 0),
 	(110, 12, 43, 0),
-	(110, 16, 59, 0);
+	(110, 16, 59, 0),
+	(111, 6, NULL, 0),
+	(111, 12, NULL, 0),
+	(111, 13, 47, 0),
+	(111, 22, NULL, 0),
+	(111, 38, NULL, 0),
+	(112, 6, NULL, 0),
+	(112, 12, NULL, 0),
+	(112, 13, 46, 1),
+	(112, 22, NULL, 0),
+	(112, 38, NULL, 0),
+	(113, 4, NULL, 0),
+	(113, 9, NULL, 0),
+	(113, 15, NULL, 0),
+	(113, 17, NULL, 0),
+	(113, 24, NULL, 0),
+	(113, 26, NULL, 0),
+	(113, 27, NULL, 0),
+	(113, 32, NULL, 0),
+	(114, 4, NULL, 0),
+	(114, 9, NULL, 0),
+	(114, 15, NULL, 0),
+	(114, 17, NULL, 0),
+	(114, 24, NULL, 0),
+	(114, 26, NULL, 0),
+	(114, 27, NULL, 0),
+	(114, 32, NULL, 0),
+	(115, 12, NULL, 0),
+	(115, 19, NULL, 0),
+	(115, 33, NULL, 0),
+	(116, 12, NULL, 0),
+	(116, 19, NULL, 0),
+	(116, 33, NULL, 0),
+	(117, 12, NULL, 0),
+	(117, 13, NULL, 0),
+	(117, 35, NULL, 0),
+	(118, 12, NULL, 0),
+	(118, 13, NULL, 0),
+	(118, 35, NULL, 0),
+	(121, 12, NULL, 0),
+	(121, 33, NULL, 0),
+	(121, 37, NULL, 0),
+	(122, 12, NULL, 0),
+	(122, 33, NULL, 0),
+	(122, 37, NULL, 0),
+	(123, 4, NULL, 0),
+	(123, 33, NULL, 0),
+	(124, 4, NULL, 0),
+	(124, 33, NULL, 0),
+	(125, 12, NULL, 0),
+	(125, 14, NULL, 0),
+	(126, 12, NULL, 0),
+	(126, 14, NULL, 0),
+	(127, 15, NULL, 0),
+	(128, 15, NULL, 0),
+	(129, 9, NULL, 0),
+	(129, 11, NULL, 0),
+	(129, 29, NULL, 0),
+	(129, 37, NULL, 0),
+	(130, 9, NULL, 0),
+	(130, 11, NULL, 0),
+	(130, 29, NULL, 0),
+	(130, 37, NULL, 0),
+	(131, 4, NULL, 0),
+	(131, 7, NULL, 0),
+	(131, 12, NULL, 0),
+	(131, 17, NULL, 0),
+	(131, 37, NULL, 0),
+	(132, 4, NULL, 0),
+	(132, 7, NULL, 0),
+	(132, 12, NULL, 0),
+	(132, 17, NULL, 0),
+	(132, 37, NULL, 0),
+	(133, 19, 78, 1),
+	(133, 20, NULL, 0),
+	(133, 22, NULL, 0),
+	(133, 30, 122, 1),
+	(133, 36, NULL, 0),
+	(134, 19, 78, 1),
+	(134, 20, NULL, 0),
+	(134, 22, NULL, 0),
+	(134, 30, NULL, 0),
+	(134, 36, NULL, 0);
 
 -- Dumping structure for table webquiz.quiz_questions
 CREATE TABLE IF NOT EXISTS `quiz_questions` (
@@ -896,7 +1029,7 @@ CREATE TABLE IF NOT EXISTS `quiz_questions` (
   CONSTRAINT `FK_quiz_questions_quizzes` FOREIGN KEY (`quiz_id`) REFERENCES `quizzes` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
--- Dumping data for table webquiz.quiz_questions: ~382 rows (approximately)
+-- Dumping data for table webquiz.quiz_questions: ~328 rows (approximately)
 INSERT INTO `quiz_questions` (`quiz_id`, `question_id`) VALUES
 	(29, 4),
 	(34, 4),
@@ -916,6 +1049,11 @@ INSERT INTO `quiz_questions` (`quiz_id`, `question_id`) VALUES
 	(61, 4),
 	(66, 4),
 	(67, 4),
+	(75, 4),
+	(85, 4),
+	(86, 4),
+	(87, 4),
+	(89, 4),
 	(31, 5),
 	(32, 5),
 	(34, 5),
@@ -937,6 +1075,9 @@ INSERT INTO `quiz_questions` (`quiz_id`, `question_id`) VALUES
 	(61, 5),
 	(67, 5),
 	(69, 5),
+	(75, 5),
+	(84, 5),
+	(89, 5),
 	(34, 6),
 	(35, 6),
 	(36, 6),
@@ -957,6 +1098,11 @@ INSERT INTO `quiz_questions` (`quiz_id`, `question_id`) VALUES
 	(67, 6),
 	(68, 6),
 	(69, 6),
+	(71, 6),
+	(75, 6),
+	(87, 6),
+	(88, 6),
+	(89, 6),
 	(32, 7),
 	(34, 7),
 	(35, 7),
@@ -981,6 +1127,8 @@ INSERT INTO `quiz_questions` (`quiz_id`, `question_id`) VALUES
 	(67, 7),
 	(69, 7),
 	(70, 7),
+	(75, 7),
+	(89, 7),
 	(34, 8),
 	(35, 8),
 	(36, 8),
@@ -999,6 +1147,8 @@ INSERT INTO `quiz_questions` (`quiz_id`, `question_id`) VALUES
 	(59, 8),
 	(60, 8),
 	(67, 8),
+	(75, 8),
+	(89, 8),
 	(31, 9),
 	(34, 9),
 	(35, 9),
@@ -1022,6 +1172,10 @@ INSERT INTO `quiz_questions` (`quiz_id`, `question_id`) VALUES
 	(67, 9),
 	(68, 9),
 	(70, 9),
+	(75, 9),
+	(85, 9),
+	(88, 9),
+	(89, 9),
 	(33, 10),
 	(34, 10),
 	(35, 10),
@@ -1040,6 +1194,9 @@ INSERT INTO `quiz_questions` (`quiz_id`, `question_id`) VALUES
 	(60, 10),
 	(66, 10),
 	(67, 10),
+	(75, 10),
+	(83, 10),
+	(89, 10),
 	(29, 11),
 	(34, 11),
 	(35, 11),
@@ -1059,6 +1216,11 @@ INSERT INTO `quiz_questions` (`quiz_id`, `question_id`) VALUES
 	(60, 11),
 	(64, 11),
 	(67, 11),
+	(75, 11),
+	(78, 11),
+	(82, 11),
+	(88, 11),
+	(89, 11),
 	(33, 12),
 	(34, 12),
 	(35, 12),
@@ -1082,6 +1244,13 @@ INSERT INTO `quiz_questions` (`quiz_id`, `question_id`) VALUES
 	(67, 12),
 	(69, 12),
 	(70, 12),
+	(71, 12),
+	(75, 12),
+	(78, 12),
+	(82, 12),
+	(84, 12),
+	(86, 12),
+	(89, 12),
 	(29, 13),
 	(31, 13),
 	(32, 13),
@@ -1100,6 +1269,12 @@ INSERT INTO `quiz_questions` (`quiz_id`, `question_id`) VALUES
 	(60, 13),
 	(66, 13),
 	(67, 13),
+	(71, 13),
+	(75, 13),
+	(82, 13),
+	(83, 13),
+	(85, 13),
+	(89, 13),
 	(32, 14),
 	(33, 14),
 	(34, 14),
@@ -1121,6 +1296,9 @@ INSERT INTO `quiz_questions` (`quiz_id`, `question_id`) VALUES
 	(64, 14),
 	(66, 14),
 	(67, 14),
+	(75, 14),
+	(86, 14),
+	(89, 14),
 	(31, 15),
 	(34, 15),
 	(35, 15),
@@ -1141,6 +1319,9 @@ INSERT INTO `quiz_questions` (`quiz_id`, `question_id`) VALUES
 	(67, 15),
 	(68, 15),
 	(69, 15),
+	(75, 15),
+	(87, 15),
+	(89, 15),
 	(34, 16),
 	(35, 16),
 	(36, 16),
@@ -1163,6 +1344,8 @@ INSERT INTO `quiz_questions` (`quiz_id`, `question_id`) VALUES
 	(67, 16),
 	(68, 16),
 	(70, 16),
+	(75, 16),
+	(89, 16),
 	(34, 17),
 	(35, 17),
 	(36, 17),
@@ -1181,6 +1364,12 @@ INSERT INTO `quiz_questions` (`quiz_id`, `question_id`) VALUES
 	(56, 17),
 	(60, 17),
 	(67, 17),
+	(75, 17),
+	(82, 17),
+	(83, 17),
+	(85, 17),
+	(86, 17),
+	(89, 17),
 	(29, 18),
 	(31, 18),
 	(32, 18),
@@ -1203,7 +1392,69 @@ INSERT INTO `quiz_questions` (`quiz_id`, `question_id`) VALUES
 	(57, 18),
 	(59, 18),
 	(60, 18),
-	(67, 18);
+	(67, 18),
+	(75, 18),
+	(83, 18),
+	(84, 18),
+	(86, 18),
+	(87, 18),
+	(89, 18),
+	(75, 19),
+	(78, 19),
+	(89, 19),
+	(90, 19),
+	(75, 20),
+	(89, 20),
+	(90, 20),
+	(71, 22),
+	(75, 22),
+	(89, 22),
+	(90, 22),
+	(75, 23),
+	(89, 23),
+	(75, 24),
+	(89, 24),
+	(75, 25),
+	(89, 25),
+	(75, 26),
+	(78, 26),
+	(89, 26),
+	(75, 27),
+	(89, 27),
+	(75, 28),
+	(89, 28),
+	(75, 29),
+	(83, 29),
+	(88, 29),
+	(89, 29),
+	(75, 30),
+	(89, 30),
+	(90, 30),
+	(75, 31),
+	(89, 31),
+	(75, 32),
+	(89, 32),
+	(75, 33),
+	(78, 33),
+	(84, 33),
+	(85, 33),
+	(87, 33),
+	(89, 33),
+	(75, 34),
+	(89, 34),
+	(75, 35),
+	(82, 35),
+	(89, 35),
+	(75, 36),
+	(89, 36),
+	(90, 36),
+	(75, 37),
+	(84, 37),
+	(88, 37),
+	(89, 37),
+	(71, 38),
+	(75, 38),
+	(89, 38);
 
 -- Dumping structure for table webquiz.rankings
 CREATE TABLE IF NOT EXISTS `rankings` (
@@ -1218,12 +1469,12 @@ CREATE TABLE IF NOT EXISTS `rankings` (
   CONSTRAINT `FK__categories` FOREIGN KEY (`category_id`) REFERENCES `categories` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=67 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
--- Dumping data for table webquiz.rankings: ~22 rows (approximately)
+-- Dumping data for table webquiz.rankings: ~32 rows (approximately)
 INSERT INTO `rankings` (`id`, `user_id`, `category_id`, `score`) VALUES
-	(1, 9, 5, 380),
+	(1, 9, 5, 410),
 	(2, 9, 1, 40),
 	(3, 9, 4, 0),
-	(4, 13, 5, 40),
+	(4, 13, 5, 60),
 	(5, 13, 1, 40),
 	(6, 13, 4, 40),
 	(7, 17, 5, 0),
@@ -1234,14 +1485,10 @@ INSERT INTO `rankings` (`id`, `user_id`, `category_id`, `score`) VALUES
 	(12, 18, 1, 0),
 	(13, 18, 2, 0),
 	(14, 18, 4, 0),
-	(15, 19, 5, 0),
+	(15, 19, 5, 60),
 	(16, 19, 1, 0),
 	(17, 19, 2, 0),
 	(18, 19, 4, 0),
-	(19, 20, 5, 0),
-	(20, 20, 1, 0),
-	(21, 20, 2, 0),
-	(22, 20, 4, 0),
 	(51, 9, 8, 0),
 	(52, 12, 8, 0),
 	(53, 13, 8, 0),
@@ -1249,15 +1496,13 @@ INSERT INTO `rankings` (`id`, `user_id`, `category_id`, `score`) VALUES
 	(55, 17, 8, 0),
 	(56, 18, 8, 0),
 	(57, 19, 8, 0),
-	(58, 20, 8, 0),
 	(59, 9, 9, 0),
 	(60, 12, 9, 0),
 	(61, 13, 9, 0),
 	(62, 14, 9, 0),
 	(63, 17, 9, 0),
 	(64, 18, 9, 0),
-	(65, 19, 9, 0),
-	(66, 20, 9, 0);
+	(65, 19, 9, 0);
 
 -- Dumping structure for table webquiz.reports
 CREATE TABLE IF NOT EXISTS `reports` (
@@ -1292,12 +1537,11 @@ CREATE TABLE IF NOT EXISTS `statistics` (
 
 -- Dumping data for table webquiz.statistics: ~6 rows (approximately)
 INSERT INTO `statistics` (`user_id`, `total_quizzes`, `avg_score`, `avg_time`) VALUES
-	(9, 33, 13.0459, 89.5152),
-	(13, 33, 13.5297, 89.5152),
+	(9, 35, 11.522, 87.6571),
+	(13, 42, 11.3634, 79.0714),
 	(17, 0, 0, 0),
 	(18, 0, 0, 0),
-	(19, 0, 0, 0),
-	(20, 0, 0, 0);
+	(19, 7, 5, 36.1429);
 
 -- Dumping structure for table webquiz.users
 CREATE TABLE IF NOT EXISTS `users` (
@@ -1323,14 +1567,13 @@ CREATE TABLE IF NOT EXISTS `users` (
 
 -- Dumping data for table webquiz.users: ~8 rows (approximately)
 INSERT INTO `users` (`id`, `firstname`, `lastname`, `username`, `email`, `password_hash`, `country`, `role`, `created_at`, `reset_token`, `reset_token_expires`, `receive_updates`, `last_login`, `avatar`, `banned_until`) VALUES
-	(9, 'Milan', 'Manojlovic', 'manjolo', 'milan.manojlo00@gmail.com', '$2b$10$8RweJ9HssGUS8vR5.l2zR.HybIF4flz8flz5AiL1KjH4ngwfObwky', 'Serbia', 1, '2025-05-16 14:40:15', NULL, NULL, 0, '2025-07-17 14:01:08', 'avatar1.png', NULL),
-	(12, 'Milica', 'Man', 'milica123', 'milica@gmail.com', '$2b$10$TXPSEVXB54Os0/Mc/JEYH.EEW12klt5oQZ/JaFlyoopw0x2JnvDwC', 'Serbia', 0, '2025-05-16 14:44:09', NULL, NULL, 0, NULL, 'avatar2.png', NULL),
-	(13, 'Marko', 'Manojlovic', 'mareljino', 'marko@gmail.com', '$2b$10$buvoLJksqVgkdE55zFrWLe/S3DgG8p0TDFgTy896dkVJg5/0zOzaO', 'Serbia', 1, '2025-05-19 14:46:06', NULL, NULL, 0, '2025-07-21 11:49:27', 'avatar3.png', NULL),
+	(9, 'Milan', 'Manojlovic', 'manjolo', 'milan.manojlo00@gmail.com', '$2b$10$8RweJ9HssGUS8vR5.l2zR.HybIF4flz8flz5AiL1KjH4ngwfObwky', 'Serbia', 1, '2025-05-16 14:40:15', NULL, NULL, 0, '2025-07-22 16:25:52', 'avatar1.png', NULL),
+	(12, 'Milica', 'Man', 'milica123', 'milica@gmail.com', '$2b$10$TXPSEVXB54Os0/Mc/JEYH.EEW12klt5oQZ/JaFlyoopw0x2JnvDwC', 'Serbia', 0, '2025-05-16 14:44:09', NULL, NULL, 0, '2025-07-22 16:09:19', 'avatar2.png', NULL),
+	(13, 'Marko', 'Manojlovic', 'mareljino', 'marko@gmail.com', '$2b$10$buvoLJksqVgkdE55zFrWLe/S3DgG8p0TDFgTy896dkVJg5/0zOzaO', 'Serbia', 1, '2025-05-19 14:46:06', NULL, NULL, 0, '2025-07-22 17:49:30', 'avatar3.png', NULL),
 	(14, 'Aleksandra', 'Biocanin', 'aleks', 'aleksandrabiocanin6@gmail.com', '$2b$10$t8eOflR9jfiUqLGj/ywi5egfymhjUVi5BISW40nV5AwzIsfRUguNW', 'Serbia', 0, '2025-06-07 19:38:00', NULL, NULL, 0, NULL, 'avatar4.png', NULL),
 	(17, 'Milan', 'Manojlovic', 'milan1', 'milan1@gmail.com', '$2b$10$RThANj9bXxWhDrAbf8GBTOCMpl/1gUf.LmA7kGAEFpernJicLfGTK', 'Serbia', 0, '2025-07-09 14:51:20', NULL, NULL, 1, '2025-07-14 14:21:16', 'avatar2.png', '2025-07-16 13:11:00'),
 	(18, 'Milan', 'Manojlovic', 'milan2', 'milan2@gmail.com', '$2b$10$ZbwDiK.z.BVvuvUu7F2Myur4tq3i/p5d0d2e1v6GMJ2eUczn6I7LG', 'Serbia', 0, '2025-07-09 14:52:02', NULL, NULL, 1, '2025-07-17 14:34:22', 'avatar1.png', NULL),
-	(19, 'Milan', 'Manojlovic', 'milan3', 'milan3@gmail.com', '$2b$10$SetnYrr0F9GLT/ysiHtDd.pwNyBNlcKlb8OdgPo7qufGNOyJj.1qi', 'Serbia', 0, '2025-07-09 14:52:17', NULL, NULL, 1, NULL, 'avatar1.png', NULL),
-	(20, 'Milan', 'Manojlovic', 'milan4', 'milan4@gmail.com', '$2b$10$cnGJ16UdlLPGJLZiTQoiveq4gf3DoUAijSohxQaksak/8EoSYjkQe', 'Serbia', 0, '2025-07-09 14:52:41', NULL, NULL, 1, NULL, 'avatar1.png', NULL);
+	(19, 'Milan', 'Manojlovic', 'milan3', 'milan3@gmail.com', '$2b$10$SetnYrr0F9GLT/ysiHtDd.pwNyBNlcKlb8OdgPo7qufGNOyJj.1qi', 'Serbia', 0, '2025-07-09 14:52:17', NULL, NULL, 1, '2025-07-22 17:49:34', 'avatar1.png', NULL);
 
 /*!40103 SET TIME_ZONE=IFNULL(@OLD_TIME_ZONE, 'system') */;
 /*!40101 SET SQL_MODE=IFNULL(@OLD_SQL_MODE, '') */;

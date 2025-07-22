@@ -7,7 +7,10 @@ import { QuizAnswer } from "../models/Quiz/QuizAnswer";
 export const getAllUsers = async (req: Request, res: Response) => {
     try {
         const [users] = await pool.execute(
-            `SELECT * FROM users`
+            `
+            SELECT * FROM users
+            ORDER BY username
+            `
         )
         if ((users as any[]).length == 0) {
             res.status(200).json({ message: 'No users found' })

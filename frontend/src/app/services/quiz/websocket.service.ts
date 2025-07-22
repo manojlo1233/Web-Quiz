@@ -143,12 +143,16 @@ export class WebsocketService {
     this.send({ type: 'USER_SUBSCRIBE', id, username });
   }
 
-  joinMatchmaking(userId: number, username: string, category: string): void {
-    this.send({ type: 'battle/JOIN_QUEUE', userId, username, category });
+  joinMatchmaking(userId: number, username: string, category: string, score: number): void {
+    this.send({ type: 'battle/JOIN_QUEUE', userId, username, category, score });
   }
 
-  cancelMatchmaking(username: string, category: string): void {
-    this.send({ type: 'battle/LEAVE_QUEUE', username, category });
+  relaxMatchmaking(userId: number, username: string, category: string, score: number): void {
+    this.send({ type: 'battle/RELAX_QUEUE', userId, username, category, score});
+  }
+
+  cancelMatchmaking(username: string): void {
+    this.send({ type: 'battle/LEAVE_QUEUE', username });
   }
 
   sendReady(matchId: string, username: string): void {

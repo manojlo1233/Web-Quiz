@@ -1,6 +1,6 @@
 import { Component, ElementRef, EventEmitter, Input, OnChanges, Output, Renderer2, SimpleChanges, ViewChild } from '@angular/core';
-import { QuizPlayed } from '../../shared/models/QuizPlayed';
-import { QuizDetailsQuestion } from '../../shared/models/QuizDetailsQuestion';
+import { QuizPlayed } from '../../shared/models/Quiz/QuizPlayed';
+import { QuizDetailsQuestion } from '../../shared/models/Quiz/QuizDetailsQuestion';
 import { QuizService } from '../../services/shared/quiz.service';
 import { UtilService } from '../../services/shared/util.service';
 import { animate, state, style, transition, trigger } from '@angular/animations';

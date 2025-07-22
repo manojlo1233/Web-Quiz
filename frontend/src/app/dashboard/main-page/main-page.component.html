@@ -5,18 +5,29 @@
     (closeAvatars)="handleCloseEditAvatar($event)" />
 <div class="main-container">
     <div class="col-cont" style="max-width: 40%;">
-        <div class="user-info">
-            <div class="user">
-                <div style="position: relative;">
-                    <img [src]="'http://localhost:3000/static/avatars/' + user.avatar" alt="User Avatar"
-                        class="user-avatar" />
+        <div class="user">
+            <div class="user-info">
+                <div style="position: relative; display: flex; align-items: center; justify-content: center;">
+                    <img [src]="staticUrl + '/avatars/' + user.avatar" alt="User Avatar" class="user-avatar" />
                     <app-icon class="avatar_icon" src="/assets/svg/icon_edit.svg" color="var(--theme-darkblue-color-3)"
                         title="Edit avatar" (click)="showAvailableAvatars = true;" />
                 </div>
-
-                <label>{{user.firstname}} {{user.lastname}}</label>
-                <span>-</span>
-                <label>{{user.username}}</label>
+                <div class="user-label">
+                    <div class="user-rank">
+                        <label>{{user.firstname}} {{user.lastname}}</label>
+                        <span>-</span>
+                        <label>{{user.username}}</label>
+                    </div>
+                    <span class="v-divider"
+                        style="color: transparent; background-color: var(--theme-darkblue-color-3);">aaa</span>
+                    <div class="user-rank">
+                        <label>{{searchCategory}}</label>
+                        <span>-</span>
+                        <label>{{userRank}}</label>
+                        <span>-</span>
+                        <label>{{userRanking.score}}</label>
+                    </div>
+                </div>
             </div>
             <span class="h-divider" style="background-color: var(--theme-darkblue-color-3);"></span>
             <div class="stats">
@@ -52,8 +63,8 @@
                             <th></th>
                         </tr>
                     </thead>
-                    <tbody *ngIf="userPlayHistory.length !== 0">
-                        <tr *ngFor="let item of filteredData">
+                    <tbody *ngIf="battleHistoryPaginator.array.length !== 0">
+                        <tr *ngFor="let item of battleHistoryPaginator.filteredData">
                             <td>{{ item.category }}</td>
                             <td>{{ item.start | date: 'dd.MM.yy HH:mm:ss' }}</td>
                             <td>{{ formatDuration(item.duration) }}</td>
@@ -65,21 +76,21 @@
                                     (click)="showDetails(item)">Details</button>
                             </td>
                     </tbody>
-                    <tbody *ngIf="userPlayHistory.length === 0">
+                    <tbody *ngIf="battleHistoryPaginator.array.length === 0">
                         <td class="neutral-italic" colspan="5">--- Play history does not exist ---</td>
                     </tbody>
                 </table>
             </div>
             <div class="paginator">
-                <span style="margin-left: auto;">{{ currentPage }} / {{ totalPages }}</span>
+                <span style="margin-left: auto;">{{ battleHistoryPaginator.currentPage }} / {{ battleHistoryPaginator.totalPages }}</span>
                 <app-icon class="icon-paginator" src="/assets/svg/icon_first_page.svg" color="white" title="First Page"
-                    (click)="firstPage()" />
-                <app-icon class="icon-paginator" src="/assets/svg/icon_prev_page.svg" [color]="iconPrevPageColor"
-                    title="Previous Page" [class.disabled]="currentPage === 1" (click)="changePage(-1)" />
-                <app-icon class="icon-paginator" src="/assets/svg/icon_next_page.svg" [color]="iconNextPageColor"
-                    title="Next Page" [class.disabled]="currentPage === totalPages" (click)="changePage(1)" />
+                    (click)="battleHistoryPaginator.firstPage()" />
+                <app-icon class="icon-paginator" src="/assets/svg/icon_prev_page.svg" [color]="battleHistoryPaginator.prevPageColor"
+                    title="Previous Page" [class.disabled]="battleHistoryPaginator.currentPage === 1" (click)="battleHistoryPaginator.changePage(-1)" />
+                <app-icon class="icon-paginator" src="/assets/svg/icon_next_page.svg" [color]="battleHistoryPaginator.nextPageColor"
+                    title="Next Page" [class.disabled]="battleHistoryPaginator.currentPage === battleHistoryPaginator.totalPages" (click)="battleHistoryPaginator.changePage(1)" />
                 <app-icon class="icon-paginator" src="/assets/svg/icon_last_page.svg" color="white" title="Last Page"
-                    (click)="lastPage()" />
+                    (click)="battleHistoryPaginator.lastPage()" />
             </div>
         </div>
     </div>
@@ -90,7 +101,8 @@
                     <label>Category</label>
                     <select class="select-light" [(ngModel)]="searchCategory" id="category" name="category"
                         [disabled]="isSearching || user.banned_until !== null">
-                        <option style="cursor: pointer;" *ngFor="let cat of allCategories" [value]="cat.name">{{cat.name}}
+                        <option style="cursor: pointer;" *ngFor="let cat of allCategories" [value]="cat.name">
+                            {{cat.name}}
                         </option>
                     </select>
                 </div>

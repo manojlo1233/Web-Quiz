@@ -1,5 +1,5 @@
 import { Component, EventEmitter, Input, OnInit, Output, ViewChild, ViewContainerRef } from '@angular/core';
-import { User } from '../../shared/models/User';
+import { User } from '../../shared/models/User/User';
 import { UserSettingsService } from '../../services/dashboard/user-settings.service';
 import { CountriesService } from '../../services/shared/countries.service';
 import { SnackBarService } from '../../services/shared/snack-bar.service';
@@ -60,26 +60,29 @@ export class UserSettingsComponent implements OnInit {
       () => {
         this.editing = false;
       },
-      () => {}
+      () => { }
     )
   }
 
   saveEditing() {
-    this.showSpinner = true;
-    this.userSettingsService.updateUserSettingsById(this.user.id, this.firstnameEdit, this.lastnameEdit, this.usernameEdit, this.emailEdit, this.countryEdit, this.updateEdit).subscribe({
-      next: (resp: any) => {
-        this.updateUser();
-        this.snackBarService.showSnackBar(resp.message);
-        this.showSpinner = false;
-        this.editing = false;
-      },
-      error: (error: any) => {
-        this.updateUser();
-        this.snackBarService.showSnackBar('Update failed.')
-        this.showSpinner = false;
-        this.editing = false;
-      }
+    this.confirmService.showCustomConfirm('Are you sure you want to save editing?', () => {
+      this.showSpinner = true;
+      this.userSettingsService.updateUserSettingsById(this.user.id, this.firstnameEdit, this.lastnameEdit, this.usernameEdit, this.emailEdit, this.countryEdit, this.updateEdit).subscribe({
+        next: (resp: any) => {
+          this.updateUser();
+          this.snackBarService.showSnackBar(resp.message);
+          this.showSpinner = false;
+          this.editing = false;
+        },
+        error: (error: any) => {
+          this.updateUser();
+          this.snackBarService.showSnackBar('Update failed.')
+          this.showSpinner = false;
+          this.editing = false;
+        }
+      })
     })
+
   }
 
   updateUser() {

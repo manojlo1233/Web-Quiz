@@ -89,4 +89,10 @@ export class DateService {
       `${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
   }
 
+  convertDateToEuropeDate(date: Date): string {
+    const pad = (n: number) => n < 10 ? '0' + n : n;
+    return `${date.getDate()}.${pad(date.getMonth() + 1)}.${pad(date.getFullYear()).toString().slice(2)} ` +
+      `${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
+  }
+
 }

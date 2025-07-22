@@ -1,12 +1,12 @@
 import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { MatchStateService } from '../../services/quiz/match-state.service';
-import { WSMatchFoundMsg } from '../../shared/models/WSMatchFoundMsg';
+import { WSMatchFoundMsg } from '../../shared/models/WebSocket/WSMatchFoundMsg';
 import { WebsocketService } from '../../services/quiz/websocket.service';
-import { User } from '../../shared/models/User';
+import { User } from '../../shared/models/User/User';
 import { UserService } from '../../services/shared/user.service';
 import { QuizQuestion } from '../../shared/models/Quiz/QuizQuestion';
 import { QuizAnswer } from '../../shared/models/Quiz/QuizAnswer';
-import { ChatMessage } from '../../shared/models/ChatMessage';
+import { ChatMessage } from '../../shared/models/WebSocket/ChatMessage';
 import { BattleSummary } from '../../shared/models/Battle/BattleSummary';
 import { Router } from '@angular/router';
 import { AnswerSummary } from '../../shared/models/Battle/AnswerSummary';

@@ -8,7 +8,6 @@ export class User {
     role: number;
     receive_updates: number;
     avatar: string;
-    ranking: number;
     last_login: Date;
     banned_until: Date;
 }

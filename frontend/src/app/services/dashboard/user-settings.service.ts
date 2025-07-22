@@ -1,6 +1,6 @@
 import { Injectable, ViewContainerRef } from '@angular/core';
 import { UserSettingsComponent } from '../../dashboard/user-settings/user-settings.component';
-import { User } from '../../shared/models/User';
+import { User } from '../../shared/models/User/User';
 import { HttpClient } from '@angular/common/http';
 import { UrlService } from '../shared/url.service';
 

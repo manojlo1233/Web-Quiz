@@ -1,6 +1,6 @@
 import { AfterViewInit, Component, ElementRef, EventEmitter, Input, OnInit, Output, Renderer2, ViewChild } from '@angular/core';
 import { DateService } from '../../services/shared/date.service';
-import { User } from '../../shared/models/User';
+import { User } from '../../shared/models/User/User';
 import { AdminService } from '../../services/admin/admin.service';
 import { SnackBarService } from '../../services/shared/snack-bar.service';
 import { ConfirmService } from '../../services/shared/confirm.service';

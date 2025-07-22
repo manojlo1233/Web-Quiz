@@ -366,36 +366,6 @@ export const getUserQuizDetails = async (req: Request, res: Response) => {
     }
 }
 
-export const getLeaderBoard = async (req: Request, res) => {
-    try {
-        const category: string = req.params.category as string;
-        const availableCategories = await getAllCategoriesFromDB();
-        if (availableCategories.filter(c => c.name === category).length === 0) {
-            return res.status(400).json({ message: 'Invalid category' });
-        }
-
-        const [leaderBoard] = await pool.execute(
-            `   SELECT u.id as userId, u.username, r.score as ranking
-                FROM rankings r
-                JOIN users u ON u.id = r.user_id
-                JOIN categories c ON r.category_id = c.id 
-                WHERE c.name = ?
-                ORDER BY r.score DESC
-                LIMIT 50
-            `,
-            [category]
-        );
-        if ((leaderBoard as any[]).length === 0) {
-            res.status(404).json({ message: 'Get leaderboard not found' })
-            return;
-        }
-        res.status(200).json(leaderBoard);
-    } catch (error: any) {
-        console.log('Get leaderboard error', error);
-        res.status(500).json({ message: 'Get leaderboard failed', error: error.message })
-    }
-}
-
 export const updateUserSettingsById = async (req: Request, res: Response) => {
     try {
         const userId = req.body.userId;
@@ -471,7 +441,31 @@ export const getUserReports = async (req: Request, res: Response) => {
         }
         res.status(200).json(result);
     } catch (error: any) {
-        console.log('Update user avatar error', error);
-        res.status(500).json({ message: 'Update user avatar failed', error: error.message })
+        console.log('Get user reports error', error);
+        res.status(500).json({ message: 'Get user reports failed', error: error.message })
     }
 }
+
+export const getUserRankings = async (req: Request, res: Response) => {
+    try {
+        const userId = req.params.userId;
+
+        const [result] = await pool.execute(
+            `   SELECT  r.user_id as userId,
+                        r.category_id as categoryId,
+                        r.score as score
+                FROM rankings r
+                WHERE r.user_id = ?
+            `
+            , [userId])
+        if ((result as any[]).length == 0) {
+            res.status(404).json({ message: 'User ranking not found.' })
+            return;
+        }
+        res.status(200).json(result);
+    } catch (error: any) {
+        console.log('Get user rankings error', error);
+        res.status(500).json({ message: 'Get user rankings failed', error: error.message })
+    }
+}
+

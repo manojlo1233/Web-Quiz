@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { UrlService } from './url.service';
-import { User } from '../../shared/models/User';
+import { User } from '../../shared/models/User/User';
 import { Router } from '@angular/router';
 import { UserSettingsService } from '../dashboard/user-settings.service';
 
@@ -46,10 +46,6 @@ export class UserService {
     return this.http.get(`${this.url}/getUserQuizDetails/${quizId}`)
   }
 
-  getLeaderBoard(category: string) {
-    return this.http.get(`${this.url}/getLeaderBoard/${category}`)
-  }
-
   updateUserAvatar(userId: number, avatar: string) {
     const body = {
       userId,
@@ -60,5 +56,9 @@ export class UserService {
 
   getUserReports(userId: number) {
     return this.http.get(`${this.url}/getUserReports/${userId}`)
+  }
+
+  getUserRankings(userId: number) {
+    return this.http.get(`${this.url}/getUserRankings/${userId}`)
   }
 }

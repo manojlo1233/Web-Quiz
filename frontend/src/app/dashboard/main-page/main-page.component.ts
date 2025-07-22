@@ -2,23 +2,26 @@ import { Component, OnDestroy, OnInit, ViewChild, ViewContainerRef } from '@angu
 import { Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 
-import { User } from '../../shared/models/User';
+import { User } from '../../shared/models/User/User';
 import { UserService } from '../../services/shared/user.service';
-import { Statistic } from '../../shared/models/Statistic';
-import { QuizPlayed } from '../../shared/models/QuizPlayed';
+import { Statistic } from '../../shared/models/User/Statistic';
+import { QuizPlayed } from '../../shared/models/Quiz/QuizPlayed';
 import { UtilService } from '../../services/shared/util.service';
 import { QuizDetailsComponent } from '../quiz-details/quiz-details.component';
 import { WebsocketService } from '../../services/quiz/websocket.service';
-import { WSMatchFoundMsg } from '../../shared/models/WSMatchFoundMsg';
+import { WSMatchFoundMsg } from '../../shared/models/WebSocket/WSMatchFoundMsg';
 import { MatchStateService } from '../../services/quiz/match-state.service';
-import { Friend } from '../../shared/models/Friend';
-import { Leaderboard } from '../../shared/models/Leaderboard';
+import { Friend } from '../../shared/models/Shared/Friend';
+import { Leaderboard } from '../../shared/models/Shared/Leaderboard';
 import { AppComponent } from '../../app.component';
 import { FriendsService } from '../../services/friends/friends.service';
 import { SnackBarService } from '../../services/shared/snack-bar.service';
 import { NotificationService } from '../../services/shared/notification.service';
 import { ConfirmService } from '../../services/shared/confirm.service';
-import { Category } from '../../shared/models/Category';
+import { Category } from '../../shared/models/Shared/Category';
+import { UrlService } from '../../services/shared/url.service';
+import { UserRanking } from '../../shared/models/User/UserRanking';
+import { Paginator } from '../../shared/models/Util/Paginator';
 
 
 @Component({
@@ -40,7 +43,9 @@ export class MainPageComponent implements OnInit, OnDestroy {
     private snackBarService: SnackBarService,
     private notificationService: NotificationService,
     private confirmService: ConfirmService,
+    private urlService: UrlService
   ) {
+    this.staticUrl = urlService.staticUrl;
     this.errorSub = this.wsService.error$.subscribe((msg) => {
       this.errorMessage = msg;
       this.matchmakingLbl = 'Battle'
@@ -48,6 +53,9 @@ export class MainPageComponent implements OnInit, OnDestroy {
       console.error('Error: ', msg)
     })
   }
+
+  staticUrl: string;
+
   user: User = new User();
   userStatistic: Statistic = new Statistic();
   userPlayHistory: QuizPlayed[] = [];
@@ -109,9 +117,8 @@ export class MainPageComponent implements OnInit, OnDestroy {
   // AVATARS
   showAvailableAvatars: boolean = false;
 
-  // TABLE
-  pageSize = 10;
-  currentPage = 1;
+  // PAGINATOR
+  battleHistoryPaginator: Paginator = new Paginator(this.userPlayHistory, 10);
 
   // NEWS
   news = [
@@ -136,9 +143,13 @@ export class MainPageComponent implements OnInit, OnDestroy {
   newsIntervalId: any;
 
   // COLORS
-
   iconPrevPageColor: string = 'var(--theme-color-neutral-2)';
   iconNextPageColor: string = 'white';
+
+  // RANKS
+  allRanks: any[] = [];
+  userRankings: UserRanking[] = [];
+  userRanking: UserRanking = new UserRanking();
 
   ngOnInit(): void {
     const userId = Number.parseInt(sessionStorage.getItem('userId'));
@@ -182,6 +193,9 @@ export class MainPageComponent implements OnInit, OnDestroy {
           }
         });
         this.userPlayHistory = ret;
+        this.battleHistoryPaginator.array = this.userPlayHistory.map(elem => {
+          return { ...elem, }
+        });
       },
       error: (error: any) => {
         console.error(error)
@@ -280,9 +294,35 @@ export class MainPageComponent implements OnInit, OnDestroy {
       }
       this.user.banned_until = data.banned_until;
     })
-
     // --------- NEWS ---------
     this.startNewsAutoSlide();
+    // --------- RANKS ---------
+    this.utilService.getAllRanks().subscribe({ // GET ALL RANKS
+      next: (resp: any) => {
+        this.allRanks = resp;
+        this.userService.getUserRankings(userId).subscribe({ // GET USER RANKING
+          next: (resp: any) => {
+            this.userRankings = resp;
+            this.getUserRanking();
+          }
+        })
+      }
+    })
+  }
+
+  get userRank() {
+    if (this.allRanks.length === 0) return '';
+    for (let i = this.allRanks.length - 1; i >= 0; i--) {
+      if (this.userRanking.score >= this.allRanks[i].score) {
+        return this.allRanks[i].rank;
+      }
+    }
+    return this.allRanks[0].rank;
+  }
+
+  getUserRanking() {
+    const categoryId = this.allCategories.find(c => c.name === this.searchCategory).id;
+    this.userRanking = this.userRankings.filter(r => r.categoryId === categoryId)[0];
   }
 
   getFriends(userId: number) {
@@ -316,6 +356,12 @@ export class MainPageComponent implements OnInit, OnDestroy {
             }
           }
         })
+        this.friends.forEach(oldFriend => { // DELETE IF USER IS NO LONGER FRIEND
+          if (friendsNew.filter(f => f.friendId === oldFriend.friendId).length === 0) {
+            const index = this.friends.findIndex(el => el.friendId === oldFriend.friendId);
+            this.friends.splice(index, 1);
+          }
+        })
         this.friendsRequest = resp.filter(f => !f.accepted && f.userIdSent !== userId);
       },
       error: (error: any) => {
@@ -328,7 +374,7 @@ export class MainPageComponent implements OnInit, OnDestroy {
 
   getLeaderboard() {
     this.leaderBoardLoading = true;
-    this.userService.getLeaderBoard(this.leaderBoardCategory).subscribe({
+    this.utilService.getLeaderBoard(this.leaderBoardCategory).subscribe({
       next: (resp: any) => {
         this.leaderbaord = resp;
         this.leaderBoardLoading = false;
@@ -376,12 +422,15 @@ export class MainPageComponent implements OnInit, OnDestroy {
     this.timerInterval = setInterval(() => {
       this.secondsElapsed++;
       this.updateFormattedTime();
+      if (this.secondsElapsed === 20) {
+        this.wsService.relaxMatchmaking(this.user.id, this.user.username, this.searchCategory, this.userRanking.score);
+      }
     }, 1000)
-    this.wsService.joinMatchmaking(this.user.id, this.user.username, this.searchCategory);
+    this.wsService.joinMatchmaking(this.user.id, this.user.username, this.searchCategory, this.userRanking.score);
   }
 
   stopBattleSearch() {
-    this.wsService.cancelMatchmaking(this.user.username, this.searchCategory);
+    this.wsService.cancelMatchmaking(this.user.username);
     this.matchmakingLbl = 'Battle'
     this.isSearching = false;
     clearInterval(this.timerInterval);
@@ -466,7 +515,12 @@ export class MainPageComponent implements OnInit, OnDestroy {
     this.friendsService.acceptFriendRequest(this.user.id, friend.friendId).subscribe({
       next: (resp: any) => {
         this.friendsRequest = this.friendsRequest.filter(f => f.friendId !== friend.friendId);
-        this.friends.push(friend)
+        if (friend.online) {
+          this.friends.unshift(friend)
+        }
+        else {
+          this.friends.push(friend)
+        }
         this.snackBarService.showSnackBar(resp.message);
       },
       error: (error: any) => {
@@ -550,7 +604,7 @@ export class MainPageComponent implements OnInit, OnDestroy {
     this.matchmakingLbl = 'Battle'
     this.isSearching = false;
     clearInterval(this.timerInterval);
-    this.wsService.cancelMatchmaking(this.user.username, this.searchCategory);
+    this.wsService.cancelMatchmaking(this.user.username);
     this.wsService.sendBattleAccept(this.user.id, friend.friendId);
   }
 
@@ -594,44 +648,6 @@ export class MainPageComponent implements OnInit, OnDestroy {
     }
   }
 
-  // ---------------- TABLE ----------------
-  get filteredData(): any[] {
-    return this.userPlayHistory.slice((this.currentPage - 1) * this.pageSize, this.currentPage * this.pageSize);
-  }
-
-  get totalPages(): number {
-    return Math.ceil(
-      this.userPlayHistory.length / this.pageSize
-    );
-  }
-
-  changePage(delta: number) {
-    const newPage = this.currentPage + delta;
-    if (newPage > 0 && newPage <= this.totalPages) {
-      this.currentPage = newPage;
-    }
-    if (this.currentPage === 1) {
-      this.iconPrevPageColor = 'var(--theme-color-neutral-2)'
-    }
-    else {
-      this.iconPrevPageColor = 'white';
-    }
-    if (this.currentPage === this.totalPages) {
-      this.iconNextPageColor = 'var(--theme-color-neutral-2)'
-    }
-    else {
-      this.iconPrevPageColor = 'white';
-    }
-  }
-
-  firstPage() {
-    this.currentPage = 1;
-  }
-
-  lastPage() {
-    this.currentPage = this.totalPages;
-  }
-
   // ---------------- NEWS ----------------
   startNewsAutoSlide() {
     this.newsIntervalId = setInterval(() => this.nextNewsSlide(), 5000);
@@ -658,6 +674,7 @@ export class MainPageComponent implements OnInit, OnDestroy {
     if (this.battleAutoWithdrawSub) this.battleAutoWithdrawSub.unsubscribe();
     if (this.adminUserDeletedSub) this.adminUserDeletedSub.unsubscribe();
     if (this.adminUserBannedSub) this.adminUserBannedSub.unsubscribe();
+    if (this.timerInterval) clearInterval(this.timerInterval);
     if (this.newsIntervalId) clearInterval(this.newsIntervalId);
   }
 }

@@ -1,7 +1,8 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { UrlService } from '../shared/url.service';
+import { WebsocketService } from '../quiz/websocket.service';
 
 @Injectable({
   providedIn: 'root'
@@ -10,8 +11,9 @@ export class AuthService {
   private url: string;
   constructor(
     private http: HttpClient,
-    private urlService: UrlService
-  ) { 
+    private urlService: UrlService,
+    private wsService: WebsocketService
+  ) {
     this.url = `${urlService.url}/users`;
   }
 
@@ -37,12 +39,17 @@ export class AuthService {
     return this.http.post(`${this.url}/registerUser`, body);
   }
 
+  logoutUser() {
+    this.wsService.close();
+    return this.http.post(`${this.url}/logoutUser`, {});
+  }
+
   requestPasswordReset(email) {
     return this.http.post(`${this.url}/requestPasswordReset`, { email })
   }
 
   resetPassword(token, password) {
-    return this.http.post(`${this.url}/resetPassword`, {token, password});
+    return this.http.post(`${this.url}/resetPassword`, { token, password });
   }
 
 }

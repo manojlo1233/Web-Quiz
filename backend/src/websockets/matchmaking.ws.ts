@@ -5,9 +5,12 @@ import { QuizQuestion } from '../models/Quiz/QuizQuestion';
 import pool, { getAllCategoriesFromDB, updateUserStatisticsAndRanking } from '../config/db';
 import { QuizAnswer } from '../models/Quiz/QuizAnswer';
 import { BattleStatusMapper } from '../mappers/BattleStatusMapper';
-import { clearIntervalFromMap } from '../util/util';
+import { clearIntervalFromMap, findUserIdByToken } from '../util/util';
 import ranks from '../public/ranking/ranks.json'
+import url from 'url';
 const categoryRankWaitingLists = new Map<string, Map<number, WebSocket[]>>();
+
+export const userSessions = new Map<string, string>();
 
 let adminsWebSockets: WebSocket[] = []; // ALL ACTIVE ADMINS USING ADMIN PAGE
 let usersWebSockets: WebSocket[] = []; // ALL ACTIVE USERS
@@ -42,7 +45,16 @@ export default function initWebSocketServer(server: Server) {
     initFriendsOnlineStatusBroadcast();
     initWaitingLists();
 
-    wss.on('connection', (ws) => {
+    wss.on('connection', (ws, req) => {
+        const query = url.parse(req.url!, true).query;
+        const token = query.token as string;
+        const userId = findUserIdByToken(token);
+        
+        if (!userId) {
+            ws.close();
+            return;
+        }
+
         ws.on('message', async (message) => {
             const data = JSON.parse(message.toString());
             if (data.type === 'USER_SUBSCRIBE') {
@@ -841,16 +853,6 @@ export function checkUserFriendsOnlineStatus(userFriends: any[]): any[] {
         }
     });
     return userFriends;
-}
-
-export function checkIfUserSessionExists(userId: number): boolean {
-    let ret = false;
-    usersWebSockets.forEach(ws => {
-        if ((ws as any).id === userId) {
-            ret = true;
-        }
-    });
-    return ret;
 }
 
 export function isUserOnline(userId: number): boolean {

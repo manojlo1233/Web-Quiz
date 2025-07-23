@@ -10,6 +10,7 @@ import quizRouter from './routes/quiz.rouites';
 import path from 'path';
 import utilRouter from './routes/util.routes';
 import adminRouter from './routes/admin.routes';
+import { authenticate } from './middleware/authenticate';
 
 
 dotenv.config();        // Omogućava da koristimo npr. process.env.DB_HOST

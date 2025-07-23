@@ -40,7 +40,8 @@ export class WebsocketService {
   public refreshFriendsStatus$ = new Subject<void>();
 
   connect(): void {
-    this.socket = new WebSocket('ws://localhost:3000');
+    const sessionToken = sessionStorage.getItem('sessionToken');
+    this.socket = new WebSocket(`ws://localhost:3000?token=${sessionToken}`);
 
     this.socket.onopen = () => {
       this.connectionOpen$.next();

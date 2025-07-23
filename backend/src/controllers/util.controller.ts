@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
-import { getAvailableAvatarsUtil } from "../util/util";
+import { getAvailableAvatarsUtil } from "../util/avatar";
 import pool, { getAllCategoriesFromDB } from "../config/db";
+
 
 export const getAvailableAvatars = async (req: Request, res: Response) => {
     try {

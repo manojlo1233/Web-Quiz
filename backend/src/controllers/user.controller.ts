@@ -7,9 +7,10 @@ import nodemailer from 'nodemailer'
 import { User } from "../models/User";
 import { UserPlayHistory } from "../models/UserPlayHistory";
 import { QuizDetailsQuestion } from "../models/QuizDetailsQuestion";
-import { checkIfUserSessionExists } from "../websockets/matchmaking.ws";
+import { userSessions } from "../websockets/matchmaking.ws";
+import { generateSessionToken } from "../util/util";
 
-export const loginUser = async (req: Request, res: Response) => {
+export const loginUser = async (req: Request, res) => {
     const { userNameOrEmail, password } = req.body;
     try {
         const [rows] = await pool.execute(
@@ -27,11 +28,14 @@ export const loginUser = async (req: Request, res: Response) => {
             return
         }
 
-        const userSessionExists = checkIfUserSessionExists(user.id);
-        if (userSessionExists) {
-            res.status(403).json({ message: 'You are already logged in on different device. Please log out from that device to continue.' });
-            return;
+        const existingSessionToken = userSessions.get(user.id.toString());
+        if (existingSessionToken) {
+            return res.status(403).json({
+                message: 'You are already logged in on another device.',
+            });
         }
+        const sessionToken = generateSessionToken();
+        userSessions.set(user.id.toString(), sessionToken);
 
         const [loginResult] = await pool.execute(
             `UPDATE users u
@@ -43,7 +47,7 @@ export const loginUser = async (req: Request, res: Response) => {
             res.status(404).json({ message: 'Login error' });
         }
 
-        res.status(200).json({ message: 'success', user: { id: user.id, username: user.username } });
+        res.status(200).json({ message: 'success', user: { id: user.id, username: user.username }, sessionToken });
     } catch (error: any) {
         console.log('Login error', error);
         res.status(500).json({ message: 'Login failed', error: error.message });
@@ -114,6 +118,30 @@ export const registerUser = async (req: Request, res: Response) => {
         res.status(500).json({ message: 'Registration failed', error: error.message })
     }
 }
+
+export const logoutUser = async (req: Request, res) => {
+    const token = req.headers['authorization']?.replace('Bearer ', '');
+
+    if (!token) {
+        return res.status(400).json({ message: 'No token provided' });
+    }
+
+    let userIdToRemove: string | null = null;
+    for (const [userId, sessionToken] of userSessions.entries()) {
+        if (sessionToken === token) {
+            userIdToRemove = userId;
+            break;
+        }
+    }
+
+    if (!userIdToRemove) {
+        return res.status(401).json({ message: 'Invalid session token' });
+    }
+
+    userSessions.delete(userIdToRemove);
+
+    return res.status(200).json({ message: 'Logout successful' });
+};
 
 export const requestPasswordReset = async (req: Request, res: Response) => {
     try {

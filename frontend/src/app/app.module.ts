@@ -1,6 +1,6 @@
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
-import { provideHttpClient } from '@angular/common/http';
+import { HTTP_INTERCEPTORS, HttpClientModule } from '@angular/common/http';
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
@@ -33,6 +33,7 @@ import { ShowMessageComponent } from './shared/components/show-message/show-mess
 import { ReportComponent } from './shared/components/report/report.component';
 import { UserReportsComponent } from './admin/user-reports/user-reports.component';
 import { NewsCarouselComponent } from './dashboard/news-carousel/news-carousel.component';
+import { AuthInterceptorService } from './services/auth/auth-interceptor.service';
 
 
 @NgModule({
@@ -70,9 +71,12 @@ import { NewsCarouselComponent } from './dashboard/news-carousel/news-carousel.c
     BrowserModule,
     AppRoutingModule,
     FormsModule,
-    BrowserAnimationsModule
+    BrowserAnimationsModule,
+    HttpClientModule
   ],
-  providers: [provideHttpClient()],
+  providers: [
+    {provide: HTTP_INTERCEPTORS, useClass: AuthInterceptorService, multi: true}
+  ],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

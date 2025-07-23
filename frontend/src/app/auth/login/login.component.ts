@@ -28,6 +28,7 @@ export class LoginComponent {
         console.log(resp);
         sessionStorage.setItem('userId', resp.user.id);
         sessionStorage.setItem('userUsername', resp.user.username);
+        sessionStorage.setItem('sessionToken', resp.sessionToken);
         this.router.navigate(['dashboard/main-page']);
       },
       error: (error: any) => {

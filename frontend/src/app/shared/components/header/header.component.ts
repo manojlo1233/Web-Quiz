@@ -1,7 +1,6 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
-import { UserSettingsService } from '../../../services/dashboard/user-settings.service';
 import { Router } from '@angular/router';
-import { WebsocketService } from '../../../services/quiz/websocket.service';
+import { AuthService } from '../../../services/auth/auth.service';
 
 @Component({
   selector: 'app-header',
@@ -13,8 +12,7 @@ export class HeaderComponent {
   @Output() handleIconClick = new EventEmitter<string>();
   constructor(
     private router: Router,
-    private userSettingsService: UserSettingsService,
-    private wsService: WebsocketService
+    private authService: AuthService
   ) { }
 
   handleNotificationClick() {
@@ -30,7 +28,9 @@ export class HeaderComponent {
   }
 
   handleLogoutClick() {
-    this.wsService.close();
-    this.router.navigate([''])
+    this.authService.logoutUser().subscribe(res => {
+      localStorage.removeItem('sessionToken');
+      this.router.navigate([''])
+    })
   }
 }

@@ -100,7 +100,7 @@
                 <div class="category">
                     <label>Category</label>
                     <select class="select-light" [(ngModel)]="searchCategory" id="category" name="category"
-                        [disabled]="isSearching || user.banned_until !== null">
+                        [disabled]="isSearching || user.banned_until !== null" (change)="onSearchCategoryCelect()">
                         <option style="cursor: pointer;" *ngFor="let cat of allCategories" [value]="cat.name">
                             {{cat.name}}
                         </option>

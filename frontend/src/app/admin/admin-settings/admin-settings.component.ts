@@ -189,8 +189,18 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
           new QuizAnswer(0, this.newAnswer3, this.newCorrectAnswer === 3),
           new QuizAnswer(0, this.newAnswer4, this.newCorrectAnswer === 4)
         ];
+        const question = new QuizQuestion();
+        question.category_id = categoryId;
+        question.text = this.newQuestionText;
+        question.description = this.newQuestionDescription;
+        question.difficulty = this.selectedDifficultyNew;
+        question.answers = answers;
         this.adminService.addQuestion(this.newQuestionText, this.newQuestionDescription, categoryId, this.selectedDifficultyNew, answers).subscribe({
           next: (resp: any) => {
+            question.id = resp.questionId;
+            this.allQuestions.push(question);
+            this.sortQuestionsByDifficulty();
+            this.updateQuestionPaginator();
             this.snackBarService.showSnackBar(resp.message);
           },
           error: (error: any) => {
@@ -373,6 +383,8 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
           this.updateQuestionLocal();
           this.editQuestion = false;
           this.questionsPaginator.searchText = '';
+          this.sortQuestionsByDifficulty();
+          this.updateQuestionPaginator();
         },
         error: (error: any) => {
           this.snackBarService.showSnackBar(error.message);
@@ -397,7 +409,6 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
     question.text = this.editQuestionText;
     question.description = this.editQuestionDescription;
     question.difficulty = Number.parseInt(this.selectedDifficultyEdit.toString()); // Iz nekog razloga je difficulty upisivao kao string pa je ovo pokusaj kastovanja u number, iako je vec bio unmber...
-    console.log(question)
   }
 
   handleCancelEdit() {
@@ -423,7 +434,10 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
       this.adminService.deleteQuestion(question.id).subscribe({
         next: (resp: any) => {
           this.snackBarService.showSnackBar(resp.message);
-          this.allQuestions = this.allQuestions.filter(q => q.id !== question.id);
+          const index = this.allQuestions.findIndex(q => q.id === question.id);
+          if (index) {
+            this.allQuestions.splice(index, 1);
+          }
           this.updateQuestionPaginator();
         },
         error: (error: any) => {
@@ -458,6 +472,7 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
         next: (resp: any) => {
           this.snackBarService.showSnackBar(resp.message);
           this.allCategories = this.allCategories.filter(c => c.name !== item.name);
+          this.updateCategoriesPaginator();
         },
         error: (error: any) => {
           // SHOW ERROR PAGE
@@ -473,6 +488,7 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
           const { categoryId, message } = resp;
           this.snackBarService.showSnackBar(message);
           this.allCategories.push(new Category(categoryId, this.newCategoryText));
+          this.updateCategoriesPaginator();
         },
         error: (error: any) => {
           // SHOW ERROR PAGE
@@ -483,6 +499,14 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
 
   clearCategoryText() {
     this.newCategoryText = '';
+  }
+
+  updateCategoriesPaginator() {
+    this.categoriesPaginator.array = this.allCategories;
+  }
+
+  sortQuestionsByDifficulty() {
+    this.allQuestions.sort((a, b) => a.difficulty - b.difficulty);
   }
 
   ngOnDestroy(): void {

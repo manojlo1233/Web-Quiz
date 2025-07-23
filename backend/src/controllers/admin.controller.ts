@@ -107,7 +107,7 @@ export const addQuestion = async (req: Request, res: Response) => {
             res.status(500).json({ message: 'addQuestion failed' })
             return;
         }
-        res.status(200).json({ message: 'Question successfully added.' });
+        res.status(200).json({ message: 'Question successfully added.', questionId });
     } catch (error: any) {
         console.log('Add question error', error);
         res.status(500).json({ message: 'Add question failed', error: error.message })

@@ -134,10 +134,6 @@ export const logoutUser = async (req: Request, res) => {
         }
     }
 
-    if (!userIdToRemove) {
-        return res.status(401).json({ message: 'Invalid session token' });
-    }
-
     userSessions.delete(userIdToRemove);
 
     return res.status(200).json({ message: 'Logout successful' });

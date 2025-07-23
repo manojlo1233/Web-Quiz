@@ -49,7 +49,7 @@ export default function initWebSocketServer(server: Server) {
         const query = url.parse(req.url!, true).query;
         const token = query.token as string;
         const userId = findUserIdByToken(token);
-        
+
         if (!userId) {
             ws.close();
             return;
@@ -63,6 +63,7 @@ export default function initWebSocketServer(server: Server) {
                 }
                 (ws as any).id = data.id;
                 (ws as any).username = data.username;
+                (ws as any).admin = false;
                 usersWebSockets.push(ws);
             }
             else if (data.type === 'USER_ADMIN_SUBSCRIBE') {
@@ -73,6 +74,7 @@ export default function initWebSocketServer(server: Server) {
                 }
                 (ws as any).id = data.id;
                 (ws as any).username = data.username;
+                (ws as any).admin = true;
                 adminsWebSockets.push(ws);
             }
             // ----------------- BATTLE -----------------
@@ -345,7 +347,7 @@ export default function initWebSocketServer(server: Server) {
 
             async function startMatch(match: Match) {
                 match.status = 'started';
-                const middleScore = Math.floor(((match.player1.sock as any).score + (match.player2.sock as any).score)/2);
+                const middleScore = Math.floor(((match.player1.sock as any).score + (match.player2.sock as any).score) / 2);
                 const questions = await getRandomQuestions(5, match.category, middleScore);
                 matchQuestions.set(match.matchId, questions);
                 insertIntoQuizQuestions(match, questions);
@@ -778,14 +780,18 @@ export default function initWebSocketServer(server: Server) {
         });
 
         ws.on('close', () => {
-            categoryRankWaitingLists.forEach(rankList => {
-                rankList.forEach(waitingList => {
-                    const index = waitingList.indexOf(ws);
-                    if (index !== -1) {
-                        waitingList.splice(index, 1);
-                    }
-                })
-            });
+            if (!(ws as any).admin) {
+                categoryRankWaitingLists.forEach(rankList => {
+                    rankList.forEach(waitingList => {
+                        const index = waitingList.indexOf(ws);
+                        if (index !== -1) {
+                            waitingList.splice(index, 1);
+                        }
+                    })
+                });
+                const userId: number = (ws as any).id;
+                userSessions.delete(userId.toString());
+            }
             usersWebSockets = usersWebSockets.filter(sock => sock !== ws);
             adminsWebSockets = adminsWebSockets.filter(sock => sock !== ws);
         });

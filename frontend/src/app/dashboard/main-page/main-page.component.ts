@@ -157,7 +157,6 @@ export class MainPageComponent implements OnInit, OnDestroy {
     this.userService.getUserById(userId).subscribe({
       next: (resp: User) => {
         this.user = resp;
-        console.log(this.user);
         this.wsService.connect();
         if (this.connectionSub) this.connectionSub.unsubscribe();
         this.connectionSub = this.wsService.connectionOpen$.subscribe(() => {
@@ -323,6 +322,10 @@ export class MainPageComponent implements OnInit, OnDestroy {
   getUserRanking() {
     const categoryId = this.allCategories.find(c => c.name === this.searchCategory).id;
     this.userRanking = this.userRankings.filter(r => r.categoryId === categoryId)[0];
+  }
+
+  onSearchCategoryCelect() {
+    this.getUserRanking();
   }
 
   getFriends(userId: number) {
@@ -660,6 +663,8 @@ export class MainPageComponent implements OnInit, OnDestroy {
   prevNewsSlide() {
     this.newsCurrentSlide = (this.newsCurrentSlide - 1 + this.news.length) % this.news.length;
   }
+
+
 
   ngOnDestroy(): void {
     if (this.errorSub) this.errorSub.unsubscribe();

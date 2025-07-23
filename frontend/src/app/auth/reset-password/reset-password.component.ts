@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { AuthService } from '../../services/auth/auth.service';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 
 @Component({
   selector: 'app-reset-password',
@@ -15,6 +15,7 @@ export class ResetPasswordComponent implements OnInit {
   success = false;
 
   constructor(
+    private router: Router,
     private route: ActivatedRoute,
     private authService: AuthService
   ) { }
@@ -31,6 +32,13 @@ export class ResetPasswordComponent implements OnInit {
       error: (error) => {
 
       }
+    })
+  }
+
+  goToLogin() {
+    this.authService.logoutUser().subscribe(res => {
+      sessionStorage.removeItem('sessionToken');
+      this.router.navigate([''])
     })
   }
 }

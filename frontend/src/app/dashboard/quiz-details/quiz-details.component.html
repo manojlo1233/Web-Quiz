@@ -35,7 +35,7 @@
             }" *ngFor="let q of userQuestions">
             <div class="question">
                 <label>Q: {{ q.question_text }}</label>
-                <label>Your answer: {{ q.user_answer_text }}</label>
+                <label>Answer: {{ q.user_answer_text }}</label>
                 <label *ngIf="!q.user_correct">
                     Correct answer: {{ q.correct_answer_text }}
                 </label>
@@ -65,7 +65,7 @@
             }" *ngFor="let q of opponentQuestions">
             <div class="question">
                 <label>Q: {{ q.question_text }}</label>
-                <label>Your answer: {{ q.user_answer_text }}</label>
+                <label>Answer: {{ q.user_answer_text }}</label>
                 <label *ngIf="!q.user_correct">
                     Correct answer: {{ q.correct_answer_text }}
                 </label>

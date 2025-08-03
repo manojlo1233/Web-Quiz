@@ -228,14 +228,7 @@ export class MainPageComponent implements OnInit, OnDestroy {
       this.getFriends(userId);
     })
     // --------- CATEGORIES ---------
-    this.utilService.getAllCategories().subscribe({
-      next: (resp: Category[]) => {
-        this.allCategories = resp;
-      },
-      error: (error: any) => {
-        // SHOW ERROR PAGE
-      }
-    })
+    this.getAllCategories();
     // --------- LEADERBOARD ---------
     this.getLeaderboard();
     // --------- START QUIZ ---------
@@ -375,6 +368,17 @@ export class MainPageComponent implements OnInit, OnDestroy {
     })
   }
 
+  getAllCategories() {
+    this.utilService.getAllCategories().subscribe({
+      next: (resp: Category[]) => {
+        this.allCategories = resp;
+      },
+      error: (error: any) => {
+        // SHOW ERROR PAGE
+      }
+    })
+  }
+
   getLeaderboard() {
     this.leaderBoardLoading = true;
     this.utilService.getLeaderBoard(this.leaderBoardCategory).subscribe({
@@ -472,12 +476,14 @@ export class MainPageComponent implements OnInit, OnDestroy {
     if (this.searchUserText.length === 0) return;
     this.userService.getUsersByUsername(this.searchUserText, this.user.username).subscribe({
       next: (resp: any) => {
+        console.log(resp);
         this.searchUsed = true;
         let existingFriendsIDs = new Set(this.friends.map(f => f.friendId));
         this.suggestedUsers = (resp as any[]).filter(u => !existingFriendsIDs.has(u.id));
       },
       error: (error: any) => {
         this.searchUsed = true;
+        this.suggestedUsers = [];
       }
     })
   }
@@ -641,6 +647,7 @@ export class MainPageComponent implements OnInit, OnDestroy {
 
   handleRefreshLeaderboardClick(): void {
     if (!this.leaderBoardTimeout) {
+      this.getAllCategories();
       this.leaderBoardRefreshDisabled = true;
       this.getLeaderboard();
       this.leaderBoardTimeout = setTimeout(() => {

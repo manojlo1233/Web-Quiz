@@ -32,6 +32,7 @@ export class WebsocketService {
   public adminUserUnbanned$ = new Subject<any>();
   public adminUserDeleted$ = new Subject<any>();
   public adminUsersOnline$ = new Subject<void>();
+  public adminBanExpired$ = new Subject<void>();
   // BATTLE - CHAT
   public chatMessage$ = new Subject<any>();
   // FRIENDS
@@ -115,6 +116,9 @@ export class WebsocketService {
         case 'admin/USER_DELETED':
           this.adminUserDeleted$.next(data);
           break;
+        case 'admin/BAN_EXPIRED':
+          this.adminBanExpired$.next(data);
+          break;
       }
     };
 
@@ -149,7 +153,7 @@ export class WebsocketService {
   }
 
   relaxMatchmaking(userId: number, username: string, category: string, score: number): void {
-    this.send({ type: 'battle/RELAX_QUEUE', userId, username, category, score});
+    this.send({ type: 'battle/RELAX_QUEUE', userId, username, category, score });
   }
 
   cancelMatchmaking(username: string): void {

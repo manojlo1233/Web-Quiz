@@ -44,6 +44,7 @@ export default function initWebSocketServer(server: Server) {
     // INIT
     initFriendsOnlineStatusBroadcast();
     initWaitingLists();
+    initUserBanChecker();
 
     wss.on('connection', (ws, req) => {
         const query = url.parse(req.url!, true).query;
@@ -935,4 +936,39 @@ export function broadcastUserDeleted(userId: number) {
             v.player1.sock.send(payload);
         }
     })
+}
+
+export function initUserBanChecker() {
+    setInterval(async () => {
+        console.log('CHECKING BAN...')
+        const now = new Date();
+
+        const [usersToUnban] = await pool.query(
+            `SELECT id, username FROM users WHERE banned_until IS NOT NULL AND banned_until <= ?`,
+            [now]
+        );
+
+        if ((usersToUnban as any).length === 0) return;
+
+        await pool.query(
+            `UPDATE users SET banned_until = NULL WHERE banned_until <= ?`,
+            [now]
+        );
+
+        const unbannedUserList = (usersToUnban as any[]).map(u => ({
+            userId: u.id,
+            username: u.username
+        }));
+
+        adminsWebSockets.forEach(ws => {
+            unbannedUserList.forEach(user => {
+                const payload = JSON.stringify({
+                    type: 'admin/BAN_EXPIRED',
+                    ...user
+                })
+                ws.send(payload);
+            })
+
+        })
+    }, 60000)
 }

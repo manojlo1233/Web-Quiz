@@ -19,7 +19,7 @@ export class QuizService {
     return this.http.get(`${this.url}/getRandomHints`);
   }
 
-  reportUser(userIdReportTo: number, userIdReportFrom: number, reasons: string[], quizId: number) {
+  reportUser(userIdReportFrom: number, userIdReportTo: number, reasons: string[], quizId: number) {
     const body = {
       userIdReportTo,
       userIdReportFrom,

@@ -161,7 +161,7 @@ export const requestPasswordReset = async (req: Request, res: Response) => {
             [token, expires, email]
         )
 
-        const resetLink = `http://192.168.19.62:4402/auth/reset-password/${token}`
+        const resetLink = `http://localhost:4402/auth/reset-password/${token}`
 
         const transporter = nodemailer.createTransport({
             service: 'gmail',

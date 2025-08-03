@@ -19,3 +19,4 @@ export function clearIntervalFromMap(map: Map<string, NodeJS.Timeout>, key: stri
         clearInterval(map.get(key));
     }
 }
+

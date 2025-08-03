@@ -36,6 +36,7 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
   private adminUserBannedSub: Subscription;
   private adminUserUnbannedSub: Subscription;
   private adminUserDeletedSub: Subscription;
+  private adminBanExpired: Subscription;
 
   // TAB
   selectedTab: string = 'Edit'
@@ -177,6 +178,12 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
       this.allUsers = this.allUsers.filter(u => u.id !== data.userId);
       this.updateUserPaginator();
     })
+
+    this.adminBanExpired = this.wsService.adminBanExpired$.subscribe((data: any) => {
+      const user = this.allUsers.find(u => u.id === data.userId);
+      user.banned_until = null;
+      this.updateUserPaginator();
+    })
   }
 
   handleAddQuestion() {
@@ -193,7 +200,7 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
         question.category_id = categoryId;
         question.text = this.newQuestionText;
         question.description = this.newQuestionDescription;
-        question.difficulty = this.selectedDifficultyNew;
+        question.difficulty = Number.parseInt(this.selectedDifficultyNew.toString());
         question.answers = answers;
         this.adminService.addQuestion(this.newQuestionText, this.newQuestionDescription, categoryId, this.selectedDifficultyNew, answers).subscribe({
           next: (resp: any) => {
@@ -513,6 +520,7 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
     if (this.adminUserBannedSub) this.adminUserBannedSub.unsubscribe();
     if (this.adminUserUnbannedSub) this.adminUserUnbannedSub.unsubscribe();
     if (this.adminUserDeletedSub) this.adminUserDeletedSub.unsubscribe();
+    if (this.adminBanExpired) this.adminBanExpired.unsubscribe();
   }
 
 }

@@ -149,7 +149,7 @@ export const requestPasswordReset = async (req: Request, res: Response) => {
 
         const [users] = await pool.execute('SELECT * FROM users WHERE email = ?', [email]);
         if ((users as any[]).length === 0) {
-            res.status(400).json({ message: 'Email not found' });
+            res.status(404).json({ message: 'Email not found' });
             return;
         }
 
@@ -188,6 +188,7 @@ export const requestPasswordReset = async (req: Request, res: Response) => {
 export const resetPassword = async (req: Request, res: Response) => {
     try {
         const { token, password } = req.body;
+        console.log(token, password)
         if (!token || !password) {
             res.status(400).json({ message: 'Invalid data' });
             return;

@@ -41,7 +41,6 @@ export class RegisterComponent implements OnInit {
   benefits: string[] = [
     "Interactive learning experiences that help you explore new topics.",
     "Knowledge-based challenges and competitions to test your skills.",
-    "Fun mini-games and animations that make learning engaging and enjoyable.",
     "A community of curious minds, just like you."
   ]
 

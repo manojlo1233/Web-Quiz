@@ -940,7 +940,6 @@ export function broadcastUserDeleted(userId: number) {
 
 export function initUserBanChecker() {
     setInterval(async () => {
-        console.log('CHECKING BAN...')
         const now = new Date();
 
         const [usersToUnban] = await pool.query(

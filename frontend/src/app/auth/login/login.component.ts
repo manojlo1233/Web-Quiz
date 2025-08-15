@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { AuthService } from '../../services/auth/auth.service';
 import { SnackBarService } from '../../services/shared/snack-bar.service';
@@ -10,7 +10,7 @@ import { UserService } from '../../services/shared/user.service';
   templateUrl: './login.component.html',
   styleUrl: './login.component.css'
 })
-export class LoginComponent {
+export class LoginComponent implements OnInit {
 
   constructor(
     private authService: AuthService,
@@ -21,6 +21,10 @@ export class LoginComponent {
 
   usernameOrEmail: string = '';
   password: string = '';
+
+  ngOnInit(): void {
+    sessionStorage.clear();
+  }
 
   onSubmit() {
     this.authService.loginUser(this.usernameOrEmail, this.password).subscribe({

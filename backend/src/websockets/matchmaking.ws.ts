@@ -1,13 +1,15 @@
 import { WebSocketServer, WebSocket } from 'ws';
 import { Server } from 'http';
+import url from 'url';
+import pool, { getAllCategoriesFromDB, updateUserStatisticsAndRanking } from '../config/db';
 import { Match } from '../models/Match';
 import { QuizQuestion } from '../models/Quiz/QuizQuestion';
-import pool, { getAllCategoriesFromDB, updateUserStatisticsAndRanking } from '../config/db';
 import { QuizAnswer } from '../models/Quiz/QuizAnswer';
 import { BattleStatusMapper } from '../mappers/BattleStatusMapper';
 import { clearIntervalFromMap, findUserIdByToken } from '../util/util';
+import { ACTION_TYPE, WS_MESSAGES_TYPE } from '../util/types';
 import ranks from '../public/ranking/ranks.json'
-import url from 'url';
+
 const categoryRankWaitingLists = new Map<string, Map<number, WebSocket[]>>();
 
 export const userSessions = new Map<string, string>();
@@ -21,12 +23,6 @@ const matchQuestions: Map<string, QuizQuestion[]> = new Map();
 const answerSummaryIdleTimeout: Map<string, NodeJS.Timeout> = new Map();
 
 const battleRequestTimeout: Map<string, NodeJS.Timeout> = new Map();
-
-const ACTION_TYPE = {
-    HIDE_2_WRONG_ANSWERS: 0,
-    HALF_THE_TIME_OPPONENT: 1,
-    DOUBLE_NEGATIVE_POINTS_OPPONENT: 2,
-}
 
 async function initWaitingLists() {
     const categories = await getAllCategoriesFromDB();
@@ -58,7 +54,7 @@ export default function initWebSocketServer(server: Server) {
 
         ws.on('message', async (message) => {
             const data = JSON.parse(message.toString());
-            if (data.type === 'USER_SUBSCRIBE') {
+            if (data.type === WS_MESSAGES_TYPE.USER_SUBSCRIBE) {
                 if (usersWebSockets.filter(ws => (ws as any).username === data.username).length !== 0) {
                     usersWebSockets = usersWebSockets.filter(ws => (ws as any).username !== data.username)
                 }
@@ -67,7 +63,7 @@ export default function initWebSocketServer(server: Server) {
                 (ws as any).admin = false;
                 usersWebSockets.push(ws);
             }
-            else if (data.type === 'USER_ADMIN_SUBSCRIBE') {
+            else if (data.type === WS_MESSAGES_TYPE.USER_ADMIN_SUBSCRIBE) {
                 if (adminsWebSockets.filter(ws => (ws as any).username === data.username).length !== 0) {
                     const sock = adminsWebSockets.filter(ws => (ws as any).username === data.username)[0];
                     sock.close();
@@ -79,7 +75,7 @@ export default function initWebSocketServer(server: Server) {
                 adminsWebSockets.push(ws);
             }
             // ----------------- BATTLE -----------------
-            else if (data.type === 'battle/JOIN_QUEUE') {
+            else if (data.type === WS_MESSAGES_TYPE.battle_JOIN_QUEUE) {
                 const waitingList = findWaitingList(data.category, data.score);
                 if (waitingList.filter(ws => (ws as any).username === data.username).length !== 0) { // Avoid adding same players to waitinList
                     return;
@@ -97,7 +93,7 @@ export default function initWebSocketServer(server: Server) {
                     createMatch(p1, p2, data.category);
                 }
             }
-            else if (data.type === 'battle/RELAX_QUEUE') {
+            else if (data.type === WS_MESSAGES_TYPE.battle_RELAX_QUEUE) {
                 const category = data.category;
                 const score = data.score;
                 const username = data.username;
@@ -132,25 +128,25 @@ export default function initWebSocketServer(server: Server) {
                     }
                 }
             }
-            else if (data.type === 'battle/LEAVE_QUEUE') {
+            else if (data.type === WS_MESSAGES_TYPE.battle_LEAVE_QUEUE) {
                 removeUserFromWaitingLists(data.username);
             }
-            else if (data.type === 'battle/READY') {
+            else if (data.type === WS_MESSAGES_TYPE.battle_READY) {
                 const match = activeMatches.get(data.matchId);
                 if (!match) return;
                 if (data.username === match.player1.username) {
                     match.player1.ready = true;
-                    match.player2.sock.send(JSON.stringify({ type: 'battle/READY_STATUS', username: match.player1.username, matchId: match.matchId }))
+                    match.player2.sock.send(JSON.stringify({ type: WS_MESSAGES_TYPE.battle_READY_STATUS, username: match.player1.username, matchId: match.matchId }))
                 }
                 if (data.username === match.player2.username) {
                     match.player2.ready = true;
-                    match.player1.sock.send(JSON.stringify({ type: 'battle/READY_STATUS', username: match.player2.username, matchId: match.matchId }))
+                    match.player1.sock.send(JSON.stringify({ type: WS_MESSAGES_TYPE.battle_READY_STATUS, username: match.player2.username, matchId: match.matchId }))
                 }
                 if (match.player1.ready && match.player2.ready && match.status === 'ready') {
                     startMatch(match);
                 }
             }
-            else if (data.type === 'battle/DECLINE') {
+            else if (data.type === WS_MESSAGES_TYPE.battle_DECLINE) {
                 const match = activeMatches.get(data.matchId);
                 if (!match) return;
                 deleteMatchFromDB(match);
@@ -158,12 +154,12 @@ export default function initWebSocketServer(server: Server) {
                 activeMatches.delete(match.matchId);
                 clearTimeout(matchStartTimeout.get(match.matchId));
                 matchStartTimeout.delete(match.matchId)
-                const payload = JSON.stringify({ type: 'battle/MATCH_DECLINED', username: data.username })
+                const payload = JSON.stringify({ type: WS_MESSAGES_TYPE.battle_MATCH_DECLINED, username: data.username })
 
                 match.player1.sock.send(payload);
                 match.player2.sock.send(payload);
             }
-            else if (data.type === 'battle/PLAYER_ENTERED_BATTLE') {
+            else if (data.type === WS_MESSAGES_TYPE.battle_PLAYER_ENTERED_BATTLE) {
                 const match = activeMatches.get(data.matchId);
                 if (!match) return;
                 if (match.player1.username === data.username) {
@@ -176,7 +172,7 @@ export default function initWebSocketServer(server: Server) {
                     sendNextQuestion(match);
                 }
             }
-            else if (data.type === 'battle/ANSWER') {
+            else if (data.type === WS_MESSAGES_TYPE.battle_ANSWER) {
                 const match = activeMatches.get(data.matchId);
                 if (!match) return;
                 if (match.player1.username === data.username) {
@@ -195,7 +191,7 @@ export default function initWebSocketServer(server: Server) {
                     sendAnswerSummary(match)
                 }
             }
-            else if (data.type === 'battle/CHAT_MESSAGE') {
+            else if (data.type === WS_MESSAGES_TYPE.battle_CHAT_MESSAGE) {
                 const match = activeMatches.get(data.matchId);
                 if (!match) return;
 
@@ -204,7 +200,7 @@ export default function initWebSocketServer(server: Server) {
                 const time = data.time;
 
                 const payload = JSON.stringify({
-                    type: 'battle/CHAT_MESSAGE',
+                    type: WS_MESSAGES_TYPE.battle_CHAT_MESSAGE,
                     from: senderUsername,
                     message: messageText,
                     time
@@ -214,12 +210,12 @@ export default function initWebSocketServer(server: Server) {
                 match.player1.sock.send(payload);
                 match.player2.sock.send(payload);
             }
-            else if (data.type === 'friends/BATTLE_REQUEST') {
+            else if (data.type === WS_MESSAGES_TYPE.friends_BATTLE_REQUEST) {
                 const sockCheck = usersWebSockets.filter(ws => (ws as any).id === data.friendId);
                 if (sockCheck.length === 0) return;
                 const friendSock = sockCheck[0];
                 const payload = JSON.stringify({
-                    type: 'friends/BATTLE_REQUEST',
+                    type: WS_MESSAGES_TYPE.friends_BATTLE_REQUEST,
                     friendId: data.userId
                 })
                 friendSock.send(payload);
@@ -228,7 +224,7 @@ export default function initWebSocketServer(server: Server) {
                     setTimeout(() => { // WITHDRAW BATTLE REQUEST
                         // SEND WITHDRAW TO RECEIVER
                         const payloadReceiver = JSON.stringify({
-                            type: 'friends/BATTLE_WITHDRAW',
+                            type: WS_MESSAGES_TYPE.friends_BATTLE_WITHDRAW,
                             friendId: data.userId
                         })
                         friendSock.send(payloadReceiver);
@@ -237,49 +233,49 @@ export default function initWebSocketServer(server: Server) {
                         if (sockCheck.length === 0) return;
                         const userSock = sockCheck[0];
                         const payloadSender = JSON.stringify({
-                            type: 'friends/BATTLE_AUTO_WITHDRAW',
+                            type: WS_MESSAGES_TYPE.friends_BATTLE_AUTO_WITHDRAW,
                             friendId: data.friendId
                         })
                         userSock.send(payloadSender);
                     }, 30000)
                 )
             }
-            else if (data.type === 'friends/BATTLE_ACCEPT') {
+            else if (data.type === WS_MESSAGES_TYPE.friends_BATTLE_ACCEPT) {
                 clearIntervalFromMap(battleRequestTimeout, `${data.friendId}-${data.userId}`);
                 const p1 = usersWebSockets.filter(ws => (ws as any).id === data.userId)[0];
                 const p2 = usersWebSockets.filter(ws => (ws as any).id === data.friendId)[0];
                 createMatch(p1, p2, 'General');
             }
-            else if (data.type === 'friends/BATTLE_DECLINE') {
+            else if (data.type === WS_MESSAGES_TYPE.friends_BATTLE_DECLINE) {
                 clearIntervalFromMap(battleRequestTimeout, `${data.friendId}-${data.userId}`);
                 const sockCheck = usersWebSockets.filter(ws => (ws as any).id === data.friendId);
                 if (sockCheck.length === 0) return;
                 const friendSock = sockCheck[0];
                 const payload = JSON.stringify({
-                    type: 'friends/BATTLE_DECLINE',
+                    type: WS_MESSAGES_TYPE.friends_BATTLE_DECLINE,
                     friendId: data.userId
                 })
                 friendSock.send(payload);
             }
-            else if (data.type === 'friends/BATTLE_WITHDRAW') {
+            else if (data.type === WS_MESSAGES_TYPE.friends_BATTLE_WITHDRAW) {
                 clearIntervalFromMap(battleRequestTimeout, `${data.userId}-${data.friendId}`);
                 const sockCheck = usersWebSockets.filter(ws => (ws as any).id === data.friendId);
                 if (sockCheck.length === 0) return;
                 const friendSock = sockCheck[0];
                 const payload = JSON.stringify({
-                    type: 'friends/BATTLE_WITHDRAW',
+                    type: WS_MESSAGES_TYPE.friends_BATTLE_WITHDRAW,
                     friendId: data.userId
                 })
                 friendSock.send(payload);
             }
-            else if (data.type === 'battle/LEAVE_BATTLE') {
+            else if (data.type === WS_MESSAGES_TYPE.battle_LEAVE_BATTLE) {
                 const matchId = data.matchId;
                 const playerLeftId = data.playerLeftId;
                 const match = activeMatches.get(matchId);
                 if (!match) return; // SOME KIND OF ERROR
                 finishMatch(match, playerLeftId);
             }
-            else if (data.type === 'battle/START_OVERTIME') {
+            else if (data.type === WS_MESSAGES_TYPE.battle_START_OVERTIME) {
                 const match = activeMatches.get(data.matchId);
                 if (!match) return;
                 if (match.player1.username === data.username) {
@@ -292,14 +288,14 @@ export default function initWebSocketServer(server: Server) {
                     sendNextQuestion(match);
                 }
             }
-            else if (data.type === 'battle/USER_ACTION') { // this.send({ type: 'battle/USER_ACTION', matchId, userId, action, questionId })
+            else if (data.type === WS_MESSAGES_TYPE.battle_USER_ACTION) {
                 const match = activeMatches.get(data.matchId);
                 if (!match) return;
                 const playerTo = match.player1.id !== data.userId ? match.player1 : match.player2;
                 const playerFrom = match.player1.id === data.userId ? match.player1 : match.player2;
                 playerFrom.activeAction = data.action;
                 const payload = JSON.stringify({
-                    type: '/battle/USER_ACTION',
+                    type: WS_MESSAGES_TYPE.battle_USER_ACTION,
                     action: data.action,
                 })
                 playerTo.sock.send(payload);
@@ -322,7 +318,7 @@ export default function initWebSocketServer(server: Server) {
                         match.status = 'cancelled';
                         deleteMatchFromDB(match);
                         activeMatches.delete(match.matchId);
-                        const payload = JSON.stringify({ type: 'battle/MATCH_CANCELLED' })
+                        const payload = JSON.stringify({ type: WS_MESSAGES_TYPE.battle_MATCH_CANCELLED })
                         match.player1.sock.send(payload);
                         match.player2.sock.send(payload);
                     }
@@ -331,8 +327,8 @@ export default function initWebSocketServer(server: Server) {
 
                 matchStartTimeout.set(match.matchId, timeout);
 
-                p1.send(JSON.stringify({ type: 'battle/MATCH_FOUND', opponent: match.player2.username, matchId, role: 'player1', startTimestamp: match.startTimestamp }));
-                p2.send(JSON.stringify({ type: 'battle/MATCH_FOUND', opponent: match.player1.username, matchId, role: 'player2', startTimestamp: match.startTimestamp }));
+                p1.send(JSON.stringify({ type: WS_MESSAGES_TYPE.battle_MATCH_FOUND , opponent: match.player2.username, matchId, role: 'player1', startTimestamp: match.startTimestamp }));
+                p2.send(JSON.stringify({ type: WS_MESSAGES_TYPE.battle_MATCH_FOUND, opponent: match.player1.username, matchId, role: 'player2', startTimestamp: match.startTimestamp }));
             }
 
             async function createMatchInDB(category: string): Promise<number> {
@@ -355,7 +351,7 @@ export default function initWebSocketServer(server: Server) {
                 createQuizAttempts(match)
                 createBattle(match);
                 match.currentQuestionIndex = 0;
-                const payload = JSON.stringify({ type: 'battle/MATCH_START', matchId: match.matchId })
+                const payload = JSON.stringify({ type: WS_MESSAGES_TYPE.battle_MATCH_START , matchId: match.matchId })
                 match.player1.sock.send(payload);
                 match.player2.sock.send(payload);
             }
@@ -430,7 +426,7 @@ export default function initWebSocketServer(server: Server) {
                     return;
                 }
                 const q = questions[match.currentQuestionIndex]
-                const payload = JSON.stringify({ type: 'battle/NEW_QUESTION', question: q })
+                const payload = JSON.stringify({ type: WS_MESSAGES_TYPE.battle_NEW_QUESTION, question: q })
                 match.player1.answer = null;
                 match.player2.answer = null;
                 match.player1.elapsedTime = null;
@@ -508,7 +504,7 @@ export default function initWebSocketServer(server: Server) {
                 }
 
                 const summary = {
-                    type: 'battle/ANSWER_SUMMARY',
+                    type: WS_MESSAGES_TYPE.battle_ANSWER_SUMMARY,
                     yourAnswer: match.player1.answer,
                     yourPoints: match.player1.points,
                     yourTime: match.player1.elapsedTime,
@@ -571,7 +567,7 @@ export default function initWebSocketServer(server: Server) {
                             match.status = 'overtime';
                             match.currentQuestionIndex = 0;
                             const payload = {
-                                type: 'battle/OVERTIME'
+                                type: WS_MESSAGES_TYPE.battle_OVERTIME
                             }
                             match.player1.sock.send(JSON.stringify(payload));
                             match.player2.sock.send(JSON.stringify(payload));
@@ -643,7 +639,7 @@ export default function initWebSocketServer(server: Server) {
                 updateUserStatisticsAndRanking(match.player2.id, winnerId, match.category);
 
                 const summary = {
-                    type: 'battle/MATCH_FINISHED',
+                    type: WS_MESSAGES_TYPE.battle_MATCH_FINISHED,
                     yourPoints: match.player1.points,
                     yourTime: match.player1.elapsedTime,
                     opponentPoints: match.player2.points,
@@ -837,7 +833,7 @@ function removeUserFromWaitingLists(username: string) {
 function initFriendsOnlineStatusBroadcast() {
     setInterval(() => {
         usersWebSockets.forEach(ws => {
-            ws.send(JSON.stringify({ type: 'broadcast/REFRESH_FRIENDS', id: (ws as any).id }));
+            ws.send(JSON.stringify({ type: WS_MESSAGES_TYPE.broadcast_REFRESH_FRIENDS, id: (ws as any).id }));
         })
     }, 5000);
 }
@@ -845,7 +841,7 @@ function initFriendsOnlineStatusBroadcast() {
 export function sendFriendRefreshSignal(userId: number, friendId: number, action: string) {
     if (usersWebSockets.filter(ws => (ws as any).id === friendId).length !== 0) {
         let sock = usersWebSockets.filter(ws => (ws as any).id === friendId)[0];
-        sock.send(JSON.stringify({ type: 'friends/REFRESH', action, userId }));
+        sock.send(JSON.stringify({ type: WS_MESSAGES_TYPE.friends_REFRESH, action, userId }));
     }
 }
 
@@ -876,7 +872,7 @@ export function isUserOnline(userId: number): boolean {
 
 export function broadCastUserBanned(userId: number, banned_until: string) {
     const payload = JSON.stringify({
-        type: 'admin/USER_BANNED',
+        type: WS_MESSAGES_TYPE.admin_USER_BANNED,
         userId,
         banned_until
     });
@@ -901,7 +897,7 @@ export function broadCastUserBanned(userId: number, banned_until: string) {
 
 export function broadCastUserUnbanned(userId: number) {
     const payload = JSON.stringify({
-        type: 'admin/USER_UNBANNED',
+        type: WS_MESSAGES_TYPE.admin_USER_UNBANNED,
         userId
     });
     adminsWebSockets.forEach(ws => {
@@ -916,7 +912,7 @@ export function broadCastUserUnbanned(userId: number) {
 
 export function broadcastUserDeleted(userId: number) {
     const payload = JSON.stringify({
-        type: 'admin/USER_DELETED',
+        type: WS_MESSAGES_TYPE.admin_USER_DELETED,
         userId
     });
     adminsWebSockets.forEach(ws => {
@@ -962,7 +958,7 @@ export function initUserBanChecker() {
         adminsWebSockets.forEach(ws => {
             unbannedUserList.forEach(user => {
                 const payload = JSON.stringify({
-                    type: 'admin/BAN_EXPIRED',
+                    type: WS_MESSAGES_TYPE.admin_BAN_EXPIRED,
                     ...user
                 })
                 ws.send(payload);

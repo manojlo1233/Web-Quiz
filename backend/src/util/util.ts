@@ -1,6 +1,8 @@
 import crypto from 'crypto';
 import { userSessions } from '../websockets/matchmaking.ws';
 
+
+
 export function generateSessionToken(): string {
     return crypto.randomBytes(32).toString('hex');
 }

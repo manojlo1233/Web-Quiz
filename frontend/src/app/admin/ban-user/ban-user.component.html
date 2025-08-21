@@ -1,5 +1,5 @@
 <div class="modal-window">
-    <label class="hdr">Ban user until</label>
+    <label class="hdr">Ban user {{user.username}} until</label>
     <div style="display: flex; flex-direction: row; gap: 5px; align-items: center;">
         <input #banDateRef (change)="checkDate()" class="date-input" type="text" placeholder="Select ban date..."
             appDatepicker [(ngModel)]="banDate" (dateSelected)="banDateSelected($event)">

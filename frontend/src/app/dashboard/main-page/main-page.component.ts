@@ -240,7 +240,8 @@ export class MainPageComponent implements OnInit, OnDestroy {
           this.wsService.sendBattleDecline(this.user.id, f.friendId);
         }
       })
-      this.handleWsMessage(resp);
+      this.matchStateService.setCurrentMatch(resp);
+      this.router.navigate(['/quiz/loading-screen'])
     })
     // --------- BATTLE REQUESTS ---------
     this.battleRequestSub = this.wsService.battleRequest$.subscribe((resp: any) => {
@@ -450,13 +451,6 @@ export class MainPageComponent implements OnInit, OnDestroy {
       `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
   }
 
-  handleWsMessage(msg: WSMatchFoundMsg) {
-    if (msg.type === 'battle/MATCH_FOUND') {
-      this.matchStateService.setCurrentMatch(msg);
-      this.router.navigate(['/quiz/loading-screen'])
-    }
-  }
-
   handleFriendTabClick(num: number) {
     this.friendsTab = num;
     switch (this.friendsTab) {
@@ -641,8 +635,10 @@ export class MainPageComponent implements OnInit, OnDestroy {
   }
 
   handleLeaderboardCategoryClick(cat: string): void {
-    this.leaderBoardCategory = cat;
-    this.getLeaderboard();
+    if (this.leaderBoardCategory !== cat) {
+      this.leaderBoardCategory = cat;
+      this.getLeaderboard();
+    }
   }
 
   handleRefreshLeaderboardClick(): void {

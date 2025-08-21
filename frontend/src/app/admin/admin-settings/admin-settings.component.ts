@@ -489,6 +489,7 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
   }
 
   addCategory() {
+    if (this.newCategoryText === "") return;
     this.confirmService.showCustomConfirm(`Are you sure you want to add "${this.newCategoryText}" category?`, () => {
       this.adminService.addCategory(this.newCategoryText).subscribe({
         next: (resp: any) => {

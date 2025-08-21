@@ -40,6 +40,44 @@ export class WebsocketService {
   // BROADCAST
   public refreshFriendsStatus$ = new Subject<void>();
 
+  // MSG TYPES
+  private WS_MESSAGES_TYPE = {
+    USER_SUBSCRIBE: 0,
+    USER_ADMIN_SUBSCRIBE: 1,
+    battle_JOIN_QUEUE: 2,
+    battle_RELAX_QUEUE: 3,
+    battle_LEAVE_QUEUE: 4,
+    battle_MATCH_FOUND: 5,
+    battle_READY: 6,
+    battle_READY_STATUS: 7,
+    battle_MATCH_CANCELLED: 8,
+    battle_DECLINE: 9,
+    battle_MATCH_DECLINED: 10,
+    battle_MATCH_START: 11,
+    battle_PLAYER_ENTERED_BATTLE: 12,
+    battle_ANSWER: 13,
+    battle_ANSWER_SUMMARY: 14,
+    battle_NEW_QUESTION: 15,
+    battle_CHAT_MESSAGE: 16,
+    battle_LEAVE_BATTLE: 17,
+    battle_OVERTIME: 18,
+    battle_START_OVERTIME: 19,
+    battle_USER_ACTION: 20,
+    battle_MATCH_FINISHED: 21,
+    friends_BATTLE_REQUEST: 22,
+    friends_BATTLE_WITHDRAW: 23,
+    friends_BATTLE_AUTO_WITHDRAW: 24,
+    friends_BATTLE_ACCEPT: 25,
+    friends_BATTLE_DECLINE: 26,
+    friends_REFRESH: 27,
+    broadcast_REFRESH_FRIENDS: 28,
+    admin_USER_BANNED: 29,
+    admin_USER_UNBANNED: 30,
+    admin_USER_DELETED: 31,
+    admin_BAN_EXPIRED: 32,
+    admin_USERS_ONLINE: 33,
+  }
+
   connect(): void {
     const sessionToken = sessionStorage.getItem('sessionToken');
     this.socket = new WebSocket(`ws://localhost:3000?token=${sessionToken}`);
@@ -53,70 +91,70 @@ export class WebsocketService {
       const data = JSON.parse(event.data);
       switch (data.type) {
         // -------------- BATTLE --------------
-        case 'battle/MATCH_FOUND':
+        case this.WS_MESSAGES_TYPE.battle_MATCH_FOUND:
           this.startQuiz$.next(data);
           break;
-        case 'battle/READY_STATUS':
+        case this.WS_MESSAGES_TYPE.battle_READY_STATUS:
           this.readyStatus$.next({ username: data.username, matchId: data.matchid });
           break;
-        case 'battle/MATCH_START':
+        case this.WS_MESSAGES_TYPE.battle_MATCH_START:
           this.matchStart$.next(data);
           break;
-        case 'battle/MATCH_DECLINED':
+        case this.WS_MESSAGES_TYPE.battle_MATCH_DECLINED:
           this.matchDeclined$.next(data);
           break;
-        case 'battle/MATCH_CANCELLED':
+        case this.WS_MESSAGES_TYPE.battle_MATCH_CANCELLED:
           this.matchCancelled$.next();
           break;
-        case 'battle/NEW_QUESTION':
+        case this.WS_MESSAGES_TYPE.battle_NEW_QUESTION:
           this.newQuestion$.next(data);
           break;
-        case 'battle/ANSWER_SUMMARY':
+        case this.WS_MESSAGES_TYPE.battle_ANSWER_SUMMARY:
           this.answerSummary$.next(data);
           break;
-        case 'battle/CHAT_MESSAGE':
+        case this.WS_MESSAGES_TYPE.battle_CHAT_MESSAGE:
           this.chatMessage$.next({ username: data.from, message: data.message, time: data.time });
           break;
-        case 'battle/MATCH_FINISHED':
+        case this.WS_MESSAGES_TYPE.battle_MATCH_FINISHED:
           this.matchFinished$.next(data);
           break;
-        case 'friends/REFRESH':
+        case this.WS_MESSAGES_TYPE.friends_REFRESH:
           this.refreshFriends$.next({ userId: data.userId, action: data.action });
           break;
-        case 'friends/BATTLE_REQUEST':
+        case this.WS_MESSAGES_TYPE.friends_BATTLE_REQUEST:
           this.battleRequest$.next(data);
           break;
-        case 'friends/BATTLE_DECLINE':
+        case this.WS_MESSAGES_TYPE.friends_BATTLE_DECLINE:
           this.battleDecline$.next(data);
           break;
-        case 'friends/BATTLE_WITHDRAW':
+        case this.WS_MESSAGES_TYPE.friends_BATTLE_WITHDRAW:
           this.battleWithdraw$.next(data);
           break;
-        case 'friends/BATTLE_AUTO_WITHDRAW':
+        case this.WS_MESSAGES_TYPE.friends_BATTLE_AUTO_WITHDRAW:
           this.battleAutoWithdraw$.next(data);
           break;
-        case 'broadcast/REFRESH_FRIENDS':
+        case this.WS_MESSAGES_TYPE.broadcast_REFRESH_FRIENDS:
           this.refreshFriendsStatus$.next();
           break;
-        case 'battle/OVERTIME':
+        case this.WS_MESSAGES_TYPE.battle_OVERTIME:
           this.battleReadyOvertime$.next();
           break;
-        case '/battle/USER_ACTION':
+        case this.WS_MESSAGES_TYPE.battle_USER_ACTION:
           this.battleUserAction$.next(data);
           break;
-        case 'admin/USERS_ONLINE':
+        case this.WS_MESSAGES_TYPE.admin_USERS_ONLINE:
           this.adminUsersOnline$.next(data);
           break;
-        case 'admin/USER_BANNED':
+        case this.WS_MESSAGES_TYPE.admin_USER_BANNED:
           this.adminUserBanned$.next({ userId: data.userId, banned_until: data.banned_until });
           break;
-        case 'admin/USER_UNBANNED':
+        case this.WS_MESSAGES_TYPE.admin_USER_UNBANNED:
           this.adminUserUnbanned$.next(data);
           break;
-        case 'admin/USER_DELETED':
+        case this.WS_MESSAGES_TYPE.admin_USER_DELETED:
           this.adminUserDeleted$.next(data);
           break;
-        case 'admin/BAN_EXPIRED':
+        case this.WS_MESSAGES_TYPE.admin_BAN_EXPIRED:
           this.adminBanExpired$.next(data);
           break;
       }
@@ -141,71 +179,71 @@ export class WebsocketService {
   }
 
   sendHelloAsAdmin(id: number, username: string): void {
-    this.send({ type: 'USER_ADMIN_SUBSCRIBE', id, username });
+    this.send({ type: this.WS_MESSAGES_TYPE.USER_ADMIN_SUBSCRIBE, id, username });
   }
 
   sendHello(id: number, username: string): void {
-    this.send({ type: 'USER_SUBSCRIBE', id, username });
+    this.send({ type: this.WS_MESSAGES_TYPE.USER_SUBSCRIBE, id, username });
   }
 
   joinMatchmaking(userId: number, username: string, category: string, score: number): void {
-    this.send({ type: 'battle/JOIN_QUEUE', userId, username, category, score });
+    this.send({ type: this.WS_MESSAGES_TYPE.battle_JOIN_QUEUE, userId, username, category, score });
   }
 
   relaxMatchmaking(userId: number, username: string, category: string, score: number): void {
-    this.send({ type: 'battle/RELAX_QUEUE', userId, username, category, score });
+    this.send({ type: this.WS_MESSAGES_TYPE.battle_RELAX_QUEUE, userId, username, category, score });
   }
 
   cancelMatchmaking(username: string): void {
-    this.send({ type: 'battle/LEAVE_QUEUE', username });
+    this.send({ type: this.WS_MESSAGES_TYPE.battle_LEAVE_QUEUE, username });
   }
 
   sendReady(matchId: string, username: string): void {
-    this.send({ type: 'battle/READY', matchId, username });
+    this.send({ type: this.WS_MESSAGES_TYPE.battle_READY, matchId, username });
   }
 
   sendDecline(matchId: string, username: string): void {
-    this.send({ type: 'battle/DECLINE', matchId, username });
+    this.send({ type: this.WS_MESSAGES_TYPE.battle_DECLINE, matchId, username });
   }
 
   sendEnterBattle(matchId: string, username: string) {
-    this.send({ type: 'battle/PLAYER_ENTERED_BATTLE', matchId, username });
+    this.send({ type: this.WS_MESSAGES_TYPE.battle_PLAYER_ENTERED_BATTLE, matchId, username });
   }
 
   sendBattleAnswer(matchId: string, username: string, answer: string, responseTime: number) {
-    this.send({ type: 'battle/ANSWER', matchId, username, answer, responseTime });
+    this.send({ type: this.WS_MESSAGES_TYPE.battle_ANSWER, matchId, username, answer, responseTime });
   }
 
   sendChatMessage(matchId: string, username: string, message: string, time: string) {
-    this.send({ type: 'battle/CHAT_MESSAGE', matchId, username, message, time });
+    this.send({ type: this.WS_MESSAGES_TYPE.battle_CHAT_MESSAGE, matchId, username, message, time });
   }
 
   sendBattleRequest(userId: number, friendId: number) {
-    this.send({ type: 'friends/BATTLE_REQUEST', userId, friendId });
+    this.send({ type: this.WS_MESSAGES_TYPE.friends_BATTLE_REQUEST, userId, friendId });
   }
 
   sendBattleWithdraw(userId: number, friendId: number) {
-    this.send({ type: 'friends/BATTLE_WITHDRAW', userId, friendId });
+    this.send({ type: this.WS_MESSAGES_TYPE.friends_BATTLE_WITHDRAW, userId, friendId });
   }
 
   sendBattleAccept(userId: number, friendId: number) {
-    this.send({ type: 'friends/BATTLE_ACCEPT', userId, friendId });
+    this.send({ type: this.WS_MESSAGES_TYPE.friends_BATTLE_ACCEPT, userId, friendId });
   }
 
   sendBattleDecline(userId: number, friendId: number) {
-    this.send({ type: 'friends/BATTLE_DECLINE', userId, friendId });
+    this.send({ type: this.WS_MESSAGES_TYPE.friends_BATTLE_DECLINE, userId, friendId });
   }
 
   sendLeaveBattle(matchId: number, playerLeftId: number) {
-    this.send({ type: 'battle/LEAVE_BATTLE', matchId, playerLeftId });
+    this.send({ type: this.WS_MESSAGES_TYPE.battle_LEAVE_BATTLE, matchId, playerLeftId });
   }
 
   sendStartOvertime(matchId: number, username: string) {
-    this.send({ type: 'battle/START_OVERTIME', matchId, username });
+    this.send({ type: this.WS_MESSAGES_TYPE.battle_START_OVERTIME, matchId, username });
   }
 
   sendAction(matchId: number, userId: number, action: number, questionId: number) {
-    this.send({ type: 'battle/USER_ACTION', matchId, userId, action, questionId })
+    this.send({ type: this.WS_MESSAGES_TYPE.battle_USER_ACTION, matchId, userId, action, questionId })
   }
 
   close(): void {

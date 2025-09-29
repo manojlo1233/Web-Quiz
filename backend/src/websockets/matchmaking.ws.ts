@@ -6,13 +6,12 @@ import { Match } from '../models/Match';
 import { QuizQuestion } from '../models/Quiz/QuizQuestion';
 import { QuizAnswer } from '../models/Quiz/QuizAnswer';
 import { BattleStatusMapper } from '../mappers/BattleStatusMapper';
-import { clearIntervalFromMap, findUserIdByToken } from '../util/util';
+import { clearIntervalFromMap } from '../util/util';
 import { ACTION_TYPE, WS_MESSAGES_TYPE } from '../util/types';
 import ranks from '../public/ranking/ranks.json'
+import { verifyAccess } from '../config/jwt';
 
 const categoryRankWaitingLists = new Map<string, Map<number, WebSocket[]>>();
-
-export const userSessions = new Map<string, string>();
 
 let adminsWebSockets: WebSocket[] = []; // ALL ACTIVE ADMINS USING ADMIN PAGE
 let usersWebSockets: WebSocket[] = []; // ALL ACTIVE USERS
@@ -44,14 +43,14 @@ export default function initWebSocketServer(server: Server) {
 
     wss.on('connection', (ws, req) => {
         const query = url.parse(req.url!, true).query;
-        const token = query.token as string;
-        const userId = findUserIdByToken(token);
-
-        if (!userId) {
+        const token = String(query.token || '');
+        try {
+            const payload = verifyAccess(token); 
+        } catch {
             ws.close();
             return;
         }
-
+        
         ws.on('message', async (message) => {
             const data = JSON.parse(message.toString());
             if (data.type === WS_MESSAGES_TYPE.USER_SUBSCRIBE) {
@@ -308,7 +307,16 @@ export default function initWebSocketServer(server: Server) {
             async function createMatch(p1: WebSocket, p2: WebSocket, category: string) {
                 const matchId = (await createMatchInDB(category)).toString();
 
-                let match: Match = new Match(matchId, p1, p2, (p1 as any).id, (p2 as any).id, (p1 as any).username, (p2 as any).username, category);
+                let match: Match = new Match(
+                    matchId,
+                    p1,
+                    p2,
+                    (p1 as any).id,
+                    (p2 as any).id,
+                    (p1 as any).username,
+                    (p2 as any).username,
+                    category
+                );
                 match.status = 'ready';
 
                 activeMatches.set(matchId, match);
@@ -318,7 +326,10 @@ export default function initWebSocketServer(server: Server) {
                         match.status = 'cancelled';
                         deleteMatchFromDB(match);
                         activeMatches.delete(match.matchId);
-                        const payload = JSON.stringify({ type: WS_MESSAGES_TYPE.battle_MATCH_CANCELLED })
+                        const payload = JSON.stringify(
+                            {
+                                type: WS_MESSAGES_TYPE.battle_MATCH_CANCELLED
+                            })
                         match.player1.sock.send(payload);
                         match.player2.sock.send(payload);
                     }
@@ -327,8 +338,20 @@ export default function initWebSocketServer(server: Server) {
 
                 matchStartTimeout.set(match.matchId, timeout);
 
-                p1.send(JSON.stringify({ type: WS_MESSAGES_TYPE.battle_MATCH_FOUND , opponent: match.player2.username, matchId, role: 'player1', startTimestamp: match.startTimestamp }));
-                p2.send(JSON.stringify({ type: WS_MESSAGES_TYPE.battle_MATCH_FOUND, opponent: match.player1.username, matchId, role: 'player2', startTimestamp: match.startTimestamp }));
+                const msg = {
+                    type: WS_MESSAGES_TYPE.battle_MATCH_FOUND,
+                    opponent: match.player2.username,
+                    matchId,
+                    role: 'player1',
+                    startTimestamp: match.startTimestamp
+                }
+
+                p1.send(JSON.stringify(msg));
+                p2.send(JSON.stringify({
+                    ...msg,
+                    opponent: match.player1.username,
+                    role: 'player2'
+                }));
             }
 
             async function createMatchInDB(category: string): Promise<number> {
@@ -351,7 +374,7 @@ export default function initWebSocketServer(server: Server) {
                 createQuizAttempts(match)
                 createBattle(match);
                 match.currentQuestionIndex = 0;
-                const payload = JSON.stringify({ type: WS_MESSAGES_TYPE.battle_MATCH_START , matchId: match.matchId })
+                const payload = JSON.stringify({ type: WS_MESSAGES_TYPE.battle_MATCH_START, matchId: match.matchId })
                 match.player1.sock.send(payload);
                 match.player2.sock.send(payload);
             }
@@ -786,8 +809,6 @@ export default function initWebSocketServer(server: Server) {
                         }
                     })
                 });
-                const userId: number = (ws as any).id;
-                userSessions.delete(userId.toString());
             }
             usersWebSockets = usersWebSockets.filter(sock => sock !== ws);
             adminsWebSockets = adminsWebSockets.filter(sock => sock !== ws);

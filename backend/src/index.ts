@@ -11,6 +11,8 @@ import path from 'path';
 import utilRouter from './routes/util.routes';
 import adminRouter from './routes/admin.routes';
 import { authenticate } from './middleware/authenticate';
+import cookieParser from 'cookie-parser';
+import { authRouter } from './routes/auth.routes';
 
 
 dotenv.config();        // Omogućava da koristimo npr. process.env.DB_HOST
@@ -22,10 +24,12 @@ app.use(cors({    // Dozvoljava cross-origin zahteve (npr. iz Angular aplikacije
   origin: '*'
 }));
 app.use(express.json());        // Omogućava da se šalje JSON u telu zahteva
+app.use(cookieParser());
 
 createConnection();         // Povezivanje sa bazom
 
 const router = express.Router();
+router.use('/auth', authRouter)
 router.use('/users', userRouter);
 router.use('/friends', friendsRouter);
 router.use('/quiz', quizRouter);
@@ -33,7 +37,6 @@ router.use('/util', utilRouter);
 router.use('/admin', adminRouter);
 
 app.use('/api', router);
-
 app.use('/static', express.static(path.join(__dirname, 'public')));
 
 const server = createServer(app);

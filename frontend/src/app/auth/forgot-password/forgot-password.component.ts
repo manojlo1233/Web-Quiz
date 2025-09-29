@@ -60,7 +60,7 @@ export class ForgotPasswordComponent implements OnInit {
     console.log(this.user)
     if (this.user) {
       this.authService.logoutUser().subscribe(res => {
-        sessionStorage.removeItem('sessionToken');
+        sessionStorage.removeItem('accessToken');
         this.router.navigate([''])
       })
     }

@@ -11,18 +11,19 @@ import {
     unbanUser,
     updateQuestion
 } from '../controllers/admin.controller';
+import { authenticate } from '../middleware/authenticate';
 
 const adminRouter = express.Router();
 
-adminRouter.get('/getAllUsers', getAllUsers);
-adminRouter.get('/getAllQuestions', getAllQuestions);
-adminRouter.post('/addQuestion', addQuestion);
-adminRouter.delete('/deleteQuestion/:questionId', deleteQuestion);
-adminRouter.delete('/deleteUser/:userId', deleteUser);
-adminRouter.post('/banUser', banUser);
-adminRouter.post('/unbanUser', unbanUser);
-adminRouter.post('/updateQuestion', updateQuestion)
-adminRouter.post('/addCategory', addCategory);
-adminRouter.delete('/deleteCategory/:categoryId', deleteCategory);
+adminRouter.get('/getAllUsers',authenticate, getAllUsers);
+adminRouter.get('/getAllQuestions',authenticate, getAllQuestions);
+adminRouter.post('/addQuestion',authenticate, addQuestion);
+adminRouter.delete('/deleteQuestion/:questionId',authenticate, deleteQuestion);
+adminRouter.delete('/deleteUser/:userId',authenticate, deleteUser);
+adminRouter.post('/banUser',authenticate, banUser);
+adminRouter.post('/unbanUser',authenticate, unbanUser);
+adminRouter.post('/updateQuestion',authenticate, updateQuestion)
+adminRouter.post('/addCategory',authenticate, addCategory);
+adminRouter.delete('/deleteCategory/:categoryId',authenticate, deleteCategory);
 
 export default adminRouter;

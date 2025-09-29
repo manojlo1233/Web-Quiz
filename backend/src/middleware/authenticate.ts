@@ -1,33 +1,22 @@
 import { Request, Response, NextFunction } from 'express';
-import { userSessions } from '../websockets/matchmaking.ws';
+import { verifyAccess } from '../config/jwt';
 
 export interface AuthenticatedRequest extends Request {
-    userId?: string;
+  user?: { id: string; role?: string };
 }
 
-export const authenticate = (req: Request, res: Response, next: NextFunction) => {
-    const authHeader = req.headers['authorization'];
-    
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-        res.status(401).json({ message: 'Missing or invalid Authorization header' });
-        return;
-    }
+export function authenticate(req: Request, res, next: NextFunction) {
+  const header = req.headers['authorization'];
+  if (!header?.startsWith('Bearer ')) {
+    return res.status(401).json({ message: 'Missing or invalid Authorization header' });
+  }
 
-    const token = authHeader.replace('Bearer ', '');
-
-    let matchedUserId: string | null = null;
-    for (const [userId, sessionToken] of userSessions.entries()) {
-        if (sessionToken === token) {
-            matchedUserId = userId;
-            break;
-        }
-    }
-
-    if (!matchedUserId) {
-        res.status(401).json({ message: 'Invalid or expired session token' });
-        return;
-    }
-
-    (req as AuthenticatedRequest).userId = matchedUserId;
-    next();
-};
+  const token = header.slice('Bearer '.length);
+  try {
+    const payload = verifyAccess(token);
+    (req as AuthenticatedRequest).user = { id: payload.sub, role: payload.role };
+    return next();
+  } catch {
+    return res.status(401).json({ message: 'Invalid or expired token' });
+  }
+}

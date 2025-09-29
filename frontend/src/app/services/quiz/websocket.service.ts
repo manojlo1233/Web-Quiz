@@ -75,12 +75,12 @@ export class WebsocketService {
     admin_USER_UNBANNED: 30,
     admin_USER_DELETED: 31,
     admin_BAN_EXPIRED: 32,
-    admin_USERS_ONLINE: 33,
+    admin_USERS_ONLINE: 33
   }
 
   connect(): void {
-    const sessionToken = sessionStorage.getItem('sessionToken');
-    this.socket = new WebSocket(`ws://localhost:3000?token=${sessionToken}`);
+    const accessToken = sessionStorage.getItem('accessToken');
+    this.socket = new WebSocket(`ws://localhost:3000?token=${accessToken}`);
 
     this.socket.onopen = () => {
       this.connectionOpen$.next();
@@ -168,7 +168,7 @@ export class WebsocketService {
       this.error$.next('Error connecting to server websocket connection');
     }
   }
-
+  
   private send(data: any): void {
     if (this.socket && this.socket.readyState === WebSocket.OPEN) {
       this.socket.send(JSON.stringify(data));
@@ -185,9 +185,16 @@ export class WebsocketService {
   sendHello(id: number, username: string): void {
     this.send({ type: this.WS_MESSAGES_TYPE.USER_SUBSCRIBE, id, username });
   }
-
+  
   joinMatchmaking(userId: number, username: string, category: string, score: number): void {
-    this.send({ type: this.WS_MESSAGES_TYPE.battle_JOIN_QUEUE, userId, username, category, score });
+    this.send(
+      { 
+        type: this.WS_MESSAGES_TYPE.battle_JOIN_QUEUE,
+        userId,
+        username,
+        category,
+        score 
+      });
   }
 
   relaxMatchmaking(userId: number, username: string, category: string, score: number): void {

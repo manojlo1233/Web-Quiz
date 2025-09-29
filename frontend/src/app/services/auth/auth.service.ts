@@ -14,7 +14,7 @@ export class AuthService {
     private urlService: UrlService,
     private wsService: WebsocketService
   ) {
-    this.url = `${urlService.url}/users`;
+    this.url = `${urlService.url}/auth`;
   }
 
   loginUser(userNameOrEmail: string, password: string): Observable<any> {

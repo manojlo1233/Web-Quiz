@@ -14,7 +14,7 @@ export class ResetPasswordComponent implements OnInit {
   confPassword = '';
   success = false;
 
-  sessionToken: string;
+  accessToken: string;
 
   constructor(
     private router: Router,
@@ -24,7 +24,7 @@ export class ResetPasswordComponent implements OnInit {
 
   ngOnInit(): void {
     this.token = this.route.snapshot.paramMap.get('token');
-    this.sessionToken = sessionStorage.getItem('sessionToken');
+    this.accessToken = sessionStorage.getItem('accessToken');
   }
 
   onSubmit() {
@@ -39,9 +39,9 @@ export class ResetPasswordComponent implements OnInit {
   }
 
   goToLogin() {
-    if (this.sessionToken) {
+    if (this.accessToken) {
       this.authService.logoutUser().subscribe(res => {
-        sessionStorage.removeItem('sessionToken');
+        sessionStorage.removeItem('accessToken');
         this.router.navigate([''])
       })
     }

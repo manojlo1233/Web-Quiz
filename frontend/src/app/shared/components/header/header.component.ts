@@ -29,7 +29,7 @@ export class HeaderComponent {
 
   handleLogoutClick() {
     this.authService.logoutUser().subscribe(res => {
-      sessionStorage.removeItem('sessionToken');
+      sessionStorage.removeItem('accessToken');
       this.router.navigate([''])
     })
   }

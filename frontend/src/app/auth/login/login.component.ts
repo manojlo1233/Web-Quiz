@@ -32,7 +32,7 @@ export class LoginComponent implements OnInit {
         console.log(resp);
         sessionStorage.setItem('userId', resp.user.id);
         sessionStorage.setItem('userUsername', resp.user.username);
-        sessionStorage.setItem('sessionToken', resp.sessionToken);
+        sessionStorage.setItem('accessToken', resp.accessToken);
         this.router.navigate(['dashboard/main-page']);
       },
       error: (error: any) => {
